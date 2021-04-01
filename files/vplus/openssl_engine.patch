@@ -1,0 +1,13 @@
+--- a/etc/ssl/openssl.cnf	2020-11-28 19:51:16.090260443 +0800
++++ b/etc/ssl/openssl.cnf	2020-11-28 19:51:00.080227149 +0800
+@@ -29,8 +29,8 @@ engines=engines
+ 
+ [engines]
+ # To enable an engine, install the package, and uncomment it here:
+-#devcrypto=devcrypto
+-#afalg=afalg
++devcrypto=devcrypto
++afalg=afalg
+ #padlock=padlock
+ 
+ [afalg]

@@ -1,0 +1,25 @@
+#!/bin/sh /etc/rc.common
+START=50
+
+NAME=cpufreq
+
+uci_get_by_type() {
+	local ret=$(uci get $NAME.@$1[0].$2 2>/dev/null)
+	echo ${ret:=$3}
+}
+
+start()
+{
+	config_load cpufreq
+	local governor=$(uci_get_by_type settings governor schedutil)
+	local minifreq=$(uci_get_by_type settings minifreq 1000000)
+	local maxfreq=$(uci_get_by_type settings  maxfreq  2208000)
+
+        cd /sys/devices/system/cpu/cpufreq
+	D=$(ls -d policy*)
+	for d in $D; do
+	    echo $governor > /sys/devices/system/cpu/cpufreq/${d}/scaling_governor
+  	    echo $minifreq > /sys/devices/system/cpu/cpufreq/${d}/scaling_min_freq
+	    echo $maxfreq > /sys/devices/system/cpu/cpufreq/${d}/scaling_max_freq
+        done
+}

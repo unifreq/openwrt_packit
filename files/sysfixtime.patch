@@ -1,0 +1,18 @@
+--- a/etc/init.d/sysfixtime	2020-10-26 15:09:35.562417714 +0800
++++ b/etc/init.d/sysfixtime	2020-10-26 15:10:39.134569379 +0800
+@@ -6,6 +6,7 @@ STOP=90
+ 
+ RTC_DEV=/dev/rtc0
+ HWCLOCK=/sbin/hwclock
++FIX_CPU_FREQ=/usr/sbin/fixcpufreq.pl
+ 
+ boot() {
+ 	start && exit 0
+@@ -17,6 +18,7 @@ boot() {
+ 
+ start() {
+ 	[ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
++	[ -x "$FIX_CPU_FREQ" ] && "$FIX_CPU_FREQ"
+ }
+ 
+ stop() {

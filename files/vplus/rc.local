@@ -1,0 +1,5 @@
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+opkg remove --force-removal-of-dependent-packages shairport-sync-openssl
+/usr/bin/mk_newpart.sh 1>/dev/null 2>&1
+exit 0

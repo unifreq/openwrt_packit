@@ -1,0 +1,9 @@
+snd_soc_meson_audio_core
+snd_soc_simple_card_utils
+snd_soc_simple_card
+snd_soc_meson_aiu_i2s
+snd_soc_meson_card_utils
+snd_soc_meson_gx_sound_card
+snd_soc_meson_aiu
+snd_soc_meson_codec_glue
+snd_soc_meson_t9015

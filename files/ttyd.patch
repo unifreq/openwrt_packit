@@ -1,0 +1,13 @@
+--- ttyd.orig	2019-12-11 22:56:50.318595442 +0800
++++ ttyd	2019-12-11 22:55:53.842625449 +0800
+@@ -6,7 +6,9 @@ SERVICE_DAEMONIZE=1
+ 
+ start() {
+ 	logger -t TTYD 'Starting ttyd service'
+-	service_start /usr/bin/ttyd -i br-lan /bin/login
++	IF=br-lan
++	ifconfig $IF >/dev/null 2>&1 || IF=eth0
++	service_start /usr/bin/ttyd -i $IF /bin/login
+ 	return 0
+ }
+ 

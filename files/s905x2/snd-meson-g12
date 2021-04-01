@@ -1,0 +1,11 @@
+snd_soc_meson_card_utils
+snd_soc_meson_axg_sound_card
+snd_soc_meson_codec_glue
+snd_soc_meson_g12a_tohdmitx
+snd_soc_meson_axg_tdm_interface
+snd_soc_meson_axg_tdm_formatter
+snd_soc_meson_axg_fifo
+snd_soc_meson_axg_frddr
+snd_soc_meson_axg_tdmout
+snd_soc_meson_axg_spdifout
+snd_soc_spdif_tx

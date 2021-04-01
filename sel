@@ -1,0 +1,12 @@
+#!/bin/bash
+
+sel=$1
+if [ "$sel" == "" ];then
+	echo "Usage: $0  <select>"
+	exit
+fi
+
+if [ -f src${sel}/openwrt-armvirt-64-default-rootfs.tar.gz ];then
+	ln -sf src${sel}/openwrt-armvirt-64-default-rootfs.tar.gz .
+fi
+
