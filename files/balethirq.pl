@@ -3,6 +3,8 @@
 use strict;
 our %irq_map;
 our %cpu_map;
+our %min_cpu_map;
+our %uniq_eth_cpu_map;
 our $all_cpu_mask = 0;
 
 &read_config();
@@ -22,6 +24,7 @@ sub read_config {
 		chomp;
 		my($name, $value) = split;
 		my @cpus = split(',', $value);
+		my $min_cpu = 9;
 
 		foreach my $cpu (@cpus) {
 		    if($cpu > $cpu_count) {
@@ -29,9 +32,13 @@ sub read_config {
 		    } elsif($cpu < 1) {
 			$cpu = 1;
 		    }
+		    if($min_cpu > $cpu) {
+                        $min_cpu = $cpu;
+		    }
 		}
 
 		$cpu_map{$name} = \@cpus;
+		$min_cpu_map{$name} = $min_cpu;
 	}	
     	close $fh;
     } 
@@ -50,7 +57,6 @@ sub get_cpu_count {
 	    }
     }
     close $fh;
-    $all_cpu_mask = sprintf("%0x", $all_cpu_mask);
     return $count;
 }
 
@@ -66,6 +72,11 @@ sub read_irq_data {
 
 	    if(exists $cpu_map{$name}) {
 		$irq_map{$name} = $irq;
+		if($name =~ m/\Aeth[0-9]\Z/) {
+		    $uniq_eth_cpu_map{$name} = $min_cpu_map{$name};
+		} elsif($name =~ m/\Axhci-hcd:usb[1-9]\Z/) { # usb extend eth1
+		    $uniq_eth_cpu_map{eth1} = $min_cpu_map{$name};
+		}
 	    }
     }
     close $fh;
@@ -119,8 +130,9 @@ sub enable_eth_rps_rfs {
         if(-d "/sys/class/net/${eth}/queues/rx-0") {
 	    my $value = 4096;
             $rps_sock_flow_entries += $value;
+	    my $eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask - $uniq_eth_cpu_map{$eth});
 	    open my $fh, ">", "/sys/class/net/${eth}/queues/rx-0/rps_cpus" or die;
-	    print $fh $all_cpu_mask;
+	    print $fh $eth_cpu_mask_hex;
 	    close $fh;
 
 	    open $fh, ">", "/sys/class/net/${eth}/queues/rx-0/rps_flow_cnt" or die;
@@ -128,7 +140,7 @@ sub enable_eth_rps_rfs {
 	    close $fh;
 
 	    open my $fh, ">", "/sys/class/net/${eth}/queues/tx-0/xps_cpus" or die;
-	    print $fh $all_cpu_mask;
+	    print $fh $eth_cpu_mask_hex;
 	    close $fh;
 
             &tunning_eth_ring($eth) if ($eth ne "eth0");

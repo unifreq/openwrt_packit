@@ -385,7 +385,7 @@ fi
 if [ -f $SSL_CNF_PATCH ];then
     patch -p1 < $SSL_CNF_PATCH
 fi
-if [ -f $DOCKERD_PATCH ];then
+if [ -f etc/init.d/dockerd ] && [ -f $DOCKERD_PATCH ];then
     patch -p1 < $DOCKERD_PATCH
 fi
 
