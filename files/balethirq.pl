@@ -73,9 +73,9 @@ sub read_irq_data {
 	    if(exists $cpu_map{$name}) {
 		$irq_map{$name} = $irq;
 		if($name =~ m/\Aeth[0-9]\Z/) {
-		    $uniq_eth_cpu_map{$name} = $min_cpu_map{$name};
+		    $uniq_eth_cpu_map{$name} = 1 << ($min_cpu_map{$name} - 1);
 		} elsif($name =~ m/\Axhci-hcd:usb[1-9]\Z/) { # usb extend eth1
-		    $uniq_eth_cpu_map{eth1} = $min_cpu_map{$name};
+		    $uniq_eth_cpu_map{eth1} =  1 << ($min_cpu_map{$name} - 1);
 		}
 	    }
     }
@@ -131,6 +131,7 @@ sub enable_eth_rps_rfs {
 	    my $value = 4096;
             $rps_sock_flow_entries += $value;
 	    my $eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask - $uniq_eth_cpu_map{$eth});
+	    print "Set the rps cpu mask for $eth to 0x$eth_cpu_mask_hex\n";
 	    open my $fh, ">", "/sys/class/net/${eth}/queues/rx-0/rps_cpus" or die;
 	    print $fh $eth_cpu_mask_hex;
 	    close $fh;
