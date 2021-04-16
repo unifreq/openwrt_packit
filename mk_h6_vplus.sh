@@ -11,19 +11,25 @@ source make.env
 SOC=h6
 BOARD=vplus
 SUBVER=$1
-LNX_IMG="/opt/imgs/Armbian_20.10_VPlus_buster_${KERNEL_VERSION}.img"
 
 SKIP_MB=16
 BOOT_MB=160
 ROOTFS_MB=720
 
-# +o OR + flag
-if echo $KERNEL_VERSION | grep -E '*\+$';then
-    SFE_FLAG=1
-    FLOWOFFLOAD_FLAG=0
-else
-    SFE_FLAG=0
-    FLOWOFFLOAD_FLAG=1
+MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-allwinner-${KERNEL_VERSION}.tar.gz
+if [ ! -f ${MODULES_TGZ} ];then
+	echo "${MODULES_TGZ} not exists!"
+	exit 1
+fi
+if [ ! -f ${BOOT_TGZ} ];then
+	echo "${BOOT_TGZ} not exists!"
+	exit 1
+fi
+if [ ! -f ${DTBS_TGZ} ];then
+	echo "${DTBS_TGZ} not exists!"
+	exit 1
 fi
 
 # Openwrt 
@@ -39,11 +45,6 @@ elif [ ${FLOWOFFLOAD_FLAG} -eq 1 ];then
     fi
 fi
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
-
-# not used
-# BOOT_TGZ="/opt/kernel/boot-${KERNEL_VERSION}.tar.gz"
-# MODULES_TGZ="/opt/kernel/modules-${KERNEL_VERSION}.tar.gz"
-###################################################################
 
 # Target Image
 TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}.img"
@@ -98,6 +99,10 @@ JQ="${PWD}/files/jq"
 
 # 20210330 add
 DOCKERD_PATCH="${PWD}/files/dockerd.patch"
+
+# 20200416 add
+FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
+BOOTFILES_HOME="${PWD}/files/bootfiles/allwinner"
 ####################################################################
 
 # work dir
@@ -107,23 +112,13 @@ rm -rf $TEMP_DIR
 mkdir -p $TEMP_DIR
 echo $TEMP_DIR
 
+losetup -D
+
 # temp dir
 cd $TEMP_DIR
-LINUX_ROOT=armbian_root
-mkdir $LINUX_ROOT
-
-# mount & tar xf
-losetup -D
-losetup -f -P $LNX_IMG
-SRC_DEV=$(losetup | grep "$LNX_IMG" | head -n 1 | gawk '{print $1}')
-echo "source dev is $SRC_DEV"
-sync
-mount -o ro ${SRC_DEV}p2 $LINUX_ROOT
-mount -o ro ${SRC_DEV}p1 $LINUX_ROOT/boot
 
 # mk tgt_img
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
-
 echo "DISK SIZE = $SIZE MB"
 dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE
 losetup -f -P $TGT_IMG
@@ -166,32 +161,38 @@ mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
 echo "extract openwrt rootfs ... "
 (
   cd $TGT_ROOT && \
-  tar xzf $OPWRT_ROOTFS_GZ && \
+  tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf $OPWRT_ROOTFS_GZ && \
   rm -rf ./lib/firmware/* ./lib/modules/* && \
   mkdir -p .reserved boot rom proc sys run
 )
 
-echo "extract armbian rootfs ... "
-cd $TEMP_DIR/$LINUX_ROOT && \
-	tar cf - ./etc/armbian* ./etc/default/armbian* ./etc/default/cpufreq* ./lib/init ./lib/lsb ./lib/firmware ./usr/lib/armbian | (cd ${TGT_ROOT}; tar xf -)
-
+echo "extract armbian firmware ... "
+( 
+  cd ${TGT_ROOT} && \
+  tar xJf $FIRMWARE_TXZ
+)
+  
 echo "extract kernel modules ... "
-cd $TEMP_DIR/$LINUX_ROOT
-#if [ -f "${MODULES_TGZ}" ];then
-#	(cd ${TGT_ROOT}/lib/modules; tar xvzf "${MODULES_TGZ}")
-#else
-	tar cf - ./lib/modules | ( cd ${TGT_ROOT}; tar xf - )
-#fi
+( 
+  cd ${TGT_ROOT} && \
+  mkdir -p lib/modules && \
+  cd lib/modules && \
+  tar xzf ${MODULES_TGZ}
+)
 
-echo "extract boot ... "
-# extract boot
-cd $TEMP_DIR/$LINUX_ROOT/boot
-#if [ -f "${BOOT_TGZ}" ];then
-#	( cd $TGT_BOOT; tar xvzf "${BOOT_TGZ}" )
-#else
-tar cf - . | (cd $TGT_BOOT; tar xf - )
-#; find ./dtb -name 'rk3328-beikeyun*.dtb' -exec cp -v {} . \; ;[ -f rk3328-beikeyun.dtb ] || ln -s rk3328-beikeyun-1296mhz.dtb rk3328-beikeyun.dtb; [ -f rk3328-beikeyun-oc.dtb ] || ln -s rk3328-beikeyun-1392mhz.dtb rk3328-beikeyun-oc.dtb)
-#fi
+echo "extract boot files ... "
+( 
+  cd ${TGT_BOOT} && \
+  cp -v "${BOOTFILES_HOME}"/* . && \
+  tar xzf "${BOOT_TGZ}" && \
+  rm -f initrd.img-${KERNEL_VERSION} && \
+  cp -v vmlinuz-${KERNEL_VERSION} zImage && \
+  cp -v uInitrd-${KERNEL_VERSION} uInitrd && \
+  mkdir -p dtb/allwinner && \
+  cd dtb/allwinner && \
+  tar xzf "${DTBS_TGZ}" && \
+  sync
+)
 
 echo "modify boot ... "
 # modify boot
@@ -288,7 +289,6 @@ if [ -f etc/init.d/dockerd ] && [ -f $DOCKERD_PATCH ];then
     patch -p1 < $DOCKERD_PATCH
 fi
 
-[ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
 [ -d overlay ] || mkdir -p overlay
@@ -393,6 +393,9 @@ EOF
 # 强制锁定fstab,防止用户擅自修改挂载点
 chattr +ia ./etc/config/fstab
 
+[ -f ./usr/bin/sslocal ] && mv ./usr/bin/sslocal ./usr/bin/sslocal-untest
+[ -f ./etc/docker-init ] && rm -f ./etc/docker-init
+
 # 写入版本信息
 cat > ./etc/flippy-openwrt-release <<EOF
 SOC=${SOC}
@@ -446,7 +449,7 @@ fi
 
 # clean temp_dir
 cd $TEMP_DIR
-umount -f $LINUX_ROOT/boot $LINUX_ROOT $TGT_ROOT $TGT_BOOT
+umount -f $TGT_ROOT $TGT_BOOT
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
 echo "镜像已生成!"

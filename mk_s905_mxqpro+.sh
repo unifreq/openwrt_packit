@@ -14,23 +14,24 @@ BOARD=mxq-pro+
 
 SUBVER=$1
 
-# Armbian 源文件
-LNX_IMG="/opt/imgs/Armbian_20.10_Aml-s9xxx_buster_${KERNEL_VERSION}.img"
-# not used
-# BOOT_TGZ="/opt/kernel/boot-${KERNEL_VERSION}.tar.gz"
-# MODULES_TGZ="/opt/kernel/modules-${KERNEL_VERSION}.tar.gz"
+MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-amlogic-${KERNEL_VERSION}.tar.gz
+if [ ! -f ${MODULES_TGZ} ];then
+	echo "${MODULES_TGZ} not exists!"
+	exit 1
+fi
+if [ ! -f ${BOOT_TGZ} ];then
+	echo "${BOOT_TGZ} not exists!"
+	exit 1
+fi
+if [ ! -f ${DTBS_TGZ} ];then
+	echo "${DTBS_TGZ} not exists!"
+	exit 1
+fi
 ###########################################################################
 
 # Openwrt root 源文件
-# +o OR + flag
-if echo $KERNEL_VERSION | grep -E '*\+$';then
-    SFE_FLAG=1
-    FLOWOFFLOAD_FLAG=0
-else
-    SFE_FLAG=0
-    FLOWOFFLOAD_FLAG=1
-fi
-
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
 if [ $SFE_FLAG -eq 1 ];then
@@ -112,6 +113,7 @@ CPUFREQ_INIT="${PWD}/files/s905/cpufreq"
 # 20210302 modify
 FIP_HOME="${PWD}/files/meson_btld/with_fip/s905"
 UBOOT_WITH_FIP="${FIP_HOME}/n1-u-p201.bin.sd.bin"
+UBOOT_WITHOUT_FIP_HOME="${PWD}/files/meson_btld/without_fip"
 UBOOT_WITHOUT_FIP="u-boot-p201.bin"
 
 # 20210208 add
@@ -124,16 +126,16 @@ JQ="${PWD}/files/jq"
 
 # 20210330 add
 DOCKERD_PATCH="${PWD}/files/dockerd.patch"
+
+# 20200416 add
+FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
+BOOTFILES_HOME="${PWD}/files/bootfiles/amlogic"
+GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
 ###########################################################################
 
 # 检查环境
 if [ $(id -u) -ne 0 ];then
 	echo "这个脚本需要用root用户来执行，你好象不是root吧？"
-	exit 1
-fi
-
-if [ ! -f "$LNX_IMG" ];then
-	echo "Armbian镜像: ${LNX_IMG} 不存在, 请检查!"
 	exit 1
 fi
 
@@ -193,17 +195,7 @@ echo $TEMP_DIR
 
 # temp dir
 cd $TEMP_DIR
-LINUX_BOOT=armbian_boot
-LINUX_ROOT=armbian_root
-mkdir $LINUX_BOOT $LINUX_ROOT
-
-# mount & tar xf
-echo "挂载 Armbian 镜像 ... "
 losetup -D
-losetup -f -P $LNX_IMG
-BLK_DEV=$(losetup | grep "$LNX_IMG" | head -n 1 | gawk '{print $1}')
-mount -o ro ${BLK_DEV}p1 $LINUX_BOOT
-mount -o ro ${BLK_DEV}p2 $LINUX_ROOT
 
 # 创建空白镜像文件
 echo "创建空白的目标镜像文件 ..."
@@ -250,34 +242,43 @@ mkdir $TGT_BOOT $TGT_ROOT
 mount -t vfat ${TGT_DEV}p1 $TGT_BOOT
 mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
 
-# extract boot
-echo "boot 文件解包 ... "
-cd $TEMP_DIR/$LINUX_BOOT 
-#if [ -f "${BOOT_TGZ}" ];then
-#	( cd $TGT_BOOT; tar xvzf "${BOOT_TGZ}" )
-#else
-	tar cf - . | (cd $TGT_BOOT; tar xf - )
-#fi
-
+# extract root
 echo "openwrt 根文件系统解包 ... "
 (
   cd $TGT_ROOT && \
-	  tar xzf $OPWRT_ROOTFS_GZ && \
-	  rm -rf ./lib/firmware/* ./lib/modules/* && \
-	  mkdir -p .reserved boot rom proc sys run
+  tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf $OPWRT_ROOTFS_GZ && \
+  rm -rf ./lib/firmware/* ./lib/modules/* && \
+  mkdir -p .reserved boot rom proc sys run
 )
 
-echo "Armbian 根文件系统解包 ... "
-cd $TEMP_DIR/$LINUX_ROOT && \
-	tar cf - ./etc/armbian* ./etc/default/armbian* ./etc/default/cpufreq* ./lib/init ./lib/lsb ./lib/firmware ./usr/lib/armbian | (cd ${TGT_ROOT}; tar xf -)
-
+echo "Armbian firmware 解包 ... "
+( 
+  cd ${TGT_ROOT} && \
+  tar xJf $FIRMWARE_TXZ
+)
+  
 echo "内核模块解包 ... "
-cd $TEMP_DIR/$LINUX_ROOT
-#if [ -f "${MODULES_TGZ}" ];then
-#	(cd ${TGT_ROOT}/lib/modules; tar xvzf "${MODULES_TGZ}")
-#else
-	tar cf - ./lib/modules | ( cd ${TGT_ROOT}; tar xf - )
-#fi
+( 
+  cd ${TGT_ROOT} && \
+  mkdir -p lib/modules && \
+  cd lib/modules && \
+  tar xzf ${MODULES_TGZ}
+)
+
+echo "boot 文件解包 ... "
+( 
+  cd ${TGT_BOOT} && \
+  cp -v "${BOOTFILES_HOME}"/* . && \
+  tar xzf "${BOOT_TGZ}" && \
+  rm -f initrd.img-${KERNEL_VERSION} && \
+  cp -v vmlinuz-${KERNEL_VERSION} zImage && \
+  cp -v uInitrd-${KERNEL_VERSION} uInitrd && \
+  cp -v ${UBOOT_WITHOUT_FIP_HOME}/* . && \
+  mkdir -p dtb/amlogic && \
+  cd dtb/amlogic && \
+  tar xzf "${DTBS_TGZ}" && \
+  sync
+)
 
 while :;do
 	lsblk -l -o NAME,PATH,UUID 
@@ -307,15 +308,15 @@ FDT=/dtb/amlogic/meson-gxbb-mxq-pro-plus.dtb
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 
-# 替换dtb文件
-[ "$REPLACE_DTB" == "y" ] && [ -f "$DTB_FILE" ] && cp "$DTB_FILE" ./dtb/amlogic/
-
 echo "uEnv.txt --->"
 cat uEnv.txt
 
 # 5.10以后的内核，需要增加u-boot重载
 if [ $K510 -eq 1 ];then
 	cp -fv ${UBOOT_WITHOUT_FIP} u-boot.ext
+	rm -f u-boot.sd u-boot.usb
+else
+	rm -f u-boot*.bin
 fi
 
 echo "修改根文件系统相关配置 ... "
@@ -391,6 +392,7 @@ fi
 
 [ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
+[ -f ${GET_RANDOM_MAC} ] && cp ${GET_RANDOM_MAC} usr/bin/
 [ -d boot ] || mkdir -p boot
 [ -d overlay ] || mkdir -p overlay
 [ -d rom ] || mkdir -p rom
@@ -479,6 +481,9 @@ chattr +ia ./etc/config/fstab
 echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
+[ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
+[ -f ./etc/docker-init ] && rm -f ./etc/docker-init
+
 mkdir -p ./etc/modprobe.d
 cat > ./etc/modprobe.d/99-local.conf <<EOF
 blacklist snd_soc_meson_aiu_i2s
@@ -559,7 +564,7 @@ if [ -f "$REGULATORY_DB" ];then
 fi
 
 cd brcm
-source $TGT_ROOT/usr/lib/armbian/armbian-common
+source ${GET_RANDOM_MAC}
 
 # gtking/gtking pro 采用 bcm4356 wifi/bluetooth 模块
 get_random_mac
@@ -588,7 +593,7 @@ patch -p0 < ${CPUSTAT_PATCH}
 
 # clean temp_dir
 cd $TEMP_DIR
-umount -f $LINUX_BOOT $LINUX_ROOT $TGT_BOOT $TGT_ROOT 
+umount -f $TGT_BOOT $TGT_ROOT 
 
 # 写入完整的 u-boot 到 镜像文件
 if [ -f ${UBOOT_WITH_FIP} ];then
