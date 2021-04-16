@@ -1,0 +1,39 @@
+LINUX=/zImage
+INITRD=/uInitrd
+
+# 下列 dtb，用到哪个就把哪个的#删除，其它的则加上 # 在行首
+# Phicomm N1 
+FDT=/dtb/amlogic/meson-gxl-s905d-phicomm-n1.dtb
+# Phicomm N1 (thresh)
+#FDT=/dtb/amlogic/meson-gxl-s905d-phicomm-n1-thresh.dtb
+
+# 章鱼星球
+#FDT=/dtb/amlogic/meson-gxm-octopus-planet.dtb
+
+# X96 Max (S905X2)
+#FDT=/dtb/amlogic/meson-g12a-x96-max.dtb
+
+# 用于 X96 Max+ (S905X3 网卡工作于 100m)
+#FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
+# 用于 X96 Max+ (S905X3 网卡工作于 1000M)
+#FDT=/dtb/amlogic/meson-sm1-x96-max-plus.dtb
+# 用于 X96 Max+ (S905X3 网卡工作于 1000M) 超频
+#FDT=/dtb/amlogic/meson-sm1-x96-max-plus-oc.dtb
+
+# 用于 HK1 BoX (S905X3 网卡工作于 1000M)
+#FDT=/dtb/amlogic/meson-sm1-hk1box-vontar-x3.dtb
+# 用于 HK1 BoX (S905X3 网卡工作于 1000M) 超频
+#FDT=/dtb/amlogic/meson-sm1-hk1box-vontar-x3-oc.dtb
+
+# 用于 H96 Max X3 (S905X3 网卡工作于 1000M)
+#FDT=/dtb/amlogic/meson-sm1-h96-max-x3.dtb
+# 用于 H96 Max X3 (S905X3 网卡工作于 1000M) 超频
+#FDT=/dtb/amlogic/meson-sm1-h96-max-x3-oc.dtb
+
+# 用于 Beelink GT-King
+#FDT=/dtb/amlogic/meson-g12b-gtking.dtb
+
+# 用于 Beelink GT-King Pro
+#FDT=/dtb/amlogic/meson-g12b-gtking-pro.dtb
+
+APPEND=root=LABEL=ROOTFS rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1

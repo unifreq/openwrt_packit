@@ -1,0 +1,8 @@
+verbosity=7
+overlay_prefix=rockchip
+rootdev=/dev/mmcblk0p3
+rootfstype=btrfs
+rootflags=compress=zstd
+extraargs=usbcore.autosuspend=-1
+extraboardargs=
+fdtfile=/dtb/rockchip/rk3328-l1pro-1392mhz.dtb
