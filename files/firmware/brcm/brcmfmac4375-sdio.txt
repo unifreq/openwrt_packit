@@ -1,0 +1,322 @@
+# AP6271S_NVRAM_V1.0_20181106_1100
+# AP6271S v00 DVT WLBGA reference board, iPA version.
+# SSID generated using Alberto's boardssid.py script:
+# ********************SUMMARY********************
+# Board Name: AP6271S
+#SSID: 0x086d
+#macmid: 0x02df
+# Successfully made SSID entry in sromdefs.tcl.
+# Successfully made macmid entry in sromdefs.tcl.
+# Successfully made SSID entry in tblssid.py.
+# *************************************************
+# $ Copyright Broadcom $
+#
+#
+# <<Broadcom-WL-IPTag/Proprietary:>>
+NVRAMRev=$Rev: 506283 $
+sromrev=11
+boardrev=0x1200
+boardtype=0x086c
+#eLNA  0x10000000      ;# has an external LNA in 5GHz band 
+#eLNA  0x00001000      ;# has an external LNA in 2.4GHz band
+#iLNA
+boardflags=0x00400201
+boardflags2=0xc0800000
+boardflags3=0x40000180
+#boardnum=57410
+macaddr=00:90:4c:12:d0:01
+jtag_irw=38
+
+#Regulatory specific
+ccode=0
+regrev=0
+
+# Board specific
+vendid=0x14e4
+devid=0x4490
+manfid=0x2d0
+antswitch=0
+pdgain5g=0
+pdgain2g=0
+aa2g=3
+aa5g=3
+agbg0=2
+agbg1=2
+aga0=2
+aga1=2
+extpagain2g=2
+extpagain5g=2
+rxgains2gelnagaina0=2
+rxgains2gtrisoa0=6
+rxgains2gtrelnabypa0=1
+rxgains5gelnagaina0=2
+rxgains5gtrisoa0=6
+rxgains5gtrelnabypa0=1
+rxgains5gmelnagaina0=2
+rxgains5gmtrisoa0=6
+rxgains5gmtrelnabypa0=1
+rxgains5ghelnagaina0=2
+rxgains5ghtrisoa0=7
+rxgains5ghtrelnabypa0=1
+rxgains2gelnagaina1=2
+rxgains2gtrisoa1=6
+rxgains2gtrelnabypa1=1
+rxgains5gelnagaina1=2
+rxgains5gtrisoa1=6
+rxgains5gtrelnabypa1=1
+rxgains5gmelnagaina1=2
+rxgains5gmtrisoa1=6
+rxgains5gmtrelnabypa1=1
+rxgains5ghelnagaina1=2
+rxgains5ghtrisoa1=7
+rxgains5ghtrelnabypa1=1
+
+#RSSI related
+# 2G
+rssicorrnorm_c0=2,2
+rssicorrnorm_c1=2,2
+# 5G
+rssicorrnorm5g_c0=3,3,3,3,3,3,3,3,3,3,3,3
+rssicorrnorm5g_c1=1,1,1,1,1,1,1,1,1,1,1,1
+
+
+#Two range TSSI
+tworangetssi2g=0
+tworangetssi5g=0
+lowpowerrange2g=0
+lowpowerrange5g=0
+low_adc_rate_en=1
+# NOTE :================================================================================
+# To run TPC with Two Range TSSI ,set  tworangetssi2g = 1 and lowpowerrange2g = 0
+# To run TPC with Single Range TSSI, set tworangetssi2g = 0
+# To run TPC please READ instructions near pa2ga0 and pa2ga1 as well
+# To generate PA params for Low Range set  tworangetssi2g = 0 and lowpowerrange2g to 1
+# To generate PA params for High Range set  tworangetssi2g = 1 and lowpowerrange2g to 1
+# ======================================================================================
+
+#Related to FW Download. Host may use this
+nocrc=1
+#FIXME:4369 otpimagesize? Check with Pranay
+otpimagesize=502
+
+xtalfreq=37400
+
+txchain=3
+rxchain=3
+
+cckdigfilttype=2
+
+#bit mask for slice capability bit 0:2G bit 1:5G
+bandcap=3
+
+#TXBF Related
+rpcal2g=0
+rpcal5gb0=0
+rpcal5gb1=0
+rpcal5gb2=0
+rpcal5gb3=0
+
+
+#FDSS Related
+fdss_level_2g=4,4
+fdss_interp_en=1
+fdss_level_5g=3,3
+
+#Tempsense Related
+tempthresh=255
+tempoffset=0
+rawtempsense=0x1ff
+phycal_tempdelta=15
+temps_period=15
+temps_hysteresis=15
+
+#------------- TSSI Related -------------
+#FIXME:4369 Always 1 do we really need it?
+tssipos2g=1
+tssipos5g=1
+AvVmid_c0=2,127,4,92,4,91,4,91,4,94
+AvVmid_c1=2,127,4,93,4,93,4,95,3,110
+# If Two Range is set to 1 please uncomment the following two lines
+# and comment the lines after "High Power and Low Power below"
+# TWO RANGE TSSI/TPC
+# High Power or CCK in case of multi mode 2
+pa2ga0=-89,7692,-816
+pa2ga1=-127,6897,-754
+# Low Power or OFDM in case of multi_mode 2
+pa2gccka0=41,11365,-1171
+pa2gccka1=17,10825,-1120
+# High Power
+pa5ga0=-124,6355,-749,-78,6817,-772,-140,6275,-752,-163,6067,-734
+pa5ga1=-115,6460,-722,-121,6423,-722,-147,6015,-720,-148,6609,-757
+# Low Power
+pa5ga2=-50,7202,-796,93,8717,-851,-64,7003,-777,67,7850,-797
+pa5ga3=-86,6714,-749,-90,6820,-778,-99,6653,-784,183,9587,-955
+
+# Max power and offsets
+maxp2ga0=86
+maxp2ga1=84
+maxp5ga0=80,80,80,80
+maxp5ga1=82,82,79,82
+subband5gver=0x4
+paparambwver=3
+cckpwroffset0=0
+cckpwroffset1=-3
+pdoffset40ma0=0x4433
+pdoffset80ma0=0x3232
+pdoffset40ma1=0x2333
+pdoffset80ma1=0x1222
+cckbw202gpo=0x2200
+cckbw20ul2gpo=0
+mcsbw202gpo=0xEC444332
+mcsbw402gpo=0xEC444332
+dot11agofdmhrbw202gpo=0x4433
+ofdmlrbw202gpo=0x0022
+mcsbw205glpo=0xC7664320
+mcsbw405glpo=0x66433240
+mcsbw805glpo=0x88666442
+mcsbw1605glpo=0
+mcsbw205gmpo=0xC6664320
+mcsbw405gmpo=0x66433240
+mcsbw805gmpo=0x88666442
+mcsbw1605gmpo=0
+mcsbw205ghpo=0xC7664320
+mcsbw405ghpo=0x66433240
+mcsbw805ghpo=0x88666442
+mcsbw202gpo0=0x6644
+mcsbw202gpo1=0xAA88
+powoffs2gtna0=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
+powoffs2gtna1=-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
+#slice/1/pdoffsetcckma0=1
+#slice/1/pdoffsetcckma1=1
+mcs1024qam2gpo=0xCCCC
+mcs1024qam5glpo=0xEECCCC
+mcs1024qam5gmpo=0xEECCCC
+mcs1024qam5ghpo=0xEECCCC
+mcs1024qam5gx1po=0xEECCCC
+mcs1024qam5gx2po=0xEECCCC
+mcs8poexp=0
+mcs9poexp=0
+mcs10poexp=0
+
+# 5G power offset per channel for band edge channel
+powoffs5g20mtna0=0,0,0,0,0,0,0
+powoffs5g20mtna1=0,0,0,0,0,0,0
+powoffs5g40mtna0=0,0,0,0,0
+powoffs5g40mtna1=0,0,0,0,0
+powoffs5g80mtna0=0,0,0,0,0
+powoffs5g80mtna1=0,0,0,0,0
+mcs11poexp=0
+
+#LTE Coex Related
+ltecxmux=0
+ltecxpadnum=0x0504
+ltecxfnsel=0x44
+ltecxgcigpio=0x04
+#OOB params
+#device_wake_opt=1
+#host_wake_opt=0
+
+# SWCTRL Related
+
+swctrlmap_2g=0x10101010,0x06030401,0x04011010,0x000000,0x3FF
+swctrlmapext_2g=0x00000000,0x00000000,0x00000000,0x000000,0x000
+swctrlmap_5g=0x80408040,0x21240120,0x01208040,0x000000,0x3FF
+swctrlmapext_5g=0x00000000,0x00000000,0x00000000,0x000000,0x000
+clb2gslice0core0=0x01b
+clb2gslice1core0=0x000
+clb5gslice0core0=0x064
+clb5gslice1core0=0x000
+clb2gslice0core1=0x056
+clb2gslice1core1=0x000
+clb5gslice0core1=0x0a1
+clb5gslice1core1=0x000
+btc_prisel_ant_mask=0x2
+clb_swctrl_smask_ant0=0x27f
+clb_swctrl_smask_ant1=0x2f7
+
+#BT Coex 1:TDM
+btc_mode=1
+
+# --- PAPD Cal related params ----
+txwbpapden=0 # 0:NBPAPD 1:WBPAPD
+# NB PAPD Cal params
+nb_eps_offset=470,470
+nb_bbmult=66,66
+nb_papdcalidx=6,6
+nb_txattn=2,2
+nb_rxattn=1,1
+nb_eps_stopidx=63
+epsilonoff_5g20_c0=0,0,0,0
+epsilonoff_5g40_c0=0,0,0,0
+epsilonoff_5g80_c0=0,0,0,0
+epsilonoff_5g20_c1=0,0,0,0
+epsilonoff_5g40_c1=0,0,0,0
+epsilonoff_5g80_c1=0,0,0,0
+epsilonoff_2g20_c0=0
+epsilonoff_2g20_c1=0
+#WB papd cal params
+#params are - 0x5g2g
+#slice/1/wb_rxattn=0x0101
+#slice/1/wb_txattn=0x0404
+#slice/1/wb_papdcalidx=0x1405
+#slice/1/wb_papdcalidx_core1=0x1404
+#slice/1/wb_bbmult=0x4040
+#slice/1/wb_bbmult_core1=0x4040
+#slice/1/wb_calref_db=0x2828
+#slice/1/wb_calref_db_core1=0x1a1a
+#slice/1/wb_tia_gain_mode=0x0006
+#slice/1/wb_tia_gain_mode_core1=0x0006
+#slice/1/wb_txbuf_offset=0x1820
+#slice/1/wb_txbuf_offset_core1=0x1823
+#slice/1/wb_frac_del=0x4B0F
+#slice/1/wb_frac_del_core1=0x4B2D
+#slice/1/wb_eps_offset=432
+#slice/1/wb_eps_offset_core1=430
+
+#wb_papdcalidx=0x0202
+#wb_papdcalidx=0x0404
+#wb_txbuf_offset=0x2020
+#wb_calref_db=0x1616
+#wb_frac_del=0x1a1a
+#wb_eps_offset=0x1c201c3
+#wb_bbmult=0x6664
+#wb_bbmult=0x4848
+#wb_eps_offset_core1=438
+
+# energy detect threshold
+ed_thresh2g=-63
+ed_thresh5g=-63
+# energy detect threshold for EU
+eu_edthresh2g=-63
+eu_edthresh5g=-63
+
+#rpcal coef for imptxbf
+rpcal5gb0=238
+rpcal5gb1=228
+rpcal5gb2=222
+rpcal5gb3=229
+rpcal2g=15
+
+# ocl is disabled temporarily due to some issues.
+#ocl=1
+ocl=0
+bt_coex_chdep_div=1
+
+# OLPC Related
+disable_olpc=0
+olpc_thresh5g=32
+olpc_anchor5g=40
+olpc_thresh2g=32
+olpc_anchor2g=40
+
+
+# ###########  BTC Dynctl profile params  ############
+# flags:bit0 - dynctl enabled, bit1 dynamic desense, bit2 dynamic mode, bit 3 TX power control
+btcdyn_flags=0
+
+btcdyn_default_btc_mode=1
+btcdyn_msw_rows=0
+btcdyn_dsns_rows=0
+btc_params1007=100
+
+muxenab=0x10

@@ -116,7 +116,7 @@ UBOOT_WITHOUT_FIP_HOME="${PWD}/files/meson_btld/without_fip"
 UBOOT_WITHOUT_FIP="u-boot-gtkingpro.bin"
 
 # 20210208 add
-WIRELESS_CONFIG="${PWD}/files/s922x/wirelesssss"
+WIRELESS_CONFIG="${PWD}/files/s922x/wireless"
 
 # 20210307 add
 SS_LIB="${PWD}/files/ss-glibc/lib-glibc.tar.xz"
@@ -572,7 +572,11 @@ source ${GET_RANDOM_MAC}
 
 # gtking/gtking pro 采用 bcm4356 wifi/bluetooth 模块
 get_random_mac
+# wifi5 module AP6356S
 sed -e "s/macaddr=00:90:4c:1a:10:01/macaddr=${MACADDR}/" "brcmfmac4356-sdio.txt" > "brcmfmac4356-sdio.azw,gtking.txt"
+get_random_mac
+# wifi6 module AP6275S
+sed -e "s/macaddr=00:90:4c:12:d0:01/macaddr=${MACADDR}/" "brcmfmac4375-sdio.txt" > "brcmfmac4375-sdio.azw,gtking.txt"
 
 # Phicomm N1 采用 bcm43455 wifi/bluetooth 模块
 get_random_mac
