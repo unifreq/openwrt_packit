@@ -357,7 +357,9 @@ sleep 2
 umount -f /mnt/${EMMC_NAME}p3 2>/dev/null
 
 # 写入 boot 
-if [ $K510 -eq 0 ];then  # kernel version < 5.10
+#if [ $K510 -eq 0 ] || [ $FLASH_MAINLINE_UBOOT -eq 1 ];then  # kernel version < 5.10 or flash_mainline_uboot = 1
+# 新版本都可以写入 EMMC，不再需要 usb或tf卡启动
+if true;then 
 	# mount and copy
 	max_try=10
 	echo "等待 boot 文件系统挂载 ... "
