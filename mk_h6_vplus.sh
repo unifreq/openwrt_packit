@@ -393,7 +393,6 @@ EOF
 # 强制锁定fstab,防止用户擅自修改挂载点
 chattr +ia ./etc/config/fstab
 
-[ -f ./usr/bin/sslocal ] && mv ./usr/bin/sslocal ./usr/bin/sslocal-untest
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 
 # 写入版本信息

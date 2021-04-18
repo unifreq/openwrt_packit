@@ -485,7 +485,6 @@ chattr +ia ./etc/config/fstab
 echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
-[ -f ./usr/bin/sslocal ] && mv ./usr/bin/sslocal ./usr/bin/sslocal-untest
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 
 mkdir -p ./etc/modprobe.d

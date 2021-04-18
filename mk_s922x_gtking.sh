@@ -485,7 +485,6 @@ chattr +ia ./etc/config/fstab
 echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
-[ -f ./usr/bin/sslocal ] && mv ./usr/bin/sslocal ./usr/bin/sslocal-untest
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 
 mkdir -p ./etc/modprobe.d
@@ -509,7 +508,7 @@ done
 
 # 在高版本内核下， wifi模块目前问题太多，禁用
 #if [ $K510 -eq 1 ];then
-    mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+#    mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
 #fi
 
 # 默认禁用sfe
