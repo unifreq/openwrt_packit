@@ -230,7 +230,7 @@ if [ $BR_FLAG -eq 1 ];then
       cd /
       eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
     )
-    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
+    tar xmzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
     if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
 	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
 	    mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
