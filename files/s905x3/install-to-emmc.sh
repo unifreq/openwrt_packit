@@ -9,7 +9,7 @@ ROOT2=960
 TARGET_SHARED_FSTYPE=f2fs
 BACKUP_IMG="/root/bootloader_backup.img"
 FDTFILE="meson-sm1-x96-max-plus.dtb"
-UBOOT_OVERLOAD="u-boot-x96maxplus.bin"
+UBOOT_OVERLOAD="u-boot-ugoos-x3.bin"
 
 KERNEL_VERSION=$(uname -r)
 # 判断内核版本是否 >= 5.10
@@ -120,6 +120,9 @@ cat <<EOF
 5. H96 Max X3 (4G DDR) 普通版
 6. H96 Max X3 (4G DDR) 超频版
 
+7. Ugoos X3 (Cube/Pro/Plus) 普通版
+8. Ugoos X3 (Cube/Pro/Plus) 超频版
+
 0. 其它
 -------------------
 EOF
@@ -150,6 +153,14 @@ case $boxtype in
            ;;
         6) FDTFILE="meson-sm1-h96-max-x3-oc.dtb"
 	   MAINLINE_UBOOT="/lib/u-boot/h96maxx3-u-boot.bin.sd.bin"
+           U_BOOT_EXT=1
+           ;;
+        7) FDTFILE="meson-sm1-ugoos-x3.dtb"
+	   MAINLINE_UBOOT="/lib/u-boot/ugoos-x3-u-boot.bin.sd.bin"
+           U_BOOT_EXT=1
+           ;;
+        8) FDTFILE="meson-sm1-ugoos-x3-oc.dtb"
+	   MAINLINE_UBOOT="/lib/u-boot/ugoos-x3-u-boot.bin.sd.bin"
            U_BOOT_EXT=1
            ;;
 	0) cat <<EOF
