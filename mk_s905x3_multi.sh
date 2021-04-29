@@ -323,6 +323,12 @@ FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
 # 用于 H96 Max X3 (S905X3 网卡工作于 1000M) (超频至2208Mhz)
 #FDT=/dtb/amlogic/meson-sm1-h96-max-x3-oc.dtb
 
+# 用于 Ugoos X3 Cube/Pro/Pro (网卡工作于1000M)
+#FDT=/dtb/amlogic/meson-sm1-ugoos-x3.dtb
+
+# 用于 Ugoos X3 Cube/Pro/Pro (网卡工作于1000M) (超频至2208Mhz)
+#FDT=/dtb/amlogic/meson-sm1-ugoos-x3-oc.dtb
+
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 
@@ -603,6 +609,8 @@ sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt
 # HK1 Box 和 H96 Max X3 采用 bcm54339 wifi/bluetooth 模块
 get_random_mac
 sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.amlogic,sm1.txt"
+get_random_mac
+sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
 
 rm -f ${TGT_ROOT}/etc/bench.log
 cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
