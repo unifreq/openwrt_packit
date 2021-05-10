@@ -208,7 +208,7 @@ ln -sf ./dtb-${KERNEL_VERSION}/rockchip/rk3328-beikeyun*.dtb .
 cat > armbianEnv.txt <<EOF
 verbosity=7
 overlay_prefix=rockchip
-rootdev=/dev/mmcblk0p2
+rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
 rootflags=compress=zstd
 extraargs=usbcore.autosuspend=-1

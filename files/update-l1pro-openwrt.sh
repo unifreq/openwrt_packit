@@ -327,7 +327,7 @@ echo -n "Now update boot args ... "
 cat > armbianEnv.txt <<EOF
 verbosity=7
 overlay_prefix=rockchip
-rootdev=${NEW_ROOT_PATH}
+rootdev=UUID=${NEW_ROOT_UUID}
 rootfstype=btrfs
 rootflags=compress=zstd
 extraargs=usbcore.autosuspend=-1
