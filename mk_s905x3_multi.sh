@@ -515,6 +515,8 @@ echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
+[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
+[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
 
 mkdir -p ./etc/modprobe.d
 cat > ./etc/modprobe.d/99-local.conf <<EOF

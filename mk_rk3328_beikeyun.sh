@@ -406,6 +406,8 @@ EOF
 chattr +ia ./etc/config/fstab
 
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
+[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
+[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
 
 rm -f ./etc/bench.log
 cat >> ./etc/crontabs/root << EOF

@@ -396,6 +396,8 @@ EOF
 chattr +ia ./etc/config/fstab
 
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
+[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
+[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
 
 # 写入版本信息
 cat > ./etc/flippy-openwrt-release <<EOF
