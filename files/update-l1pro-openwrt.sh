@@ -186,7 +186,7 @@ COPY_SRC="root etc bin sbin lib opt usr www"
 echo "copy data ... "
 for src in $COPY_SRC;do
 	echo -n "copy $src ... "
-        (cd ${P2} && tar cf - $src) | tar mxf -
+        (cd ${P2} && tar cf - $src) | tar xf -
         sync
         echo "done"
 done
@@ -318,7 +318,7 @@ echo -n "remove old boot files ..."
 rm -rf *
 echo "done"
 echo -n "copy new boot files ... " 
-(cd ${P1} && tar cf - . ) | tar mxf -
+(cd ${P1} && tar cf - . ) | tar xf -
 sync
 echo "done"
 echo

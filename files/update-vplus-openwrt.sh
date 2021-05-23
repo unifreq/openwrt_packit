@@ -185,7 +185,7 @@ COPY_SRC="root etc bin sbin lib opt usr www"
 echo "copy data ... "
 for src in $COPY_SRC;do
 	echo -n "copy $src ... "
-        (cd ${P2} && tar cf - $src) | tar mxf -
+        (cd ${P2} && tar cf - $src) | tar xf -
         sync
         echo "done"
 done
@@ -230,18 +230,22 @@ if [ $BR_FLAG -eq 1 ];then
       cd /
       eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
     )
-    tar xmzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
+    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
     if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
 	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
 	    mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
     fi
-    if grep 'config qbittorrent' ./etc/config/qbittorrent; then
+    if grep 'config qbittorrent' ./etc/config/qbittorrent 2>/dev/null; then
 	rm -f ./etc/config/qbittorrent.orig
     else
 	mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
     fi
-    sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
-    sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
+    if [ -f ./etc/config/dockerman ];then
+        sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+    fi
+    if [ -f ./etc/config/verysync ];then
+        sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
+    fi
     sync
     echo "done"
     echo
@@ -340,7 +344,7 @@ echo -n "remove old boot files ..."
 rm -rf *
 echo "done"
 echo -n "copy new boot files ... " 
-(cd ${P1} && tar cf - . ) | tar mxf -
+(cd ${P1} && tar cf - . ) | tar xf -
 sync
 echo "done"
 echo

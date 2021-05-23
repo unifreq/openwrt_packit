@@ -522,7 +522,7 @@ COPY_SRC="root etc bin sbin lib opt usr www"
 echo "复制数据 ... "
 for src in $COPY_SRC;do
     echo -n "复制 $src ... "
-    (cd ${P2} && tar cf - $src) | tar mxf -
+    (cd ${P2} && tar cf - $src) | tar xf -
     sync
     echo "完成"
 done

@@ -241,6 +241,9 @@ mkdir $TGT_BOOT $TGT_ROOT
 mount -t vfat ${TGT_DEV}p1 $TGT_BOOT
 mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
 
+echo "创建 /etc 子卷 ..."
+btrfs subvolume create $TGT_ROOT/etc
+
 # extract root
 echo "openwrt 根文件系统解包 ... "
 (
