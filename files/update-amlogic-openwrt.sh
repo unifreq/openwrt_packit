@@ -414,8 +414,10 @@ for entry in $ENTRYS;do
 done
 echo
 
+echo "创建 etc 子卷 ..."
+btrfs subvolume create etc
 echo -n "创建文件夹 ... "
-mkdir -p .reserved bin boot dev etc lib opt mnt overlay proc rom root run sbin sys tmp usr www
+mkdir -p .snapshots .reserved bin boot dev lib opt mnt overlay proc rom root run sbin sys tmp usr www
 ln -sf lib/ lib64
 ln -sf tmp/ var
 echo "完成"
@@ -431,6 +433,43 @@ for src in $COPY_SRC;do
 done
 
 SHFS="/mnt/mmcblk2p4"
+echo "修改配置文件 ... "
+rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
+rm -f ./etc/bench.log
+cat > ./etc/fstab <<EOF
+UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
+#tmpfs /tmp tmpfs defaults,nosuid 0 0
+EOF
+
+cat > ./etc/config/fstab <<EOF
+config global
+        option anon_swap '0'
+        option anon_mount '1'
+        option auto_swap '0'
+        option auto_mount '1'
+        option delay_root '5'
+        option check_fs '0'
+
+config mount
+        option target '/overlay'
+        option uuid '${NEW_ROOT_UUID}'
+        option enabled '1'
+        option enabled_fsck '1'
+        option fstype 'btrfs'
+        option options 'compress=zstd'
+
+config mount
+        option target '/boot'
+        option label '${BOOT_LABEL}'
+        option enabled '1'
+        option enabled_fsck '0'
+        option fstype 'vfat'
+                
+EOF
+
+echo "创建初始 etc 快照 -> .snapshots/etc-000"
+btrfs subvolume snapshot -r etc .snapshots/etc-000
 
 [ -d ${SHFS}/docker ] || mkdir -p ${SHFS}/docker
 rm -rf opt/docker && ln -sf ${SHFS}/docker/ opt/docker
@@ -474,53 +513,17 @@ if [ $BR_FLAG -eq 1 ];then
     else
         mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
     fi
-    sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
-    sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
+    [ -f ./etc/config/dockerman ] && sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+    [ -f ./etc/config/verysync ] && sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
+
+    # 还原 fstab
+    cp -f .snapshots/etc-000/fstab ./etc/fstab
+    cp -f .snapshots/etc-000/config/fstab ./etc/config/fstab
     sync
     echo "完成"
     echo
 fi
 
-echo "修改配置文件 ... "
-rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
-rm -rf "./opt/docker" && ln -sf "${SHFS}/docker" "./opt/docker"
-cat > ./etc/fstab <<EOF
-UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
-LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
-#tmpfs /tmp tmpfs defaults,nosuid 0 0
-EOF
-
-cat > ./etc/config/fstab <<EOF
-config global
-        option anon_swap '0'
-        option anon_mount '1'
-        option auto_swap '0'
-        option auto_mount '1'
-        option delay_root '5'
-        option check_fs '0'
-
-config mount
-        option target '/overlay'
-        option uuid '${NEW_ROOT_UUID}'
-        option enabled '1'
-        option enabled_fsck '1'
-        option fstype 'btrfs'
-        option options 'compress=zstd'
-
-config mount
-        option target '/boot'
-        option label '${BOOT_LABEL}'
-        option enabled '1'
-        option enabled_fsck '0'
-        option fstype 'vfat'
-                
-EOF
-
-# 2021.04.01添加
-# 强制锁定fstab,防止用户擅自修改挂载点
-chattr +ia ./etc/config/fstab
-
-rm -f ./etc/bench.log
 cat >> ./etc/crontabs/root << EOF
 37 5 * * * /etc/coremark.sh
 EOF
@@ -554,6 +557,7 @@ if [ -x ./usr/sbin/balethirq.pl ];then
         sed -e "/exit/i\/usr/sbin/balethirq.pl" -i ./etc/rc.local
     fi
 fi
+
 mv ./etc/rc.local ./etc/rc.local.orig
 
 cat > ./etc/rc.local <<EOF
@@ -614,6 +618,13 @@ EOF
         sync
     fi
 fi
+echo "创建 etc 快照 -> .snapshots/etc-001"
+btrfs subvolume snapshot -r etc .snapshots/etc-001
+
+# 2021.04.01添加
+# 强制锁定fstab,防止用户擅自修改挂载点
+# 开启了快照功能之后，不再需要锁定fstab
+#chattr +ia ./etc/config/fstab
 
 cd ${WORK_DIR}
  

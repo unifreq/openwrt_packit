@@ -242,6 +242,9 @@ mkdir $TGT_BOOT $TGT_ROOT
 mount -t vfat ${TGT_DEV}p1 $TGT_BOOT
 mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
 
+echo "创建 /etc 子卷 ..."
+btrfs subvolume create $TGT_ROOT/etc
+
 # extract root
 echo "openwrt 根文件系统解包 ... "
 (
@@ -520,9 +523,6 @@ config mount
 	option fstype 'vfat'
 EOF
 
-# 2021.04.01添加
-# 强制锁定fstab,防止用户擅自修改挂载点
-chattr +ia ./etc/config/fstab
 echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
@@ -555,7 +555,7 @@ if [ $K510 -eq 1 ];then
 fi
 
 # 默认禁用sfe
-sed -e 's/option enabled '1'/option enabled '0'/' -i ./etc/config/sfe
+[ -f ./etc/config/sfe ] && sed -e 's/option enabled '1'/option enabled '0'/' -i ./etc/config/sfe
 
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 # +版内核，优先启用v2驱动, +o内核则启用v1驱动
@@ -634,6 +634,17 @@ EOF
 [ -f $CPUSTAT_PATCH ] && \
 cd $TGT_ROOT/usr/lib/lua/luci/view/admin_status && \
 patch -p0 < ${CPUSTAT_PATCH}
+
+# 创建 /etc 初始快照
+echo "创建初始快照: /etc -> /.snapshots/etc-000"
+cd $TGT_ROOT && \
+mkdir -p .snapshots && \
+btrfs subvolume snapshot -r etc .snapshots/etc-000
+
+# 2021.04.01添加
+# 强制锁定fstab,防止用户擅自修改挂载点
+# 开启了快照功能之后，不再需要锁定fstab
+#chattr +ia ./etc/config/fstab
 
 # clean temp_dir
 cd $TEMP_DIR

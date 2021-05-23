@@ -445,9 +445,11 @@ while [ $i -le $max_try ]; do
 		fi
 	else
 		echo "挂载成功"
-		echo -n "创建文件夹 ... "
 		cd /mnt/${EMMC_NAME}p2
-		mkdir -p bin boot dev etc lib opt mnt overlay proc rom root run sbin sys tmp usr www
+		echo -n "创建 etc 子卷 ..."
+                btrfs subvolume create etc
+		echo -n "创建文件夹 ... "
+		mkdir -p .snapshots .reserved bin boot dev lib opt mnt overlay proc rom root run sbin sys tmp usr www
 		ln -sf lib/ lib64
 		ln -sf tmp/ var
 		echo "完成"
@@ -507,9 +509,15 @@ config mount
         option fstype 'vfat'
 		
 EOF
+                echo -n "创建初始 etc 快照 -> .snapshots/etc-000"
+		cd /mnt/${EMMC_NAME}p2 && \
+		btrfs subvolume snapshot -r etc .snapshots/etc-000
+
 		# 2021.04.01添加
 		# 强制锁定fstab,防止用户擅自修改挂载点
-		chattr +ia fstab
+		# 开启了快照功能之后，不再需要锁定fstab
+	        # cd /mnt/${EMMC_NAME}p2/etc/config && \
+		#chattr +ia fstab
 
 		cd /
 		umount -f /mnt/${EMMC_NAME}p2

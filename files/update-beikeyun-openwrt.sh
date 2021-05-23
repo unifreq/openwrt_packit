@@ -157,7 +157,7 @@ fi
 
 # begin copy rootfs
 cd ${NEW_ROOT_MP}
-echo "Now start copy data from ${P2} to ${NEW_ROOT_MP} ..."
+echo "Start copy data from ${P2} to ${NEW_ROOT_MP} ..."
 ENTRYS=$(ls)
 for entry in $ENTRYS;do
 	if [ "$entry" == "lost+found" ];then
@@ -174,8 +174,10 @@ for entry in $ENTRYS;do
 done
 echo
 
+echo "create etc subvolume ..."
+btrfs subvolume create etc
 echo -n "make dirs ... "
-mkdir -p .reserved bin boot dev etc lib opt mnt overlay proc rom root run sbin sys tmp usr www
+mkdir -p .snapshots .reserved bin boot dev lib opt mnt overlay proc rom root run sbin sys tmp usr www
 ln -sf lib/ lib64
 ln -sf tmp/ var
 echo "done"
@@ -189,56 +191,9 @@ for src in $COPY_SRC;do
         sync
         echo "done"
 done
-[ -d /mnt/mmcblk0p4/docker ] || mkdir -p /mnt/mmcblk0p4/docker
-rm -rf opt/docker && ln -sf /mnt/mmcblk0p4/docker/ opt/docker
 
-if [ -f /mnt/${NEW_ROOT_NAME}/etc/config/AdGuardHome ];then
-	[ -d /mnt/mmcblk0p4/AdGuardHome/data ] || mkdir -p /mnt/mmcblk0p4/AdGuardHome/data
-      	if [ ! -L /usr/bin/AdGuardHome ];then
-		[ -d /usr/bin/AdGuardHome ] && \
-		cp -a /usr/bin/AdGuardHome/* /mnt/mmcblk0p4/AdGuardHome/
-
-	fi
-	ln -sf /mnt/mmcblk0p4/AdGuardHome /mnt/${NEW_ROOT_NAME}/usr/bin/AdGuardHome
-fi
-
-sync
-echo "copy done"
-echo
-
-BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
-if [ $BR_FLAG -eq 1 ];then
-    # restore old config files
-    OLD_RELEASE=$(grep "DISTRIB_REVISION=" /etc/openwrt_release | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    NEW_RELEASE=$(grep "DISTRIB_REVISION=" ./etc/uci-defaults/99-default-settings | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
-	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${NEW_RELEASE}
-    fi
-    mv ./etc/config/qbittorrent ./etc/config/qbittorrent.orig
-
-    echo -n "Now restore your old config files ... "
-    (
-      cd /
-      eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
-    )
-    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
-    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
-	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
-	    mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
-    fi
-    if grep 'config qbittorrent' ./etc/config/qbittorrent; then
-	rm -f ./etc/config/qbittorrent.orig
-    else
-	mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
-    fi
-    sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
-    sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
-    sync
-    echo "done"
-    echo
-fi
-
-echo "Now modify config files ... "
+SHFS="/mnt/mmcblk0p4"
+echo "Modify config files ... "
 if [ -x ./usr/sbin/balethirq.pl ];then
     if grep "balethirq.pl" "./etc/rc.local";then
 	echo "balance irq is enabled"
@@ -248,7 +203,7 @@ if [ -x ./usr/sbin/balethirq.pl ];then
     fi
 fi
 rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
-rm -rf "./opt/docker" && ln -sf "/mnt/mmcblk0p4/docker" "./opt/docker"
+rm -f ./etc/bench.log
 cat > ./etc/fstab <<EOF
 UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
 UUID=${BOOT_UUID} /boot ext4 defaults 0 2
@@ -281,11 +236,62 @@ config mount
                 
 EOF
 
-# 2021.04.01添加
-# 强制锁定fstab,防止用户擅自修改挂载点
-chattr +ia ./etc/config/fstab
+echo "create the first etc snapshot -> .snapshots/etc-000"
+btrfs subvolume snapshot -r etc .snapshots/etc-000
 
-rm -f ./etc/bench.log
+[ -d ${SHFS}/docker ] || mkdir -p ${SHFS}/docker
+rm -rf opt/docker && ln -sf ${SHFS}/docker/ opt/docker
+
+if [ -f /mnt/${NEW_ROOT_NAME}/etc/config/AdGuardHome ];then
+	[ -d ${SHFS}/AdGuardHome/data ] || mkdir -p ${SHFS}/AdGuardHome/data
+      	if [ ! -L /usr/bin/AdGuardHome ];then
+		[ -d /usr/bin/AdGuardHome ] && \
+		cp -a /usr/bin/AdGuardHome/* ${SHFS}/AdGuardHome/
+
+	fi
+	ln -sf ${SHFS}/AdGuardHome /mnt/${NEW_ROOT_NAME}/usr/bin/AdGuardHome
+fi
+
+sync
+echo "copy done"
+echo
+
+BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
+if [ $BR_FLAG -eq 1 ];then
+    # restore old config files
+    OLD_RELEASE=$(grep "DISTRIB_REVISION=" /etc/openwrt_release | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
+    NEW_RELEASE=$(grep "DISTRIB_REVISION=" ./etc/uci-defaults/99-default-settings | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
+    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
+	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${NEW_RELEASE}
+    fi
+    mv ./etc/config/qbittorrent ./etc/config/qbittorrent.orig
+
+    echo -n "Restore your old config files ... "
+    (
+      cd /
+      eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
+    )
+    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
+    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
+	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
+	    mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
+    fi
+    if grep 'config qbittorrent' ./etc/config/qbittorrent; then
+	rm -f ./etc/config/qbittorrent.orig
+    else
+	mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
+    fi
+    sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+    sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
+
+    # 还原 fstab
+    cp -f .snapshots/etc-000/fstab ./etc/fstab
+    cp -f .snapshots/etc-000/config/fstab ./etc/config/fstab
+    sync
+    echo "done"
+    echo
+fi
+
 cat >> ./etc/crontabs/root << EOF
 17 3 * * * /etc/coremark.sh
 EOF
@@ -310,9 +316,17 @@ if [ $BR_FLAG -eq 1 ];then
 fi
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
+echo "create the second etc snapshot -> .snapshots/etc-001"
+btrfs subvolume snapshot -r etc .snapshots/etc-001
+
+# 2021.04.01添加
+# 强制锁定fstab,防止用户擅自修改挂载点
+# 开启了快照功能之后，不再需要锁定fstab
+#chattr +ia ./etc/config/fstab
+
 cd ${WORK_DIR}
  
-echo "Now start copy data from ${P2} to /boot ..."
+echo "Start copy data from ${P2} to /boot ..."
 cd /boot
 echo -n "remove old boot files ..."
 rm -rf *
@@ -323,7 +337,7 @@ sync
 echo "done"
 echo
 
-echo -n "Now update boot args ... "
+echo -n "Update boot args ... "
 cat > armbianEnv.txt <<EOF
 verbosity=7
 overlay_prefix=rockchip

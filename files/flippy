@@ -1,6 +1,7 @@
 #!/bin/bash
 # flippy's openwrt tools
 
+SNAPSHOT_PRESTR=".snapshots/"
 BACKUP_DIR="/.reserved"
 BACKUP_FILE="${BACKUP_DIR}/openwrt_config.tar.gz"
 BACKUP_LIST='./etc/AdGuardHome.yaml \
@@ -64,40 +65,94 @@ elif dmesg | grep 'rockchip' >/dev/null 2>&1; then
 elif dmesg | grep 'sun50i-h6' >/dev/null 2>&1; then
     PLATFORM="allwinner"
 else
-   echo "Unknown platform, only support amlogic or rockchip or allwinner h6!"
+   echo "发现未知的平台，当前仅支持 amlogic, rockchip, allwinner H6 等 3 种平台!"
    exit 1
 fi
 
 backup() {
     cd /
-    echo -n "backup config files ... "
+    echo -n "备份配置文件 ... "
     [ -d "${BACKUP_DIR}" ] || mkdir -p "${BACKUP_DIR}"
     eval tar czf "${BACKUP_FILE}" "${BACKUP_LIST}" 2>/dev/null
     if [ -f "${BACKUP_FILE}" ];then
-        echo "done"
+        echo "成功"
         exit 0
     else
-        echo "failed!"
+        echo "失败!"
         exit 1
     fi
 }
 
 restore() {
     if [ -f "${BACKUP_FILE}" ];then
-	echo -n "restore config files ... "
+	echo -n "恢复配置文件 ... "
         cd /
         tar xzf "${BACKUP_FILE}"
-	echo "done"
+	echo "成功"
     else
-        echo "backup file: ${BACKUP_FILE} not found!"
+        echo "没找到备份文件: ${BACKUP_FILE}!"
         exit 1
+    fi
+}
+
+create_snapshot() {
+    snap_name=$(date +"%Y%m%d%H%M%S") 
+    (  cd /
+       chattr -ia etc/config/fstab
+       btrfs subvolume snapshot -r /etc "${SNAPSHOT_PRESTR}etc-${snap_name}"
+       if [ $? -eq 0 ];then
+  	   echo "快照创建成功: etc-${snap_name}"
+       else
+	   echo "快照创建失败！"
+       fi
+    )
+    read -p "按回车键返回" q
+}
+
+restore_snapshot() {
+    echo "下面是已存在的 etc 快照，请输入其中一个的名字"
+    echo "提示： etc-000 这是出厂初始配置"
+    echo "       etc-001 如果存在，则是从上个版本升级后的初始配置"
+    echo "-----------------------------------------------------------------------------------"
+    btrfs subvolume list -sr -t /
+    echo "-----------------------------------------------------------------------------------"
+    read -p "请输入要恢复的快照名字(只需要输入 ${SNAPSHOT_PRESTR} 之后的部分): " snap_name
+    if btrfs subvolume list -s -t / | grep "${SNAPSHOT_PRESTR}${snap_name}" > /dev/null;then
+	while :;do
+	    echo "一旦恢复快照，当前的 /etc 将全部被覆盖！"
+	    read -p "确定要恢复快照: $snap_name 吗? y/n [n] " yn
+	    case $yn in 
+		    y|Y)
+			    (
+			      cd /
+                              chattr -ia etc/config/fstab
+			      mv etc etc.backup
+                              btrfs subvolume snapshot ${SNAPSHOT_PRESTR}${snap_name} etc
+			      if [ $? -eq 0 ];then
+				 btrfs subvolume delete -c etc.backup
+				 echo "恢复成功，请输入 reboot 重启系统！"
+			      else
+				 rm -rf etc 
+				 mv etc.backup etc
+				 echo "恢复失败, etc 未发生任何变化!"
+			      fi
+		            )
+	   		    read -p "按回车建返回" q
+			    break
+			    ;;
+	              *)    break
+			    ;;
+	    esac
+        done
+    else
+	read -p "快照名字不正确，请重新运行程序！按回车键返回." q
     fi
 }
 
 gen_fstab() {
     ROOT_MSG=$(lsblk -l -o NAME,PATH,MOUNTPOINT,UUID,FSTYPE,LABEL | awk '$3 ~ /^\/$/ {print $0}')
     if [ "$ROOT_MSG" == "" ];then
-	echo "Get rootfs message failed!"
+	echo "获得 rootfs 信息失败!"
 	exit 1
     fi
 
@@ -155,8 +210,8 @@ EOF
 	option fstype '${BOOT_FSTYPE}'
            
 EOF
-    echo "/etc/config/fstab generated."
-    echo "please reboot"
+    echo "/etc/config/fstab 已生成完毕."
+    echo "请输入 reboot 命令重启系统"
     exit 0
 }
 
@@ -166,11 +221,13 @@ print_list() {
 }
 
 print_help() {
-    echo "Usage: $0  -b    (backup)"
-    echo "       $0  -r    (restore)"
-    echo "       $0  -p    (print backup list)"
-    echo "       $0  -g    (generate fstab)"
-    echo "       $0  -h    (help)"
+    echo "用法:  $0  -b    (备份)"
+    echo "       $0  -r    (恢复)"
+    echo "       $0  -p    (打印备份文件清单)"
+    echo "       $0  -g    (生成 fstab)"
+    echo "       $0  -B    (创建 etc 快照)"
+    echo "       $0  -R    (还原 etc 快照)"
+    echo "       $0  -h    (帮助)"
     exit 0
 }
 
@@ -179,17 +236,19 @@ menu() {
         clear
         cat <<EOF
 
-
+                 Flippy 的工具包
         -----------------------------------
-        |        b. backup                |
-        |        r. restore               |
-        |        p. print backup list     |
-        |        g. generate fstab        |
-        |        h. help                  |
-        |        q. quit                  |
+        |        b. 备份                  |
+        |        r. 恢复                  |
+        |        p. 打印备份清单          |
+        |        g. 生成 fstab            |
+        |        B. 创建 etc 快照         |
+        |        R. 还原 etc 快照         |
+        |        h. 帮助                  |
+        |        q. 退出                  |
         -----------------------------------
 EOF
-echo -ne "             please select: [ ]\b\b"
+echo -ne "             请选择: [ ]\b\b"
         read select
 	case $select in 
 	    b)  backup;;
@@ -197,6 +256,8 @@ echo -ne "             please select: [ ]\b\b"
 		gen_fstab;;
 	    p)  print_list;;
             g)  gen_fstab;;
+	    B)  create_snapshot;;
+	    R)  restore_snapshot;;
 	    h)  print_help;;
 	    q)  exit 0;;
 	esac
