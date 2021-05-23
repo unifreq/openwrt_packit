@@ -106,7 +106,50 @@ create_snapshot() {
 	   echo "快照创建失败！"
        fi
     )
+    read -p "按回车键退出" q
+    exit 0 
+}
+
+list_snapshot() {
+    echo "-----------------------------------------------------------------------------------"
+    btrfs subvolume list -srt /
+    echo "-----------------------------------------------------------------------------------"
     read -p "按回车键返回" q
+}
+
+delete_snapshot() {
+    echo "下面是已存在的 etc 快照，请输入其中一个的名字"
+    echo "提示： etc-000 这是出厂初始配置 (不可删除)"
+    echo "       etc-001 如果存在，则是从上个版本升级后的初始配置 (不可删除)"
+    echo "-----------------------------------------------------------------------------------"
+    btrfs subvolume list -sr -t /
+    echo "-----------------------------------------------------------------------------------"
+    read -p "请输入要删除的快照名字(只需要输入 ${SNAPSHOT_PRESTR} 之后的部分): " snap_name
+    if [ "$snap_name" == "etc-000" ] || [ "$snap_name" == "etc-001" ];then
+	 read -p "关键快照不可删除! 按回车键返回" q
+    else
+         if btrfs subvolume list -srt / | grep "${SNAPSHOT_PRESTR}${snap_name}" > /dev/null;then
+	     read -p "确定要删除 $snap_name 吗? y/n [n]" yn
+	     case $yn in 
+	         y|Y)
+		       (
+		          cd /
+		          btrfs subvolume delete -c ${SNAPSHOT_PRESTR}${snap_name} 
+		          if [ $? -eq 0 ];then
+		              echo "快照 ${snap_name} 已删除"
+			  else
+			      echo "快照 ${snap_name} 删除失败!"
+			  fi
+		        )
+	   	        read -p "按回车建返回." q
+			;;
+	           *)   break
+		        ;;
+	     esac
+         else
+	     read -p "快照名字不正确，按回车键返回." q
+	 fi
+    fi
 }
 
 restore_snapshot() {
@@ -114,10 +157,10 @@ restore_snapshot() {
     echo "提示： etc-000 这是出厂初始配置"
     echo "       etc-001 如果存在，则是从上个版本升级后的初始配置"
     echo "-----------------------------------------------------------------------------------"
-    btrfs subvolume list -sr -t /
+    btrfs subvolume list -srt /
     echo "-----------------------------------------------------------------------------------"
     read -p "请输入要恢复的快照名字(只需要输入 ${SNAPSHOT_PRESTR} 之后的部分): " snap_name
-    if btrfs subvolume list -s -t / | grep "${SNAPSHOT_PRESTR}${snap_name}" > /dev/null;then
+    if btrfs subvolume list -srt / | grep "${SNAPSHOT_PRESTR}${snap_name}" > /dev/null;then
 	while :;do
 	    echo "一旦恢复快照，当前的 /etc 将全部被覆盖！"
 	    read -p "确定要恢复快照: $snap_name 吗? y/n [n] " yn
@@ -243,7 +286,9 @@ menu() {
         |        p. 打印备份清单          |
         |        g. 生成 fstab            |
         |        B. 创建 etc 快照         |
+        |        L. 列出当前的 etc 快照   |
         |        R. 还原 etc 快照         |
+        |        D. 删除某个 etc 快照     |
         |        h. 帮助                  |
         |        q. 退出                  |
         -----------------------------------
@@ -257,7 +302,9 @@ echo -ne "             请选择: [ ]\b\b"
 	    p)  print_list;;
             g)  gen_fstab;;
 	    B)  create_snapshot;;
+	    L)  list_snapshot;;
 	    R)  restore_snapshot;;
+	    D)  delete_snapshot;;
 	    h)  print_help;;
 	    q)  exit 0;;
 	esac
