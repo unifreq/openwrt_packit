@@ -269,7 +269,9 @@ print_help() {
     echo "       $0  -p    (打印备份文件清单)"
     echo "       $0  -g    (生成 fstab)"
     echo "       $0  -B    (创建 etc 快照)"
+    echo "       $0  -L    (列出已有的 etc 快照)"
     echo "       $0  -R    (还原 etc 快照)"
+    echo "       $0  -D    (删除某个 etc 快照)"
     echo "       $0  -h    (帮助)"
     exit 0
 }
@@ -311,13 +313,17 @@ echo -ne "             请选择: [ ]\b\b"
     done
 }
 
-getopts 'brpgh' opts
+getopts 'brpgBLRDh' opts
 case $opts in 
     b) backup;;
     r) restore
        gen_fstab;;
     p) print_list;;
     g) gen_fstab;;
+    B) create_snapshot;;
+    L) list_snapshot;;
+    R) restore_snapshot;;
+    D) delete_snapshot;;
     h) print_help;;
     *) menu;;
 esac
