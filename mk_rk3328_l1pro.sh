@@ -369,6 +369,16 @@ config share
 EOF
 fi
 
+# for openclash
+if [ -d ./etc/openclash/core ];then
+    (
+        mkdir -p ./usr/share/openclash/core && \
+	cd ./etc/openclash && \
+	mv core ../../usr/share/openclash/ && \
+	ln -s ../../usr/share/openclash/core .
+    )
+fi
+
 chmod 755 ./etc/init.d/*
 
 sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
