@@ -358,6 +358,7 @@ print_help() {
     echo "       $0  -L  (列出已有的 etc 快照)"
     echo "       $0  -R  (还原 etc 快照)"
     echo "       $0  -D  (删除某个 etc 快照)"
+    echo "       $0  -M  (从旧版本迁移某个快照到当前 rootfs)"
     echo "       $0  -h  (帮助)"
     exit 0
 }
