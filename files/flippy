@@ -247,6 +247,10 @@ migrate_snapshot() {
 	 echo "名称输入错误, 未找到对应的快照!"
 	 read -p "按回车键返回" q
 	 return
+    elif [ "$old_snap_name" == "etc-000" ] || [ "$old_snap_name" == "etc-001" ];then
+	 echo "关键快照不允许迁移!"
+	 read -p "按回车键返回" q
+	 return
     fi
     
     # 查找当前 rootfs下有无重名快照
