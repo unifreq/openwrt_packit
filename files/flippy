@@ -272,6 +272,10 @@ migrate_snapshot() {
            cd /
            btrfs send ${old_rootpath}/${SNAPSHOT_PRESTR}${old_snap_name} | btrfs receive ${SNAPSHOT_PRESTR}
 	   if [ $? -eq 0 ];then
+	       btrfs property set -ts ${SNAPSHOT_PRESTR}${old_snap_name} ro false
+	       cp ${SNAPSHOT_PRESTR}etc-000/fstab ${SNAPSHOT_PRESTR}${old_snap_name}/fstab
+	       cp ${SNAPSHOT_PRESTR}etc-000/config/fstab ${SNAPSHOT_PRESTR}${old_snap_name}/config/fstab
+	       btrfs property set -ts ${SNAPSHOT_PRESTR}${old_snap_name} ro true
 	       echo "迁移完成，如果想应用快照 [$old_snap_name], 请使用恢复快照功能."
 	   else
 	       echo "迁移失败!"
