@@ -22,7 +22,13 @@ Currently supported devices with corresponding firmwares:
 RTL8822BE
     rtw8822b_fw.bin
 
+RTL8821CE
+    rtw8821c_fw.bin
+
 RTL8822CE
     rtw8822c_fw.bin
     rtw8822c_wow_fw.bin
+
+RTL8723DE
+    rtw8723d_fw.bin
 
