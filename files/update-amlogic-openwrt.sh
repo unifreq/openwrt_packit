@@ -293,8 +293,6 @@ done
 echo "依赖检查已通过"
 echo
 
-BOOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | awk '$3~/^part$/ && $5 ~ /^\/boot$/ {print $0}')
-
 BOOT_CHANGED=0
 if [ $CUR_BOOT_FROM_EMMC -eq 0 ];then
        while :;do # do level 1
