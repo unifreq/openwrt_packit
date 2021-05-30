@@ -14,14 +14,19 @@ if [ ! -f "$IMG_NAME" ];then
 fi
 
 # 查找当前的 /boot 分区信息
-DEPENDS="lsblk uuidgen grep awk mkfs.fat mkfs.btrfs perl md5sum"
+DEPENDS="lsblk uuidgen grep awk btrfs chattr mkfs.fat mkfs.btrfs perl md5sum"
+echo "检查必要的依赖文件 ..."
 for dep in ${DEPENDS};do
-    which $dep
-    if [ $? -ne 0 ];then
-        echo "依赖的命令: $dep 不存在！"
+    WITCH=$(which $dep)
+    if [ "$WITCH" == "" ];then
+        echo "依赖的命令: $dep 不存在，无法进行升级，只能通过U盘/TF卡刷机！"
 	exit 1
+    else
+	echo "$dep 命令的真实路径: $WITCH"
     fi
 done
+echo "检查已通过"
+echo 
 
 BOOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | awk '$3~/^part$/ && $5 ~ /^\/boot$/ {print $0}')
 if [ "${BOOT_PART_MSG}" == "" ];then
@@ -270,6 +275,25 @@ if [ "${CUR_SOC}" != "" ];then
         fi
     fi
 fi
+
+echo 
+echo "检查新版固件中是否存在必要的依赖文件 ..."
+for dep in ${DEPENDS};do
+    echo -n "检查 $dep ... "
+    if find "${P2}" -name "${dep}" > /dev/null;then
+	echo "已找到 $dep 文件."
+    else
+        echo "未找到 $dep 文件, 这说明该镜像不满足某些依赖条件，不允许升级!"
+        umount -f ${P1}
+        umount -f ${P2}
+        losetup -D
+	exit 1
+    fi
+done
+echo "依赖检查已通过"
+echo
+
+BOOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | awk '$3~/^part$/ && $5 ~ /^\/boot$/ {print $0}')
 
 BOOT_CHANGED=0
 if [ $CUR_BOOT_FROM_EMMC -eq 0 ];then
