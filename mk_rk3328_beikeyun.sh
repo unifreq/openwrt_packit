@@ -51,7 +51,6 @@ REGULATORY_DB="${PWD}/files/regulatory.db.tar.gz"
 CPUSTAT_SCRIPT="${PWD}/files/cpustat"
 CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
-RC_BOOT_PATCH="${PWD}/files/boot-rk.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 UPDATE_SCRIPT="${PWD}/files/update-beikeyun-openwrt.sh"
 KMOD="${PWD}/files/kmod"
@@ -74,7 +73,7 @@ SMB4_PATCH="${PWD}/files/smb4.11_enable_smb1.patch"
 SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 
 # 20200403 add
-SND_MOD="${PWD}/files/snd-rk3328"
+SND_MOD="${PWD}/files/rk3328/snd-rk3328"
 
 # 20200709 add
 COREMARK="${PWD}/files/coremark.sh"
@@ -334,7 +333,6 @@ echo "r8188eu" > ./etc/modules.d/rtl8188eu
 sed -e 's/ttyAMA0/tty1/' -i ./etc/inittab
 sed -e 's/ttyS0/ttyS2/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
-patch -p0 < "${RC_BOOT_PATCH}"
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
