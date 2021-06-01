@@ -8,6 +8,10 @@
      "max-file": "5"
    },
    "registry-mirrors": [
-     "https://dockerhub.azk8s.cn"
+      "https://registry.cn-beijing.aliyuncs.com",
+      "https://registry.cn-shanghai.aliyuncs.com",
+      "https://registry.cn-shenzhen.aliyuncs.com",
+      "https://registry.cn-chengdu.aliyuncs.com",
+      "https://registry.cn-hongkong.aliyuncs.com"
    ]
 }

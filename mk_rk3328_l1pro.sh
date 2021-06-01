@@ -62,7 +62,7 @@ BOOT_CMD="${PWD}/files/boot.cmd"
 BOOT_SCR="${PWD}/files/boot.scr"
 
 PWM_FAN="${PWD}/files/pwm-fan.pl"
-DAEMON_JSON="${PWD}/files/daemon.json.p4"
+DAEMON_JSON="${PWD}/files/rk3328/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
 FLIPPY="${PWD}/files/flippy"
