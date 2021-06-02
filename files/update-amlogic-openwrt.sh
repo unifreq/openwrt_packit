@@ -656,9 +656,25 @@ echo -n "删除旧的 boot 文件 ..."
 [ -f /tmp/uEnv.txt ] || cp uEnv.txt /tmp/uEnv.txt
 
 rm -rf *
+sync
 echo "完成"
 echo -n "复制新的 boot 文件 ... " 
-(cd ${P1} && tar cf - . ) | tar mxf -
+(cd ${P1} && tar cf - . ) | tar xf -
+
+# 发现个别N1在复制完boot之后， vmlinuz-xxx 与 zImage 居然 md5不一致，应该是硬件BUG
+while :;do
+    MD5_VMLINUZ=$(md5sum vmlinuz-${NEW_KV} | awk '{print $1}')
+    MD5_ZIMAGE=$(md5sum zImage | awk '{print $1}')
+    if [ "$MD5_VMLINUZ" == "$MD5_ZIMAGE" ];then
+	break
+    else
+	echo -n "修复 zImage 文件 ... "
+	rm -f zImage
+	cp vmlinuz-${NEW_KV} zImage
+	sync
+	echo "完成"
+    fi
+done
 
 if [ "$BOOT_LABEL" == "BOOT" ];then
     [ -f u-boot.ext ] || cp u-boot.emmc u-boot.ext
