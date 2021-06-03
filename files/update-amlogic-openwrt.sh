@@ -659,7 +659,8 @@ rm -rf *
 sync
 echo "完成"
 echo -n "复制新的 boot 文件 ... " 
-(cd ${P1} && tar cf - . ) | tar xf -
+cp -a ${P1}/* . && sync
+# (cd ${P1} && tar cf - . ) | tar xf -
 
 # 发现个别N1在复制完boot之后， vmlinuz-xxx 与 zImage 居然 md5不一致，应该是硬件BUG
 while :;do
