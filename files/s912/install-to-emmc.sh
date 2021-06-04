@@ -1,10 +1,12 @@
 #!/bin/bash
 
-SKIP1=700
+BLANK1=700
 BOOT=160
+BLANK2=0
 ROOT1=720
-SKIP2=0
+BLANK3=0
 ROOT2=720
+BLANK4=0
 
 TARGET_SHARED_FSTYPE=f2fs
 BACKUP_IMG="/root/bootloader_backup.img"
@@ -195,16 +197,16 @@ done
 # Create new partition
 DST_TOTAL_MB=$((EMMC_SIZE/1024/1024))
 
-start1=$(( SKIP1 * 2048 ))
+start1=$(( BLANK1 * 2048 ))
 end1=$(( start1 + (BOOT * 2048) - 1 ))
 
-start2=$(( end1 + 1 ))
+start2=$(( (BLANK2 * 2048) + end1 + 1 ))
 end2=$(( start2 + (ROOT1 * 2048) -1 ))
 
-start3=$(( (SKIP2 * 2048) + end2 + 1 ))
+start3=$(( (BLANK3 * 2048) + end2 + 1 ))
 end3=$(( start3 + (ROOT2 * 2048) -1 ))
 
-start4=$((end3 + 1 ))
+start4=$(( (BLANK4 * 2048) + end3 + 1 ))
 end4=$(( DST_TOTAL_MB * 2048 -1 ))
 
 cat >> /tmp/fdisk.script <<EOF
