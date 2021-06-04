@@ -664,7 +664,7 @@ if [ $? -ne 0 ];then
 fi
 
 echo "重新格式化 ${BOOT_PATH} ..."
-if mkfs.fat -n EMMC_BOOT -F 32 ${BOOT_PATH} 2>/dev/null;then
+if mkfs.fat -n ${BOOT_LABEL} -F 32 ${BOOT_PATH} 2>/dev/null;then
     echo -n "挂载 /boot ..."
     mount -t vfat -o "errors=remount-ro" ${BOOT_PATH} /boot 
     if [ $? -eq 0 ];then
