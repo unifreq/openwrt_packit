@@ -686,7 +686,7 @@ cd /boot
 if [ "$BOOT_LABEL" == "BOOT" ];then
     [ -f u-boot.ext ] || cp u-boot.emmc u-boot.ext
 elif [ "$BOOT_LABEL" == "EMMC_BOOT" ];then
-    [ -f u-boot.emmc ] || cp u-boot.ext u-boot.emmc
+    [ ! -f u-boot.emmc ] && [ -f u-boot.ext ] && cp u-boot.ext u-boot.emmc
     rm -f aml_autoscript* s905_autoscript*
     mv -f boot-emmc.ini boot.ini
     mv -f boot-emmc.cmd boot.cmd
