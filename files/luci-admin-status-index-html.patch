@@ -1,5 +1,5 @@
---- index.htm.orig.orig	2020-03-27 21:16:12.472951481 +0800
-+++ index.htm	2020-03-27 21:18:24.983167370 +0800
+--- a/usr/lib/lua/luci/view/admin_status/index.htm	2021-06-18 10:12:55.000000000 +0800
++++ b/usr/lib/lua/luci/view/admin_status/index.htm	2021-06-18 21:36:29.348325634 +0800
 @@ -17,6 +17,7 @@
  	local sysinfo = luci.util.ubus("system", "info") or { }
  	local boardinfo = luci.util.ubus("system", "board") or { }
@@ -31,7 +31,7 @@
  		}
  
  		if wan then
-@@ -635,6 +636,9 @@
+@@ -644,6 +645,9 @@
  			if (e = document.getElementById('localtime'))
  				e.innerHTML = info.localtime;
  
@@ -41,7 +41,7 @@
  			if (e = document.getElementById('uptime'))
  				e.innerHTML = String.format('%t', info.uptime);
  				
-@@ -699,6 +703,7 @@
+@@ -708,6 +712,7 @@
  		<tr><td width="33%"><%:Kernel Version%></td><td><%=unameinfo.release or "?"%></td></tr>
  		<tr><td width="33%"><%:Local Time%></td><td id="localtime">-</td></tr>
  		<tr><td width="33%"><%:Uptime%></td><td id="uptime">-</td></tr>

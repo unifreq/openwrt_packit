@@ -450,9 +450,7 @@ if [ -f "$REGULATORY_DB" ];then
 	tar xvzf "$REGULATORY_DB"
 fi
 
-[ -f $CPUSTAT_PATCH ] && \
-cd $TGT_ROOT/usr/lib/lua/luci/view/admin_status && \
-patch -p0 < ${CPUSTAT_PATCH} 
+[ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
 
 if [ -f ${UBOOT_BIN} ];then
     mkdir -p $TGT_ROOT/lib/u-boot && cp -v ${UBOOT_BIN} $TGT_ROOT/lib/u-boot
