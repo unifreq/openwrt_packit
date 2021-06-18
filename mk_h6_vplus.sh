@@ -104,6 +104,9 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 # 20200416 add
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
 BOOTFILES_HOME="${PWD}/files/bootfiles/allwinner"
+
+# 20210618 add
+DOCKER_README="${PWD}/files/DockerReadme.pdf"
 ####################################################################
 
 # work dir
@@ -407,6 +410,7 @@ EOF
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 [ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
 [ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
+[ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 # 写入版本信息
 cat > ./etc/flippy-openwrt-release <<EOF

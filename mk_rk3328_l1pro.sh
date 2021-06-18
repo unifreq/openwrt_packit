@@ -103,6 +103,9 @@ FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
 BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
 BOOTLOADER_IMG="${PWD}/files/rk3328/btld-rk3328.bin"
+
+# 20210618 add
+DOCKER_README="${PWD}/files/DockerReadme.pdf"
 #####################################################################
 
 SKIP_MB=16
@@ -418,6 +421,7 @@ EOF
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 [ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
 [ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
+[ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 rm -f ./etc/bench.log
 cat >> ./etc/crontabs/root << EOF
