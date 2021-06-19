@@ -361,7 +361,7 @@ if [ -x usr/bin/perl ];then
 else
 	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
 fi
-[ -f $TTYD ] && cp $TTYD etc/init.d/
+#[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
 if [ -f $BANNER ];then
     cp -f $BANNER etc/banner
@@ -572,7 +572,11 @@ ln -sf kmod lsmod
 ln -sf kmod modinfo
 ln -sf kmod modprobe
 ln -sf kmod rmmod
-[ ! -f mount.ntfs3 ] && [ -f ../usr/bin/ntfs-3g ] && ln -sf /usr/bin/ntfs-3g mount.ntfs
+if [ -f mount.ntfs3 ];then
+    ln -sf mount.ntfs3 mount.ntfs
+elif [ -f ../usr/bin/ntfs-3g ];then
+    ln -sf /usr/bin/ntfs-3g mount.ntfs
+fi
 
 cd $TGT_ROOT/lib/firmware
 mv *.hcd brcm/ 2>/dev/null
