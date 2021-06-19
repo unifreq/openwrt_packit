@@ -443,7 +443,7 @@ ln -sf kmod lsmod
 ln -sf kmod modinfo
 ln -sf kmod modprobe
 ln -sf kmod rmmod
-ln -sf /usr/bin/ntfs-3g mount.ntfs
+[ ! -f mount.ntfs3 ] && [ -f ../usr/bin/ntfs-3g ] && ln -sf /usr/bin/ntfs-3g mount.ntfs
 
 cd $TGT_ROOT/lib/firmware
 mv *.hcd brcm/ 2>/dev/null
