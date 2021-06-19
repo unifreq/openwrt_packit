@@ -420,7 +420,7 @@ EOF
 
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 [ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
-[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
+[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset ./sbin/jffs2mark
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 rm -f ./etc/bench.log
