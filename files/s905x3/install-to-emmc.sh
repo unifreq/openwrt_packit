@@ -39,7 +39,7 @@ then
 	exit 1
 fi
 
-avail=$(lsblk | grep -oE '(mmcblk[0-9]|sda[0-9])' | sort | uniq)
+avail=$(lsblk | grep -oE '(mmcblk[0-9]|sd[a-z][0-9])' | sort | uniq)
 if [ "$avail" = "" ]
 then
 	echo "本系统未找到任何可用的磁盘设备!!!"
