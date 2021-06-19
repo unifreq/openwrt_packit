@@ -46,7 +46,7 @@ then
 	exit 1
 fi
 
-runfrom=$(lsblk | grep -e '/$' | grep -oE '(mmcblk[0-9]|sda[0-9])')
+runfrom=$(lsblk | grep -e '/$' | grep -oE '(mmcblk[0-9]|sd[a-z][0-9])')
 if [ "$runfrom" = "" ]
 then
 	echo " 未找到根文件系统!!! "
