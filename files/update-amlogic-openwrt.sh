@@ -14,7 +14,7 @@ if [ ! -f "$IMG_NAME" ];then
 fi
 
 # 查找当前的 /boot 分区信息
-DEPENDS="lsblk uuidgen grep awk btrfs chattr mkfs.fat mkfs.btrfs perl md5sum"
+DEPENDS="lsblk uuidgen grep awk btrfs mkfs.fat mkfs.btrfs perl md5sum"
 echo "检查必要的依赖文件 ..."
 for dep in ${DEPENDS};do
     WITCH=$(which $dep)
