@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#use strict;
+use strict;
 use utf8;
 binmode(STDOUT, ":utf8");
 
@@ -44,4 +44,50 @@ sub get_cpu_freq {
     return $freq;
 }
 
-print  &get_cpu_freq, " / ", &get_soc_temp, "\n";
+sub get_arch_info {
+    my @cpus = </sys/devices/system/cpu/cpu?>;
+    my @cpu_groups;
+    my %group_core_count;
+    my $core_id;
+    for my $cpu (@cpus) {
+        my $fh;
+	open $fh, "<", "${cpu}/uevent";
+	while(<$fh>) {
+	    chomp;
+	    my($key,$value) = split /=/;
+	    if($key eq "OF_COMPATIBLE_0") {
+		my $core_type_name = uc((split /,/, $value)[1]);
+		$core_type_name =~ s/CORTEX-//;
+		if(not exists $group_core_count{$core_type_name}) {
+		     push @cpu_groups, $core_type_name;
+                     $group_core_count{$core_type_name} = 0;
+	        }
+                $group_core_count{$core_type_name} += 1;
+	    } 
+	}
+	close $fh;
+    }
+    my $arch_info = "AArch64 Processor : ";
+    for (my $i = 0; $i < $#cpu_groups + 1; $i++) {
+        my $group = $cpu_groups[$i];
+	if($i == 0) {
+            $arch_info .= "(";
+        }
+	$arch_info .= $group;
+	$arch_info .= " * ";
+	$arch_info .= $group_core_count{$group};
+	if($i < $#cpu_groups) {
+	    $arch_info .= " & ";
+	} else {
+	    $arch_info .= ")";
+        }
+    }
+    return "$arch_info";
+}
+
+my $argc = scalar( @ARGV );
+if($argc == 0) {
+    print  &get_cpu_freq, " / ", &get_soc_temp, "\n";
+} elsif($ARGV[0] eq "-a") {
+    print &get_arch_info, "\n";
+}

@@ -51,6 +51,7 @@ REGULATORY_DB="${PWD}/files/regulatory.db.tar.gz"
 CPUSTAT_SCRIPT="${PWD}/files/cpustat"
 CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
+CPUSTAT_PATCH_02="${PWD}/files/luci-admin-status-index-html-02.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 UPDATE_SCRIPT="${PWD}/files/update-l1pro-openwrt.sh"
 KMOD="${PWD}/files/kmod"
@@ -459,6 +460,7 @@ if [ -f "$REGULATORY_DB" ];then
 fi
 
 [ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
+[ -x "${TGT_ROOT}/usr/bin/perl" ] && [ -f "${CPUSTAT_PATCH_02}" ] && cd ${TGT_ROOT} && patch -p1 < ${CPUSTAT_PATCH_02}
 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
