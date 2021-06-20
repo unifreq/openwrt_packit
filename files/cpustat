@@ -67,17 +67,17 @@ sub get_arch_info {
     my $arch_info = "AArch64 Processor : ";
     for (my $i = 0; $i < $#cpu_groups + 1; $i++) {
         my $group = $cpu_groups[$i];
-        if($i == 0) {
-            $arch_info .= "(";
-        }
+	#if($i == 0) {
+	#    $arch_info .= "";
+	#}
         $arch_info .= $group;
         $arch_info .= " * ";
         $arch_info .= $group_core_count{$group};
         if($i < $#cpu_groups) {
             $arch_info .= " & ";
-        } else {
-            $arch_info .= ")";
-        }
+        } #else {
+	#    $arch_info .= "";
+	#}
     }
 
     return "$arch_info";
