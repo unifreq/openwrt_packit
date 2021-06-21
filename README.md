@@ -23,27 +23,18 @@
    相关的 openwrt 示例配置文件在 files/openwrt_config_demo/目录下
 6. openwrt rootfs 编译注意事项：
 
-    Target System  ->  QEMU ARM Virtual Machine 
-
-    Subtarget ->  QEMU ARMv8 Virtual Machine (cortex-a53)
-
-    Target Profile  ->  Default
-
-    Target Images  ->   tar.gz
-
-    Languages -> Perl *必选   
-
-                   ->  perlbase-unicode *必选
-               
-                   ->  perlbase-utf8 * 必选
-                   
-    Utilities -> Disc ->  blkid、fdisk、lsblk、parted  * 必选
-              
-              -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs * 必选
-              
-              -> Shells  ->  bash * 必选
-    
-              -> gawk、getopt、losetup、tar、uuidgen * 必选
+       Target System  ->  QEMU ARM Virtual Machine 
+       Subtarget ->  QEMU ARMv8 Virtual Machine (cortex-a53)
+       Target Profile  ->  Default
+       Target Images  ->   tar.gz
+       Languages -> Perl *必选                  
+                  ->  perlbase-unicode *必选                               
+                  ->  perlbase-utf8 * 必选
+       必选软件包：               
+       Utilities -> Disc -> blkid、fdisk、lsblk、parted            
+                 -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs    
+                 -> Shells  ->  bash         
+                 -> gawk、getopt、losetup、tar、uuidgen
     
     除上述必选项以外的软件包可以按需自主选择。
                  
