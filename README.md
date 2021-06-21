@@ -32,7 +32,8 @@
                   ->  perlbase-unicode                              
                   ->  perlbase-utf8        
        Utilities -> Disc -> blkid、fdisk、lsblk、parted            
-                 -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs    
+                 -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、
+                                  e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs    
                  -> Shells  ->  bash         
                  -> gawk、getopt、losetup、tar、uuidgen
     
