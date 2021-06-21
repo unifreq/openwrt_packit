@@ -83,9 +83,14 @@ sub get_arch_info {
     return "$arch_info";
 }
 
+#####   main program #####
 my $argc = scalar( @ARGV );
 if($argc == 0) {
-    print  &get_cpu_freq, " / ", &get_soc_temp, "\n";
+    print &get_cpu_freq, " / ", &get_soc_temp, "\n";
 } elsif($ARGV[0] eq "-a") {
     print &get_arch_info, "\n";
+} elsif($ARGV[0] eq "-t") {
+    print &get_soc_temp, "\n";
+} elsif($ARGV[0] eq "-f") {
+    print &get_cpu_freq, "\n";
 }
