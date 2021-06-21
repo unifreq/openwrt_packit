@@ -11,9 +11,43 @@
 2. 需要把 Flippy预编译好的 Arm64 内核上传至 /opt/kernel目录（目录需要自己创建）
 3. cd  /opt   
    git clone https://github.com/unifreq/openwrt_packit     
-4. 
+4. 把编译好的 openwrt-armvirt-64-default-rootfs.tar.gz 上传至 /opt/openwrt_packit目录中
+5. cd /opt/openwrt_packit
 
-其它相关信息请参见我在恩山论坛的贴子：
+   ./mk_xxx.sh  # xxx指代你想要生成的固件类别，例如： ./mk_s905d_n1.sh 表示生成 Phicomm N1所用的固件
+
+   生成好的固件是 .img 格式， 存放在 /opt/openwrt_packit/tmp目录中，下载刷机即可
+
+   相关的在线升级脚本在 files/目录下
+
+   相关的 openwrt 示例配置文件在 files/openwrt_config_demo/目录下
+6. openwrt rootfs 编译注意事项：
+
+    Target System  ->  QEMU ARM Virtual Machine 
+
+    Subtarget ->  QEMU ARMv8 Virtual Machine (cortex-a53)
+
+    Target Profile  ->  Default
+
+    Target Images  ->   tar.gz
+
+    Languages -> Perl *必选   
+
+                   ->  perlbase-unicode *必选
+               
+                   ->  perlbase-utf8 * 必选
+                   
+    Utilities -> Disc ->  blkid、fdisk、lsblk、parted  * 必选
+              
+              -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs * 必选
+              
+              -> Shells  ->  bash * 必选
+    
+              -> gawk、getopt、losetup、tar、uuidgen * 必选
+    
+    除上述必选项以外的软件包可以按需自主选择。
+                 
+三、其它相关信息请参见我在恩山论坛的贴子：
 
 https://www.right.com.cn/forum/thread-981406-1-1.html
 
