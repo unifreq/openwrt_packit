@@ -27,10 +27,10 @@
        Subtarget ->  QEMU ARMv8 Virtual Machine (cortex-a53)
        Target Profile  ->  Default
        Target Images  ->   tar.gz
-       Languages -> Perl *必选                  
-                  ->  perlbase-unicode *必选                               
-                  ->  perlbase-utf8 * 必选
-       必选软件包：               
+       必选软件包： 
+       Languages -> Perl               
+                  ->  perlbase-unicode                              
+                  ->  perlbase-utf8        
        Utilities -> Disc -> blkid、fdisk、lsblk、parted            
                  -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs    
                  -> Shells  ->  bash         
