@@ -41,12 +41,12 @@
 	           因为打包源码中已经包含了来自Armbian的firmware，
 		   会自动覆盖openwrt rootfs中已有的firmware):
         Kernel modules  ->   Wireless Drivers -> kmod-brcmfmac(SDIO) 
-                                      -> kmod-brcmutil
-									  -> kmod-cfg80211
-									  -> kmod-mac80211
+                                              -> kmod-brcmutil
+                                              -> kmod-cfg80211
+                                              -> kmod-mac80211
         Network  ->  WirelessAPD -> hostpad-common
                                  -> wpa-cli
-				                 -> wpad-basic
+                                 -> wpad-basic
                  ->  iw
        
     
