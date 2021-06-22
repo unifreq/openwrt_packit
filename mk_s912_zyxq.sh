@@ -520,9 +520,16 @@ for mod in $mod_blacklist ;do
 	mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
 done
 
-# 在高版本内核下， wifi模块目前问题太多，禁用
 if [ $K510 -eq 1 ];then
-    mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+    # 高版本内核下，如果ENABLE_WIFI_K510 = 0 则禁用wifi
+    if [ $ENABLE_WIFI_K510 -eq 0 ];then
+        mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+    fi
+else
+    # 低版本内核下，如果ENABLE_WIFI_K504 = 0 则禁用wifi
+    if [ $ENABLE_WIFI_K504 -eq 0 ];then
+        mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+    fi
 fi
 
 # 默认禁用sfe
