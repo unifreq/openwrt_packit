@@ -27,7 +27,7 @@
        Subtarget ->  QEMU ARMv8 Virtual Machine (cortex-a53)
        Target Profile  ->  Default
        Target Images  ->   tar.gz
-       必选软件包(基础依赖包，仅保证打出的包可以写入EMMC,可以在EMMC上在线升级，不包含具体的应用)： 
+       *** 必选软件包(基础依赖包，仅保证打出的包可以写入EMMC,可以在EMMC上在线升级，不包含具体的应用)： 
        Languages -> Perl               
                   ->  perlbase-unicode                              
                   ->  perlbase-utf8        
@@ -36,7 +36,10 @@
                                   e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs    
                  -> Shells  ->  bash         
                  -> gawk、getopt、losetup、tar、uuidgen
-        Wifi基础包(打出的包可支持博通SDIO无线模块,Firmware不用选，因为打包源码中已经包含了来自Armbian的firmware，会自动覆盖openwrt rootfs中已有的firmware):
+
+        * (可选)Wifi基础包(打出的包可支持博通SDIO无线模块,Firmware不用选，
+	           因为打包源码中已经包含了来自Armbian的firmware，
+		   会自动覆盖openwrt rootfs中已有的firmware):
         Kernel modules  ->   Wireless Drivers -> kmod-brcmfmac(SDIO) 
                                       -> kmod-brcmutil
 									  -> kmod-cfg80211
