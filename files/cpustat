@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use utf8;
+use Time::HiRes qw /usleep/;
 binmode(STDOUT, ":utf8");
 
 sub get_soc_temp {
@@ -27,6 +28,7 @@ sub get_cpu_freq {
     for (my $i=0; $i < $#fnames + 1; $i++) {
         my $fname = $fnames[$i];
         open my $fh, "<", $fname;
+	usleep(50000);
         my $freq = sprintf "%dMhz", <$fh> / 1000;
         close $fh;
 	$freq_str .= $freq;
