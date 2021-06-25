@@ -327,7 +327,7 @@ for mod in $mod_blacklist ;do
 done
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	echo "r8152_v2" > ./etc/modules.d/usb-net-rtl8152
+	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
 else
 	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
 fi
