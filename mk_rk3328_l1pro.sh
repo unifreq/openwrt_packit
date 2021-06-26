@@ -298,6 +298,9 @@ if [ -f $FIX_CPU_FREQ ];then
     cp -v $FIX_CPU_FREQ usr/sbin
     chmod 755 usr/sbin/fixcpufreq.pl
 fi
+if [ -f etc/config/cpufreq ];then
+    sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
+fi
 if [ -f $SYSFIXTIME_PATCH ];then
     patch -p1 < $SYSFIXTIME_PATCH
 fi
