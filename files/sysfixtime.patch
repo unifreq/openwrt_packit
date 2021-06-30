@@ -8,11 +8,17 @@
  
  boot() {
  	start && exit 0
-@@ -17,6 +18,7 @@ boot() {
+@@ -16,7 +17,12 @@ boot() {
+ }
  
  start() {
- 	[ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
+-	[ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
 +	[ -x "$FIX_CPU_FREQ" ] && "$FIX_CPU_FREQ"
++	if ${HWCLOCK} | grep '1970' > /dev/null;then
++	    return 1
++	else
++	    [ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
++	fi
  }
  
  stop() {
