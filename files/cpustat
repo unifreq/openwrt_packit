@@ -56,6 +56,7 @@ sub get_cpu_freq {
 }
 
 sub get_arch_info {
+    my $a=shift;
     my @cpus = </sys/devices/system/cpu/cpu?>;
     my @cpu_groups;
     my %group_core_count;
@@ -84,7 +85,11 @@ sub get_arch_info {
 	#    $arch_info .= "";
 	#}
         $arch_info .= $group;
-        $arch_info .= " * ";
+	if($a) {
+            $arch_info .= " x ";
+        } else {
+            $arch_info .= " * ";
+        }
         $arch_info .= $group_core_count{$group};
         if($i < $#cpu_groups) {
             $arch_info .= " & ";
@@ -102,6 +107,8 @@ if($argc == 0) {
     print &get_cpu_freq, " / ", &get_soc_temp, "\n";
 } elsif($ARGV[0] eq "-a") {
     print &get_arch_info, "\n";
+} elsif($ARGV[0] eq "-A") {
+    print &get_arch_info("A"), "\n";
 } elsif($ARGV[0] eq "-t") {
     print &get_soc_temp, "\n";
 } elsif($ARGV[0] eq "-T") {

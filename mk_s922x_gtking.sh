@@ -337,12 +337,12 @@ fi
 echo "修改根文件系统相关配置 ... "
 # modify root
 cd $TGT_ROOT
-( [ -f "$SS_LIB" ] &&  cd lib && tar xvJf "$SS_LIB" )
+( [ -f "$SS_LIB" ] &&  cd lib && tar xJf "$SS_LIB" )
 if [ -f "$SS_BIN" ];then
     (
         cd usr/bin
         mkdir -p ss-bin-musl && mv -f ss-server ss-redir ss-local ss-tunnel ss-bin-musl/ 2>/dev/null
-       	tar xvJf "$SS_BIN"
+       	tar xJf "$SS_BIN"
     )
 fi
 if [ -f "$JQ" ] && [ ! -f "./usr/bin/jq" ];then
@@ -425,7 +425,8 @@ sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
-[ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd
+[ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && \
+	sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 
