@@ -134,6 +134,9 @@ GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
 
 # 20210618 add
 DOCKER_README="${PWD}/files/DockerReadme.pdf"
+
+# 20210704 add
+SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
 ###########################################################################
 
 # 检查环境
@@ -418,7 +421,7 @@ sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
-sed -e "s/\/bin\/ash/\/bin\/bash" -i ./etc/passwd
+[ -f "${SYSINFO_SCRIPT}" ] && cp -v "{SYSINFO_SCRIPT}" ./etc/profile.d/ && sed -e "s/\/bin\/ash/\/bin\/bash" -i ./etc/passwd
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 
