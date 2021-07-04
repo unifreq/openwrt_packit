@@ -293,8 +293,9 @@ if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
 fi
 
 if [ $BR_FLAG -eq 1 ];then
-    #[ -f ${P2}/etc/config/passwall_rule/chnroute ] && cp ${P2}/etc/config/passwall_rule/chnroute ./etc/config/passwall_rule/ 2>/dev/null
-    #[ -f ${P2}/etc/config/passwall_rule/gfwlist.conf ] && cp ${P2}/etc/config/passwall_rule/gfwlist.conf ./etc/config/passwall_rule/ 2>/dev/null
+    if [ -x ./bin/bash ] && [ -f ./etc/profile.d/30-sysinfo.sh ];then
+        sed -e 's/\/bin\/ash/\/bin\/bash/' -i ./etc/passwd
+    fi
     sync
     echo "done"
     echo
