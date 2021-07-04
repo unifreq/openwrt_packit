@@ -37,9 +37,9 @@ sub get_cpu_freq {
 	usleep(50000);
 	my $freq;
 	if($f) {
-            $freq = sprintf "%dMhz", <$fh> / 1000;
-        } else {
             $freq = sprintf "%d", <$fh> / 1000;
+        } else {
+            $freq = sprintf "%dMhz", <$fh> / 1000;
         }    
         close $fh;
 	$freq_str .= $freq;
