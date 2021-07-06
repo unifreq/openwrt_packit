@@ -160,9 +160,11 @@ echo ""
 
 display "环境温度" "$cpu_tempx" "60" "0" "°C"  ""  
 if [ -x /usr/bin/cpustat ];then
-    cpu_freq=$(/usr/bin/cpustat -F)
+    cpu_freq=$(/usr/bin/cpustat -F1500)
+    echo -n "当前频率:  $cpu_freq"
+else
+    display "当前频率" "$cpu_freq" "1500" "0" " Mhz"  ""  
 fi
-display "当前频率" "$cpu_freq" "1500" "0" " Mhz"  ""  
 echo ""
 
 display "内存已用" "$memory_usage" "70" "0" "%" " of ${memory_total}MB"
