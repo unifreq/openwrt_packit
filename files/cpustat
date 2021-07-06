@@ -106,6 +106,27 @@ sub get_arch_info {
     return "$arch_info";
 }
 
+sub get_uptime {
+    my $fh;
+    my $result;
+    open $fh, "<", "/proc/uptime" or die;
+    my $str_uptime = <$fh>;
+    if($str_uptime =~ /(\d*)/) {
+        my $day  = int($1/86400);
+        my $hour = int(($1%86400)/3600);
+	my $min  = int(($1%3600)/60);
+	my $sec  =  $1%60;
+
+	my $sday  = $day . "天 " if($day>0);
+	my $shour = $hour . "小时 " if($hour>0 || $day>0) ;
+	my $smin  = $min . "分 ";
+	my $ssec  = $sec . "秒";
+	$result  .= $sday . $shour . $smin . $ssec;
+    } 
+    close $fh;
+    return $result;
+}
+
 #####   main program #####
 my $argc = scalar( @ARGV );
 if($argc == 0) {
@@ -122,4 +143,6 @@ if($argc == 0) {
     print &get_cpu_freq, "\n";
 } elsif($ARGV[0] eq "-F") {
     print &get_cpu_freq('F'), "\n";
+} elsif($ARGV[0] eq "-u") {
+    print &get_uptime, "\n";
 }

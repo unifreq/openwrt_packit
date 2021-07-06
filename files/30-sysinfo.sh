@@ -104,10 +104,13 @@ storage_info
 critical_load=$(( 1 + $(grep -c processor /proc/cpuinfo) / 2 ))
 
 # get uptime, logged in users and load in one take
-UptimeString=$(uptime | tr -d ',')
-time=$(awk -F" " '{print $3" "$4}' <<<"${UptimeString}")
-load="$(awk -F"average: " '{print $2}'<<<"${UptimeString}")"
-case ${time} in
+if [ -x /usr/bin/cpustat ];then
+    time=$(/usr/bin/cpustat -u)
+else
+    UptimeString=$(uptime | tr -d ',')
+    time=$(awk -F" " '{print $3" "$4}' <<<"${UptimeString}")
+    load="$(awk -F"average: " '{print $2}'<<<"${UptimeString}")"
+    case ${time} in
 	1:*) # 1-2 hours
 		time=$(awk -F" " '{print $3" 小时"}' <<<"${UptimeString}")
 		;;
@@ -119,8 +122,8 @@ case ${time} in
 		time=$(awk -F" " '{print $5}' <<<"${UptimeString}")
 		time="$days "$(awk -F":" '{print $1"小时 "$2"分钟"}' <<<"${time}")
 		;;
-esac
-
+    esac
+fi
 
 # memory and swap
 mem_info=$(LC_ALL=C free -w 2>/dev/null | grep "^Mem" || LC_ALL=C free | grep "^Mem")
