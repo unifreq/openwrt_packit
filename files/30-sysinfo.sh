@@ -106,6 +106,7 @@ critical_load=$(( 1 + $(grep -c processor /proc/cpuinfo) / 2 ))
 # get uptime, logged in users and load in one take
 if [ -x /usr/bin/cpustat ];then
     time=$(/usr/bin/cpustat -u)
+    load=$(/usr/bin/cpustat -l)
 else
     UptimeString=$(uptime | tr -d ',')
     time=$(awk -F" " '{print $3" "$4}' <<<"${UptimeString}")

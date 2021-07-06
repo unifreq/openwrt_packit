@@ -127,6 +127,16 @@ sub get_uptime {
     return $result;
 }
 
+sub get_avgload {
+    my $fh;
+    my $result;
+    open $fh, "<", "/proc/loadavg" or die;
+    my $str = <$fh>;
+    $result = join(' ', (split(/\s+/, $str))[0,1,2]);
+    close $fh;
+    return $result;
+}
+
 #####   main program #####
 my $argc = scalar( @ARGV );
 if($argc == 0) {
@@ -145,4 +155,6 @@ if($argc == 0) {
     print &get_cpu_freq('F'), "\n";
 } elsif($ARGV[0] eq "-u") {
     print &get_uptime, "\n";
+} elsif($ARGV[0] eq "-l") {
+    print &get_avgload, "\n";
 }
