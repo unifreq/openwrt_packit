@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "========================= begin $0 ================="
 WORK_DIR="${PWD}/tmp"
 if [ ! -d ${WORK_DIR} ];then
 	mkdir -p ${WORK_DIR}
@@ -496,3 +497,5 @@ umount -f $TGT_ROOT $TGT_BOOT
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
 echo "镜像已生成!"
+echo "========================== end $0 ================================"
+echo
