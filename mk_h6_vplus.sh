@@ -373,8 +373,8 @@ if [ -f ./etc/init.d/nfsd ];then
 # /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
 #
 
-/mnt *(rw,sync,no_root_squash,insecure,no_subtree_check,crossmnt,fsid=0)
-/mnt/mmcblk0p4 *(rw,sync,no_subtree_check)
+/mnt *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
+/mnt/mmcblk0p4 *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
 EOF
     cat > ./etc/config/nfs <<EOF
 
@@ -382,13 +382,13 @@ config share
         option clients '*'
         option enabled '1'
         option path '/mnt'
-        option options 'rw,sync,no_root_squash,insecure,no_subtree_check,crossmnt,fsid=0'
+        option options 'ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash'
 
 config share
         option enabled '1'
         option path '/mnt/mmcblk0p4'
         option clients '*'
-        option options 'rw,sync,no_subtree_check'
+        option options 'rw,fsid=1,sync,no_subtree_check,no_root_squash'
 EOF
 fi
 
