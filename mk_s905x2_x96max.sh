@@ -445,15 +445,37 @@ sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 	sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua && \
 	[ -f ${SMB4_PATCH} ] && \
 	patch -p1 < ${SMB4_PATCH}
+
 # for nfs server
 if [ -f ./etc/init.d/nfsd ];then
-    echo "/mnt/mmcblk2p4 *(rw,sync,no_root_squash,insecure,no_subtree_check)" > ./etc/exports
+    cat > ./etc/exports <<EOF
+# /etc/exports: the access control list for filesystems which may be exported
+#               to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+
+/mnt *(rw,sync,no_root_squash,insecure,no_subtree_check,crossmnt,fsid=0)
+/mnt/mmcblk2p4 *(rw,sync,no_subtree_check)
+EOF
     cat > ./etc/config/nfs <<EOF
+
 config share
-	option clients '*'
-	option enabled '1'
-	option options 'rw,sync,no_root_squash,insecure,no_subtree_check'
-	option path '/mnt/mmcblk2p4'
+        option clients '*'
+        option enabled '1'
+        option path '/mnt'
+        option options 'rw,sync,no_root_squash,insecure,no_subtree_check,crossmnt,fsid=0'
+
+config share
+        option enabled '1'
+        option path '/mnt/mmcblk2p4'
+        option clients '*'
+        option options 'rw,sync,no_subtree_check'
 EOF
 fi
 
