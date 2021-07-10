@@ -463,7 +463,6 @@ if [ -f ./etc/init.d/nfsd ];then
 /mnt *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
 /mnt/mmcblk2p4 *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
 EOF
-EOF
     cat > ./etc/config/nfs <<EOF
 
 config share
