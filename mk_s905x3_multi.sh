@@ -587,7 +587,7 @@ EOF
 # echo br_netfilter > ./etc/modules.d/br_netfilter
 echo pwm_meson > ./etc/modules.d/pwm_meson
 echo panfrost > ./etc/modules.d/panfrost
-#echo meson_gxbb_wdt > ./etc/modules.d/watchdog
+echo meson_gxbb_wdt > ./etc/modules.d/watchdog
 
 mkdir ./etc/modules.d.remove
 mod_blacklist=$(cat ${KMOD_BLACKLIST})
