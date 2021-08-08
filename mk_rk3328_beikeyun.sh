@@ -341,6 +341,7 @@ else
 fi
 [ -f ./etc/config/shairport-sync ] && [ -f ${SND_MOD} ] && cp ${SND_MOD} ./etc/modules.d/
 echo "r8188eu" > ./etc/modules.d/rtl8188eu
+echo "dw_wdt" > ./etc/modules.d/watchdog
 
 sed -e 's/ttyAMA0/tty1/' -i ./etc/inittab
 sed -e 's/ttyS0/ttyS2/' -i ./etc/inittab

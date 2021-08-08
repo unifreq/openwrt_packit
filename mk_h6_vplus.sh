@@ -330,6 +330,7 @@ else
 	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
 fi
 echo "r8188eu" > ./etc/modules.d/rtl8188eu
+echo "sunxi_wdt" > ./etc/modules.d/watchdog
 
 cat > ./etc/inittab <<EOF
 ::sysinit:/etc/init.d/rcS S boot
