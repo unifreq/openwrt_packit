@@ -256,9 +256,9 @@ else
 fi
 
 # 判断要刷的版本
-echo $NEW_KV | grep -E 'flippy-[0-9]{1,3}\+[o]{0,1}' > /dev/null
+echo $NEW_KV | grep -E '\w+-[0-9]{1,3}\+[o]{0,1}$' > /dev/null
 if [ $? -ne 0 ];then
-    echo "目标固件的内核版本格式无法识别！"
+    echo "目标固件的内核版本后缀格式无法识别！"
     umount -f ${P1}
     umount -f ${P2}
     losetup -D
