@@ -294,6 +294,7 @@ sed -e 's/ttyAMA0/ttyS0/' -i ./etc/inittab
 sss=$(date +%s)
 ddd=$((sss/86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
+sed -e "s/amule:x:${ddd}:0:99999:7:::/amule:x:0:0:99999:7:::/" -i ./etc/shadow
 if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
     echo "sshd:x:22:sshd" >> ./etc/group
@@ -308,6 +309,7 @@ if [ $BR_FLAG -eq 1 ];then
     echo "done"
     echo
 fi
+sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 rm -f ./etc/part_size ./usr/bin/mk_newpart.sh
