@@ -286,7 +286,8 @@ sed -e 's/ttyS0/tty1/' -i ./etc/inittab
 sss=$(date +%s)
 ddd=$((sss/86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
-sed -e "s/amule:x:${ddd}:0:99999:7:::/amule:x:0:0:99999:7:::/" -i ./etc/shadow
+# 修复amule每次升级后重复添加条目的问题
+sed -e "/amule:x:/d" -i ./etc/shadow
 if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
     echo "sshd:x:22:sshd" >> ./etc/group
