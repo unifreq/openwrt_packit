@@ -7,7 +7,9 @@
      "max-size": "10m",
      "max-file": "5"
    },
-   "registry-mirrors": [
-        "http://ebc1e39c.m.daocloud.io"
+  "registry-mirrors": [
+     "https://docker.mirrors.ustc.edu.cn",
+     "https://registry.cn-shanghai.aliyuncs.com",
+     "https://hub-mirror.c.163.com"
    ]
 }

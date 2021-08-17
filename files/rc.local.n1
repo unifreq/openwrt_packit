@@ -1,5 +1,0 @@
-# Put your custom commands here that should be executed once
-# the system init finished. By default this file does nothing.
-echo 667000 > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
-
-exit 0

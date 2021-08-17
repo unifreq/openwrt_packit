@@ -66,7 +66,6 @@ MAC_SCRIPT3="${PWD}/files/inc_macaddr.pl"
 CPUSTAT_SCRIPT="${PWD}/files/cpustat"
 CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
-RC_BOOT_PATCH="${PWD}/files/boot-n1.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 BTLD_BIN="${PWD}/files/u-boot-2015-phicomm-n1.bin"
 TTYD="${PWD}/files/ttyd"
@@ -337,7 +336,6 @@ fi
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
-patch -p0 < "${RC_BOOT_PATCH}"
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))

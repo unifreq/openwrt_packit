@@ -1,5 +1,5 @@
---- a/etc/ssl/openssl.cnf	2020-11-28 19:51:16.000000000 +0800
-+++ b/etc/ssl/openssl.cnf	2021-03-04 15:56:40.219381470 +0800
+--- a/etc/ssl/openssl.cnf	2021-06-18 10:12:55.000000000 +0800
++++ b/etc/ssl/openssl.cnf	2021-06-18 21:46:17.707451499 +0800
 @@ -30,7 +30,7 @@ engines=engines
  [engines]
  # To enable an engine, install the package, and uncomment it here:
@@ -7,5 +7,5 @@
 -#afalg=afalg
 +afalg=afalg
  #padlock=padlock
+ ##gost=gost
  
- [afalg]

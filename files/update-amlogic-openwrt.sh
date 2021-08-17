@@ -14,19 +14,47 @@ if [ ! -f "$IMG_NAME" ];then
 fi
 
 # 查找当前的 /boot 分区信息
-DEPENDS="lsblk uuidgen grep awk mkfs.fat mkfs.btrfs perl md5sum"
+DEPENDS="lsblk uuidgen grep awk btrfs mkfs.fat mkfs.btrfs perl md5sum"
+echo "检查必要的依赖文件 ..."
 for dep in ${DEPENDS};do
-    which $dep
-    if [ $? -ne 0 ];then
-        echo "依赖的命令: $dep 不存在！"
+    WITCH=$(which $dep)
+    if [ "$WITCH" == "" ];then
+        echo "依赖的命令: $dep 不存在，无法进行升级，只能通过U盘/TF卡刷机！"
 	exit 1
+    else
+	echo "$dep 命令的真实路径: $WITCH"
     fi
 done
+echo "检查已通过"
+echo 
 
 BOOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | awk '$3~/^part$/ && $5 ~ /^\/boot$/ {print $0}')
 if [ "${BOOT_PART_MSG}" == "" ];then
     echo "Boot 分区不存在，或是没有正确挂载, 因此无法继续升级!"
+    echo "原因是你可能修改过挂载点, 只有挂载点配置被修复之后才可以进行升级操作！"
+    echo "建议1: 用 flippy 命令还原 etc-000 或 etc-001 快照之后重启"
+    echo "建议2: cp /.snapshots/etc-000/config/fstab /etc/config/   # 然后重启"
     exit 1
+fi
+BOOT_NAME=$(echo $BOOT_PART_MSG | awk '{print $1}')
+BOOT_PATH=$(echo $BOOT_PART_MSG | awk '{print $2}')
+BOOT_UUID=$(echo $BOOT_PART_MSG | awk '{print $4}')
+
+echo -n "测试卸载 /boot ... "
+umount -f /boot
+if [ $? -ne 0 ];then
+    echo "不成功! 请重启后再试!"
+    exit 1
+else
+    echo "成功"
+    echo -n "测试重新挂载 /boot ... "
+    mount -t vfat -o "errors=remount-ro" ${BOOT_PATH} /boot 
+    if [ $? -ne 0 ];then
+	echo "卸载成功, 但重新挂载失败, 请重启后再试!"
+	exit 1
+    else
+        echo "成功"
+    fi
 fi
 
 # 获得当前使用的 dtb 文件名
@@ -74,10 +102,6 @@ read yn
 case $yn in
      n*|N*) BR_FLAG=0;;
 esac
-
-BOOT_NAME=$(echo $BOOT_PART_MSG | awk '{print $1}')
-BOOT_PATH=$(echo $BOOT_PART_MSG | awk '{print $2}')
-BOOT_UUID=$(echo $BOOT_PART_MSG | awk '{print $4}')
 
 # emmc设备具有  /dev/mmcblk?p?boot0、/dev/mmcblk?p?boot1等2个特殊设备, tf卡或u盘则不存在该设备
 MMCBOOT0=${BOOT_PATH%%p*}boot0
@@ -232,9 +256,9 @@ else
 fi
 
 # 判断要刷的版本
-echo $NEW_KV | grep -E 'flippy-[0-9]{1,3}\+[o]{0,1}' > /dev/null
+echo $NEW_KV | grep -E '\w+-[0-9]{1,3}\+[o]{0,1}$' > /dev/null
 if [ $? -ne 0 ];then
-    echo "目标固件的内核版本格式无法识别！"
+    echo "目标固件的内核版本后缀格式无法识别！"
     umount -f ${P1}
     umount -f ${P2}
     losetup -D
@@ -270,6 +294,23 @@ if [ "${CUR_SOC}" != "" ];then
         fi
     fi
 fi
+
+echo 
+echo "检查新版固件中是否存在必要的依赖文件 ..."
+for dep in ${DEPENDS};do
+    echo -n "检查 $dep ... "
+    if find "${P2}" -name "${dep}" > /dev/null;then
+	echo "已找到 $dep 文件."
+    else
+        echo "未找到 $dep 文件, 这说明该镜像不满足某些依赖条件，不允许升级!"
+        umount -f ${P1}
+        umount -f ${P2}
+        losetup -D
+	exit 1
+    fi
+done
+echo "依赖检查已通过"
+echo
 
 BOOT_CHANGED=0
 if [ $CUR_BOOT_FROM_EMMC -eq 0 ];then
@@ -427,7 +468,7 @@ COPY_SRC="root etc bin sbin lib opt usr www"
 echo "复制数据 ... "
 for src in $COPY_SRC;do
     echo -n "复制 $src ... "
-    (cd ${P2} && tar cf - $src) | tar xf -
+    (cd ${P2} && tar cf - $src) | tar xf - 2>/dev/null
     sync
     echo "完成"
 done
@@ -490,30 +531,14 @@ echo
 
 BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
 if [ $BR_FLAG -eq 1 ];then
-    # restore old config files
-    OLD_RELEASE=$(grep "DISTRIB_REVISION=" /etc/openwrt_release | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    NEW_RELEASE=$(grep "DISTRIB_REVISION=" ./etc/uci-defaults/99-default-settings | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
-            mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${NEW_RELEASE}
-    fi
-    mv ./etc/config/qbittorrent ./etc/config/qbittorrent.orig
-
     echo -n "开始还原从旧系统备份的配置文件 ... "
     (
       cd /
       eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
     )
-    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
-    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
-            mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
-            mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
-    fi
-    if grep 'config qbittorrent' ./etc/config/qbittorrent; then
-        rm -f ./etc/config/qbittorrent.orig
-    else
-        mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
-    fi
+    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz 2>/dev/null
     [ -f ./etc/config/dockerman ] && sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+    [ -f ./etc/config/dockerd ] && sed -e "s/option wan_mode '0'/option wan_mode '1'/" -i ./etc/config/dockerd 2>/dev/null
     [ -f ./etc/config/verysync ] && sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
 
     # 还原 fstab
@@ -533,6 +558,8 @@ sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 sss=$(date +%s)
 ddd=$((sss/86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
+# 修复amule每次升级后重复添加条目的问题
+sed -e "/amule:x:/d" -i ./etc/shadow
 if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
     echo "sshd:x:22:sshd" >> ./etc/group
@@ -540,12 +567,14 @@ if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
 fi
 
 if [ $BR_FLAG -eq 1 ];then
-    #cp ${P2}/etc/config/passwall_rule/chnroute ./etc/config/passwall_rule/ 2>/dev/null
-    #cp ${P2}/etc/config/passwall_rule/gfwlist.conf ./etc/config/passwall_rule/ 2>/dev/null
+    if [ -x ./bin/bash ] && [ -f ./etc/profile.d/30-sysinfo.sh ];then
+        sed -e 's/\/bin\/ash/\/bin\/bash/' -i ./etc/passwd
+    fi
     sync
     echo "完成"
     echo
 fi
+sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 rm -f ./etc/part_size ./usr/bin/mk_newpart.sh
@@ -628,20 +657,40 @@ btrfs subvolume snapshot -r etc .snapshots/etc-001
 
 cd ${WORK_DIR}
  
+echo -n "卸载 /boot ... "
+umount -f /boot
+if [ $? -ne 0 ];then
+    echo "卸载 /boot 失败, 升级被中止了, 但你的旧版系统未受影响，仍可继续使用。"
+    umount ${P1}
+    umount ${P2}
+    losetup -D
+    exit 1
+fi
+
+echo "重新格式化 ${BOOT_PATH} ..."
+if mkfs.fat -n ${BOOT_LABEL} -F 32 ${BOOT_PATH} 2>/dev/null;then
+    echo -n "挂载 /boot ..."
+    mount -t vfat -o "errors=remount-ro" ${BOOT_PATH} /boot 
+    if [ $? -eq 0 ];then
+        echo "成功"
+    else
+        echo "挂载失败! 系统被破坏, 准备重刷吧!"
+	exit 1
+    fi
+else
+    echo "格式化失败了! 系统被破坏, 准备重刷吧!"
+    exit 1
+fi
+
 echo "开始复制数据， 从 ${P1} 到 /boot ..."
 cd /boot
-echo -n "删除旧的 boot 文件 ..."
-[ -f /tmp/uEnv.txt ] || cp uEnv.txt /tmp/uEnv.txt
-
-rm -rf *
-echo "完成"
-echo -n "复制新的 boot 文件 ... " 
-(cd ${P1} && tar cf - . ) | tar mxf -
+#cp -a ${P1}/* . && sync
+(cd ${P1} && tar cf - . ) | tar xf - 2>/dev/null
 
 if [ "$BOOT_LABEL" == "BOOT" ];then
     [ -f u-boot.ext ] || cp u-boot.emmc u-boot.ext
 elif [ "$BOOT_LABEL" == "EMMC_BOOT" ];then
-    [ -f u-boot.emmc ] || cp u-boot.ext u-boot.emmc
+    [ ! -f u-boot.emmc ] && [ -f u-boot.ext ] && cp u-boot.ext u-boot.emmc
     rm -f aml_autoscript* s905_autoscript*
     mv -f boot-emmc.ini boot.ini
     mv -f boot-emmc.cmd boot.cmd
@@ -696,10 +745,40 @@ sync
 echo "完成"
 echo
 
+# 发现异常情况：在刷入+版时，复制完boot分区之后，有时 zImage 或 uInitrd的 md5sum 和原文件不一致, 导致重启后卡LOGO或黑屏, 应该是硬件BUG导致的
+echo "检查 boot 文件完整性 ..."
+PIVOTAL_FILES="vmlinuz-${NEW_KV} uInitrd-${NEW_KV} zImage uInitrd"
+while :;do
+    SUM_BAD=0
+    for f in ${PIVOTAL_FILES};do
+	  SRC_SUM=$(md5sum ${P1}/${f} | awk '{print $1}')
+	  DST_SUM=$(md5sum ./${f} | awk '{print $1}')
+          if [ "$SRC_SUM" != "$DST_SUM" ];then
+	       echo -n "${f} 的 md5sum 不正确， 正进行修复 ..."
+	       rm -f ${f} 
+	       cp ${P1}/${f} ${f}
+	       sync
+	       echo "完成"
+	       SRC_SUM=$(md5sum ${P1}/${f} | awk '{print $1}')
+	       DST_SUM=$(md5sum ./${f} | awk '{print $1}')
+               if [ "$SRC_SUM" != "$DST_SUM" ];then
+                   SUM_BAD=$((SUM_BAD + 1))
+	       fi
+	  fi
+    done	       
+    if [ ${SUM_BAD} -eq 0 ];then
+        break
+    else
+	echo "仍有文件未修复, 继续修复 ... "
+    fi
+done
+echo "完毕"
+
 cd $WORK_DIR
 umount -f ${P1} ${P2}
 losetup -D
 rmdir ${P1} ${P2}
+sync
 
 echo
 echo "----------------------------------------------------------------------"

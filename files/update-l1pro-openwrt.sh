@@ -259,31 +259,15 @@ echo
 
 BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
 if [ $BR_FLAG -eq 1 ];then
-    # restore old config files
-    OLD_RELEASE=$(grep "DISTRIB_REVISION=" /etc/openwrt_release | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    NEW_RELEASE=$(grep "DISTRIB_REVISION=" ./etc/uci-defaults/99-default-settings | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
-	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${NEW_RELEASE}
-    fi
-    mv ./etc/config/qbittorrent ./etc/config/qbittorrent.orig
-
     echo -n "Restore your old config files ... "
     (
       cd /
       eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
     )
     tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
-    if [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ];then
-	    mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
-	    mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
-    fi
-    if grep 'config qbittorrent' ./etc/config/qbittorrent; then
-	rm -f ./etc/config/qbittorrent.orig
-    else
-	mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
-    fi
-    sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
-    sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
+    [ -f ./etc/config/dockerman ] && sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+    [ -f ./etc/config/dockerd ] && sed -e "s/option wan_mode '0'/option wan_mode '1'/" -i ./etc/config/dockerd 2>/dev/null
+    [ -f ./etc/config/verysync ] && sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
 
     # 还原 fstab
     cp -f .snapshots/etc-000/fstab ./etc/fstab
@@ -302,6 +286,8 @@ sed -e 's/ttyS0/tty1/' -i ./etc/inittab
 sss=$(date +%s)
 ddd=$((sss/86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
+# 修复amule每次升级后重复添加条目的问题
+sed -e "/amule:x:/d" -i ./etc/shadow
 if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
     echo "sshd:x:22:sshd" >> ./etc/group
@@ -309,12 +295,14 @@ if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
 fi
 
 if [ $BR_FLAG -eq 1 ];then
-    #[ -f ${P2}/etc/config/passwall_rule/chnroute ] && cp ${P2}/etc/config/passwall_rule/chnroute ./etc/config/passwall_rule/ 2>/dev/null
-    #[ -f ${P2}/etc/config/passwall_rule/gfwlist.conf ] && cp ${P2}/etc/config/passwall_rule/gfwlist.conf ./etc/config/passwall_rule/ 2>/dev/null
+    if [ -x ./bin/bash ] && [ -f ./etc/profile.d/30-sysinfo.sh ];then
+        sed -e 's/\/bin\/ash/\/bin\/bash/' -i ./etc/passwd
+    fi
     sync
     echo "done"
     echo
 fi
+sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 echo "create the second etc snapshot -> .snapshots/etc-001"

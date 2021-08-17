@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "========================= begin $0 ==========================="
 WORK_DIR="${PWD}/tmp"
 if [ ! -d ${WORK_DIR} ];then
 	mkdir -p ${WORK_DIR}
@@ -34,15 +35,6 @@ fi
 # Openwrt root 源文件
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
-if [ $SFE_FLAG -eq 1 ];then
-    if [ -f "${PWD}/sfe/${OP_ROOT_TGZ}" ];then
-        OPWRT_ROOTFS_GZ="${PWD}/sfe/${OP_ROOT_TGZ}"
-    fi
-elif [ ${FLOWOFFLOAD_FLAG} -eq 1 ];then
-    if [ -f "${PWD}/flowoffload/${OP_ROOT_TGZ}" ];then
-        OPWRT_ROOTFS_GZ="${PWD}/flowoffload/${OP_ROOT_TGZ}"
-    fi
-fi
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # 目标镜像文件
@@ -75,6 +67,7 @@ MAC_SCRIPT3="${PWD}/files/inc_macaddr.pl"
 CPUSTAT_SCRIPT="${PWD}/files/cpustat"
 CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
+CPUSTAT_PATCH_02="${PWD}/files/luci-admin-status-index-html-02.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 TTYD="${PWD}/files/ttyd"
 FLIPPY="${PWD}/files/flippy"
@@ -131,6 +124,12 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
 BOOTFILES_HOME="${PWD}/files/bootfiles/amlogic"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
+
+# 20210618 add
+DOCKER_README="${PWD}/files/DockerReadme.pdf"
+
+# 20210704 add
+SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
 ###########################################################################
 
 # 检查环境
@@ -326,12 +325,12 @@ echo "修改根文件系统相关配置 ... "
 
 # modify root
 cd $TGT_ROOT
-( [ -f "$SS_LIB" ] &&  cd lib && tar xvJf "$SS_LIB" )
+( [ -f "$SS_LIB" ] &&  cd lib && tar xJf "$SS_LIB" )
 if [ -f "$SS_BIN" ];then
     (
         cd usr/bin
         mkdir -p ss-bin-musl && mv -f ss-server ss-redir ss-local ss-tunnel ss-bin-musl/ 2>/dev/null
-       	tar xvJf "$SS_BIN"
+       	tar xJf "$SS_BIN"
     )
 fi
 if [ -f "$JQ" ] && [ ! -f "./usr/bin/jq" ];then
@@ -353,12 +352,12 @@ fi
 [ -f $FORCE_REBOOT ] && cp $FORCE_REBOOT usr/sbin/
 [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
 if [ -x usr/bin/perl ];then
-	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/
+	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/cpustat && chmod 755 usr/bin/cpustat
 	[ -f $GETCPU_SCRIPT ] && cp $GETCPU_SCRIPT bin/
 else
-	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat
+	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
 fi
-[ -f $TTYD ] && cp $TTYD etc/init.d/
+#[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
 if [ -f $BANNER ];then
     cp -f $BANNER etc/banner
@@ -382,6 +381,9 @@ fi
 if [ -f $FIX_CPU_FREQ ];then
     cp -v $FIX_CPU_FREQ usr/sbin
     chmod 755 usr/sbin/fixcpufreq.pl
+fi
+if [ -f etc/config/cpufreq ];then
+    sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
 fi
 if [ -f $SYSFIXTIME_PATCH ];then
     patch -p1 < $SYSFIXTIME_PATCH
@@ -411,6 +413,8 @@ sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
+[ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && \
+	sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 
@@ -428,15 +432,37 @@ sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 	sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua && \
 	[ -f ${SMB4_PATCH} ] && \
 	patch -p1 < ${SMB4_PATCH}
+
 # for nfs server
 if [ -f ./etc/init.d/nfsd ];then
-    echo "/mnt/mmcblk2p4 *(rw,sync,no_root_squash,insecure,no_subtree_check)" > ./etc/exports
+    cat > ./etc/exports <<EOF
+# /etc/exports: the access control list for filesystems which may be exported
+#               to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+
+/mnt *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
+/mnt/mmcblk2p4 *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
+EOF
     cat > ./etc/config/nfs <<EOF
+
 config share
-	option clients '*'
-	option enabled '1'
-	option options 'rw,sync,no_root_squash,insecure,no_subtree_check'
-	option path '/mnt/mmcblk2p4'
+        option clients '*'
+        option enabled '1'
+        option path '/mnt'
+        option options 'ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash'
+
+config share
+        option enabled '1'
+        option path '/mnt/mmcblk2p4'
+        option clients '*'
+        option options 'rw,fsid=1,sync,no_subtree_check,no_root_squash'
 EOF
 fi
 
@@ -495,7 +521,8 @@ cat ./etc/config/fstab
 [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
 [ -f ./etc/docker-init ] && rm -f ./etc/docker-init
 [ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
-[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset
+[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset ./sbin/jffs2mark
+[ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 mkdir -p ./etc/modprobe.d
 cat > ./etc/modprobe.d/99-local.conf <<EOF
@@ -505,10 +532,12 @@ alias pwm pwm_meson
 alias wifi brcmfmac
 EOF
 
-# echo br_netfilter > ./etc/modules.d/br_netfilter
+sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+
 echo pwm_meson > ./etc/modules.d/pwm_meson
 echo panfrost > ./etc/modules.d/panfrost
-#echo meson_gxbb_wdt > ./etc/modules.d/watchdog
+echo meson_gxbb_wdt > ./etc/modules.d/watchdog
 
 mkdir ./etc/modules.d.remove
 mod_blacklist=$(cat ${KMOD_BLACKLIST})
@@ -516,9 +545,16 @@ for mod in $mod_blacklist ;do
 	mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
 done
 
-# 在高版本内核下， wifi模块目前问题太多，禁用
 if [ $K510 -eq 1 ];then
-    mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+    # 高版本内核下，如果ENABLE_WIFI_K510 = 0 则禁用wifi
+    if [ $ENABLE_WIFI_K510 -eq 0 ];then
+        mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+    fi
+else
+    # 低版本内核下，如果ENABLE_WIFI_K504 = 0 则禁用wifi
+    if [ $ENABLE_WIFI_K504 -eq 0 ];then
+        mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+    fi
 fi
 
 # 默认禁用sfe
@@ -527,7 +563,6 @@ fi
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 # +版内核，优先启用v2驱动, +o内核则启用v1驱动
 if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	#echo "r8152_v2" > ./etc/modules.d/usb-net-rtl8152
 	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
 else
 	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
@@ -568,7 +603,11 @@ ln -sf kmod lsmod
 ln -sf kmod modinfo
 ln -sf kmod modprobe
 ln -sf kmod rmmod
-ln -sf /usr/bin/ntfs-3g mount.ntfs
+if [ -f mount.ntfs3 ];then
+    ln -sf mount.ntfs3 mount.ntfs
+elif [ -f ../usr/bin/ntfs-3g ];then
+    ln -sf /usr/bin/ntfs-3g mount.ntfs
+fi
 
 cd $TGT_ROOT/lib/firmware
 mv *.hcd brcm/ 2>/dev/null
@@ -600,9 +639,8 @@ cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
 37 5 * * * /etc/coremark.sh
 EOF
 
-[ -f $CPUSTAT_PATCH ] && \
-cd $TGT_ROOT/usr/lib/lua/luci/view/admin_status && \
-patch -p0 < ${CPUSTAT_PATCH}
+[ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
+[ -x "${TGT_ROOT}/usr/bin/perl" ] && [ -f "${CPUSTAT_PATCH_02}" ] && cd ${TGT_ROOT} && patch -p1 < ${CPUSTAT_PATCH_02}
 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
@@ -629,3 +667,5 @@ fi
 sync
 echo
 echo "镜像打包已完成，再见!"
+echo "========================== end $0 ================================"
+echo

@@ -329,8 +329,9 @@ if [ -x ./usr/sbin/balethirq.pl ];then
 fi
 
 if [ $BR_FLAG -eq 1 ];then
-    #[ -f /etc/config/passwall_rule/chnroute ] && cp /etc/config/passwall_rule/chnroute ./etc/config/passwall_rule/ 2>/dev/null
-    #[ -f /etc/config/passwall_rule/gfwlist.conf ] && cp /etc/config/passwall_rule/gfwlist.conf ./etc/config/passwall_rule/ 2>/dev/null
+    if [ -x ./bin/bash ] && [ -f ./etc/profile.d/30-sysinfo.sh ];then
+        sed -e 's/\/bin\/ash/\/bin\/bash/' -i ./etc/passwd
+    fi
     cp /etc/config/luci ./etc/config/
     sync
 fi
