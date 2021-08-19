@@ -288,6 +288,8 @@ ddd=$((sss/86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 # 修复amule每次升级后重复添加条目的问题
 sed -e "/amule:x:/d" -i ./etc/shadow
+# 修复dropbear每次升级后重复添加sshd条目的问题
+sed -e "/sshd:x:/d" -i ./etc/shadow
 if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
     echo "sshd:x:22:sshd" >> ./etc/group
