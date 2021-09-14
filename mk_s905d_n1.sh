@@ -13,6 +13,10 @@ source make.env
 SOC=s905d
 BOARD=n1
 
+# 让N1一直有wifi可用，以减少抱怨
+# 5.10(及以上)内核是否启用wifi  1:启用 0:禁用
+ENABLE_WIFI_K510=1
+
 SUBVER=$1
 
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz

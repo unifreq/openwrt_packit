@@ -1,30 +1,133 @@
-#!/bin/sh
+#!/bin/bash
+#======================================================================================
+# Function: Update openwrt to emmc for Allwinner STB
+# Copyright (C) 2020-- https://github.com/unifreq/openwrt_packit
+# Copyright (C) 2021-- https://github.com/ophub/luci-app-amlogic
+#======================================================================================
 
-# check cmd param
-if [ "$1" == "" ];then
-	echo "Usage: $0 xxx.img"
-	exit 1
+# The script supports directly setting parameters for update, skipping interactive selection
+# openwrt-update-allwinner ${OPENWRT_FILE} ${AUTO_MAINLINE_UBOOT} ${RESTORE_CONFIG}
+# E.g: openwrt-update-allwinner openwrt_s905d.img.gz yes restore
+# E.g: openwrt-update-allwinner openwrt_s905d.img.gz no no-restore
+
+# You can also execute the script directly, and interactively select related functions
+# E.g: openwrt-update-allwinner
+
+# Receive one-key command related parameters
+IMG_NAME=${1}
+AUTO_MAINLINE_UBOOT=${2}
+BACKUP_RESTORE_CONFIG=${3}
+
+# Current device model
+MYDEVICE_NAME=$(cat /proc/device-tree/model 2>/dev/null)
+if [[ -z "${MYDEVICE_NAME}" || "${MYDEVICE_NAME}" != "V-Plus Cloud" ]]; then
+    echo "Unknown device: [ ${MYDEVICE_NAME} ], Not supported."
+    exit 1
+else
+    echo -e "Current device: ${MYDEVICE_NAME} [ vplus ]"
+    sleep 3
 fi
 
-# check image file
-IMG_NAME=$1
-if [ ! -f "$IMG_NAME" ];then
-	echo "$IMG_NAME not exists!"
-	exit 1
+EMMC_NAME=$(lsblk | grep -oE '(mmcblk[0-9])' | sort | uniq)
+if [ "${EMMC_NAME}" == "" ]; then
+    echo "The system did not find any available disk devices!!!"
+    exit 1
+elif [[ "$(echo "${EMMC_NAME}" | awk -F 'mmcblk' '{print NF-1}')" -ne "1" ]]; then
+    echo "Please remove the more SD-card and try again."
+    exit 1
+fi
+cd /mnt/${EMMC_NAME}p4/
+
+if [[ "${IMG_NAME}" == *.img ]]; then
+    echo -e "Update using [ ${IMG_NAME} ] file. Please wait a moment ..."
+elif [ $( ls *.img -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    IMG_NAME=$( ls *.img | head -n 1 )
+    echo -e "Update using [ ${IMG_NAME} ] ] file. Please wait a moment ..."
+elif [ $( ls *.img.xz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    xz_file=$( ls *.img.xz | head -n 1 )
+    echo -e "Update using [ ${xz_file} ] file. Please wait a moment ..."
+    xz -d ${xz_file}
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls *.img.gz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    gz_file=$( ls *.img.gz | head -n 1 )
+    echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
+    gzip -df ${gz_file}
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls *.7z -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    gz_file=$( ls *.7z | head -n 1 )
+    echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
+    bsdtar -xmf ${gz_file}
+    #7z x ${gz_file} -aoa -y
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls *.zip -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    zip_file=$( ls *.zip | head -n 1 )
+    echo -e "Update using [ ${zip_file} ] file. Please wait a moment ..."
+    unzip -o ${zip_file}
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls /tmp/upload/*.img.xz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    xz_file=$( ls /tmp/upload/*.img.xz | head -n 1 )
+    echo -e "Update using [ ${xz_file} ] file. Please wait a moment ..."
+    mv -f ${xz_file} .
+    xz_file=${xz_file##*/}
+    xz -d ${xz_file}
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls /tmp/upload/*.img.gz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    gz_file=$( ls /tmp/upload/*.img.gz | head -n 1 )
+    echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
+    mv -f ${gz_file} .
+    gz_file=${gz_file##*/}
+    gzip -df ${gz_file}
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls /tmp/upload/*.7z -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    gz_file=$( ls /tmp/upload/*.7z | head -n 1 )
+    echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
+    mv -f ${gz_file} .
+    gz_file=${gz_file##*/}
+    bsdtar -xmf ${gz_file}
+    #7z x ${gz_file} -aoa -y
+    IMG_NAME=$( ls *.img | head -n 1 )
+elif [ $( ls /tmp/upload/*.zip -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+    zip_file=$( ls /tmp/upload/*.zip | head -n 1 )
+    echo -e "Update using [ ${zip_file} ] file. Please wait a moment ..."
+    mv -f ${zip_file} .
+    zip_file=${zip_file##*/}
+    unzip -o  ${zip_file}
+    IMG_NAME=$( ls *.img | head -n 1 )
+else
+    echo -e "Please upload or specify the update file."
+    echo -e "Upload method: system menu → file transfer → upload the update file to [ /tmp/upload/ ]"
+    echo -e "Specify method: Place the update file in [ /mnt/mmcblk*p4/ ]"
+    echo -e "The supported file suffixes are: *.img, *.img.xz, *.img.gz, *.7z, *.zip"
+    echo -e "After upload the update file, run [ openwrt-update-allwinner ] again."
+    exit 1
+fi
+
+# check file
+if  [ ! -f "${IMG_NAME}" ]; then
+    echo "No update file found."
+    exit 1
+else
+    echo "Start update from [ ${IMG_NAME} ]"
 fi
 
 # find boot partition 
 BOOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | awk '$3~/^part$/ && $5 ~ /^\/boot$/ {print $0}')
 if [ "${BOOT_PART_MSG}" == "" ];then
-	echo "The boot partition is not exists or not mounted, so it cannot be upgraded with this script!"
-	exit 1
+    echo "The boot partition is not exists or not mounted, so it cannot be upgraded with this script!"
+    exit 1
 fi
 
 BR_FLAG=1
-echo -ne "Do you want to backup old config files and restore to new system? y/n [y]\b\b"
-read yn
+echo -ne "Whether to backup and restore the current config files? y/n [y]\b\b"
+if [[ ${BACKUP_RESTORE_CONFIG} == "restore" ]]; then
+    yn="y"
+elif [[ ${BACKUP_RESTORE_CONFIG} == "no-restore" ]]; then
+    yn="n"
+else
+    read yn
+fi
 case $yn in
-    n*|N*) BR_FLAG=0;;
+     n*|N*) BR_FLAG=0;;
 esac
 
 BOOT_NAME=$(echo $BOOT_PART_MSG | awk '{print $1}')
@@ -37,22 +140,22 @@ ROOT_NAME=$(echo $ROOT_PART_MSG | awk '{print $1}')
 ROOT_PATH=$(echo $ROOT_PART_MSG | awk '{print $2}')
 ROOT_UUID=$(echo $ROOT_PART_MSG | awk '{print $4}')
 case $ROOT_NAME in 
-  mmcblk0p2) NEW_ROOT_NAME=mmcblk0p3
-	     NEW_ROOT_LABEL=EMMC_ROOTFS2
-	     ;;
-  mmcblk0p3) NEW_ROOT_NAME=mmcblk0p2
-	     NEW_ROOT_LABEL=EMMC_ROOTFS1
-	     ;;
-          *) echo "The root partition location is invalid, so it cannot be upgraded with this script!"
-             exit 1
-             ;;
+    ${EMMC_NAME}p2) NEW_ROOT_NAME=${EMMC_NAME}p3
+                    NEW_ROOT_LABEL=EMMC_ROOTFS2
+                    ;;
+    ${EMMC_NAME}p3) NEW_ROOT_NAME=${EMMC_NAME}p2
+                    NEW_ROOT_LABEL=EMMC_ROOTFS1
+                    ;;
+    *) echo "The root partition location is invalid, so it cannot be upgraded with this script!"
+                    exit 1
+                    ;;
 esac
 
 # find new root partition
 NEW_ROOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | grep "${NEW_ROOT_NAME}" | awk '$3 ~ /^part$/ && $5 !~ /^\/$/ && $5 !~ /^\/boot$/ {print $0}')
 if [ "${NEW_ROOT_PART_MSG}" == "" ];then
-	echo "The new root partition is not exists, so it cannot be upgraded with this script!"
-	exit 1
+    echo "The new root partition is not exists, so it cannot be upgraded with this script!"
+    exit 1
 fi
 NEW_ROOT_NAME=$(echo $NEW_ROOT_PART_MSG | awk '{print $1}')
 NEW_ROOT_PATH=$(echo $NEW_ROOT_PART_MSG | awk '{print $2}')
@@ -62,39 +165,39 @@ NEW_ROOT_MP=$(echo $NEW_ROOT_PART_MSG | awk '{print $5}')
 # losetup
 losetup -f -P $IMG_NAME
 if [ $? -eq 0 ];then
-	LOOP_DEV=$(losetup | grep "$IMG_NAME" | awk '{print $1}')
-	if [ "$LOOP_DEV" == "" ];then
-		echo "loop device not found!"
-		exit 1
-	fi
+    LOOP_DEV=$(losetup | grep "$IMG_NAME" | awk '{print $1}')
+    if [ "$LOOP_DEV" == "" ];then
+        echo "loop device not found!"
+        exit 1
+    fi
 else
-	echo "losetup $IMG_FILE failed!"
-	exit 1
+    echo "losetup $IMG_FILE failed!"
+    exit 1
 fi
 WAIT=3
 echo -n "The loopdev is $LOOP_DEV, wait ${WAIT} seconds "
 while [ $WAIT -ge 1 ];do
-	echo -n "."
-	sleep 1
-	WAIT=$(( WAIT - 1 ))
+    echo -n "."
+    sleep 1
+    WAIT=$(( WAIT - 1 ))
 done
 echo
 
 # umount loop devices (openwrt will auto mount some partition)
 MOUNTED_DEVS=$(lsblk -l -o NAME,PATH,MOUNTPOINT | grep "$LOOP_DEV" | awk '$3 !~ /^$/ {print $2}')
 for dev in $MOUNTED_DEVS;do
-	while : ;do
-		echo -n "umount $dev ... "
-		umount -f $dev
-		sleep 1
-		mnt=$(lsblk -l -o NAME,PATH,MOUNTPOINT | grep "$dev" | awk '$3 !~ /^$/ {print $2}')
-		if [ "$mnt" == "" ];then
-			echo "ok"
-			break
-		else 
-			echo "try again ..."
-		fi
-	done
+    while : ;do
+        echo -n "umount $dev ... "
+        umount -f $dev
+        sleep 1
+        mnt=$(lsblk -l -o NAME,PATH,MOUNTPOINT | grep "$dev" | awk '$3 !~ /^$/ {print $2}')
+        if [ "$mnt" == "" ];then
+            echo "ok"
+            break
+        else
+            echo "try again ..."
+        fi
+    done
 done
 
 # mount src part
@@ -105,54 +208,54 @@ mkdir -p $P1 $P2
 echo -n "mount ${LOOP_DEV}p1 -> ${P1} ... "
 mount -t vfat -o ro ${LOOP_DEV}p1 ${P1}
 if [ $? -ne 0 ];then
-	echo "mount failed"
-	losetup -D
-	exit 1
+    echo "mount failed"
+    losetup -D
+    exit 1
 else 
-	echo "ok"
+    echo "ok"
 fi	
 
 echo -n "mount ${LOOP_DEV}p2 -> ${P2} ... "
 mount -t btrfs -o ro,compress=zstd ${LOOP_DEV}p2 ${P2}
 if [ $? -ne 0 ];then
-	echo "mount failed"
-	umount -f ${P1}
-	losetup -D
-	exit 1
+    echo "mount failed"
+    umount -f ${P1}
+    losetup -D
+    exit 1
 else
-	echo "ok"
+    echo "ok"
 fi	
 
 #format NEW_ROOT
 echo "umount ${NEW_ROOT_MP}"
 umount -f "${NEW_ROOT_MP}"
 if [ $? -ne 0 ];then
-	echo "umount failed, please reboot and try again!"
-	umount -f ${P1}
-	umount -f ${P2}
-	losetup -D
-	exit 1
+    echo "umount failed, please reboot and try again!"
+    umount -f ${P1}
+    umount -f ${P2}
+    losetup -D
+    exit 1
 fi
 
 echo "format ${NEW_ROOT_PATH}"
 NEW_ROOT_UUID=$(uuidgen)
 mkfs.btrfs -f -U ${NEW_ROOT_UUID} -L ${NEW_ROOT_LABEL} ${NEW_ROOT_PATH}
 if [ $? -ne 0 ];then
-	echo "format ${NEW_ROOT_PATH} failed!"
-	umount -f ${P1}
-	umount -f ${P2}
-	losetup -D
-	exit 1
+    echo "format ${NEW_ROOT_PATH} failed!"
+    umount -f ${P1}
+    umount -f ${P2}
+    losetup -D
+    exit 1
 fi
 
 echo "mount ${NEW_ROOT_PATH} to ${NEW_ROOT_MP}"
 mount -t btrfs -o compress=zstd ${NEW_ROOT_PATH} ${NEW_ROOT_MP}
 if [ $? -ne 0 ];then
-	echo "mount ${NEW_ROOT_PATH} to ${NEW_ROOT_MP} failed!"
-	umount -f ${P1}
-	umount -f ${P2}
-	losetup -D
-	exit 1
+    echo "mount ${NEW_ROOT_PATH} to ${NEW_ROOT_MP} failed!"
+    umount -f ${P1}
+    umount -f ${P2}
+    losetup -D
+    exit 1
 fi
 
 # begin copy rootfs
@@ -160,17 +263,17 @@ cd ${NEW_ROOT_MP}
 echo "Start copy data from ${P2} to ${NEW_ROOT_MP} ..."
 ENTRYS=$(ls)
 for entry in $ENTRYS;do
-	if [ "$entry" == "lost+found" ];then
-		continue
-	fi
-	echo -n "remove old $entry ... "
-	rm -rf $entry 
-	if [ $? -eq 0 ];then
-		echo "ok"
-	else
-		echo "failed"
-		exit 1
-	fi
+    if [ "$entry" == "lost+found" ];then
+        continue
+    fi
+    echo -n "remove old $entry ... "
+    rm -rf $entry
+    if [ $? -eq 0 ];then
+        echo "ok"
+    else
+        echo "failed"
+        exit 1
+    fi
 done
 echo
 
@@ -186,21 +289,21 @@ echo
 COPY_SRC="root etc bin sbin lib opt usr www"
 echo "copy data ... "
 for src in $COPY_SRC;do
-	echo -n "copy $src ... "
-        (cd ${P2} && tar cf - $src) | tar xf -
-        sync
-        echo "done"
+    echo -n "copy $src ... "
+    (cd ${P2} && tar cf - $src) | tar xf -
+    sync
+    echo "done"
 done
 
-SHFS="/mnt/mmcblk0p4"
+SHFS="/mnt/${EMMC_NAME}p4"
 echo "Modify config files ... "
 rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
 rm -f ./etc/bench.log
 if [ -x ./usr/sbin/balethirq.pl ];then
     if grep "balethirq.pl" "./etc/rc.local";then
-	echo "balance irq is enabled"
+        echo "balance irq is enabled"
     else
-	echo "enable balance irq"
+        echo "enable balance irq"
         sed -e "/exit/i\/usr/sbin/balethirq.pl" -i ./etc/rc.local
     fi
 fi
@@ -243,23 +346,22 @@ btrfs subvolume snapshot -r etc .snapshots/etc-000
 rm -rf opt/docker && ln -sf ${SHFS}/docker/ opt/docker
 
 if [ -f /mnt/${NEW_ROOT_NAME}/etc/config/AdGuardHome ];then
-	[ -d ${SHFS}/AdGuardHome/data ] || mkdir -p ${SHFS}/AdGuardHome/data
-      	if [ ! -L /usr/bin/AdGuardHome ];then
-		[ -d /usr/bin/AdGuardHome ] && \
-		cp -a /usr/bin/AdGuardHome/* ${SHFS}/AdGuardHome/
-
-	fi
-	ln -sf ${SHFS}/AdGuardHome /mnt/${NEW_ROOT_NAME}/usr/bin/AdGuardHome
+    [ -d ${SHFS}/AdGuardHome/data ] || mkdir -p ${SHFS}/AdGuardHome/data
+    if [ ! -L /usr/bin/AdGuardHome ];then
+        [ -d /usr/bin/AdGuardHome ] && \
+        cp -a /usr/bin/AdGuardHome/* ${SHFS}/AdGuardHome/
+    fi
+    ln -sf ${SHFS}/AdGuardHome /mnt/${NEW_ROOT_NAME}/usr/bin/AdGuardHome
 fi
 
 BOOTLOADER="./lib/u-boot/u-boot-sunxi-with-spl.bin"
 if [ -f ${BOOTLOADER} ];then
-	echo "update u-boot ... "
-	# erase from 8kb to 4mb
-	dd if=/dev/zero of=/dev/mmcblk0 bs=1024 seek=8 count=4088 conv=fsync
-	# write u-boot
-	dd if=${BOOTLOADER} of=/dev/mmcblk0 bs=1024 seek=8 conv=fsync
-	echo "done"
+    echo "update u-boot ... "
+    # erase from 8kb to 4mb
+    dd if=/dev/zero of=/dev/${EMMC_NAME} bs=1024 seek=8 count=4088 conv=fsync
+    # write u-boot
+    dd if=${BOOTLOADER} of=/dev/${EMMC_NAME} bs=1024 seek=8 conv=fsync
+    echo "done"
 fi
 sync
 echo "copy done"
@@ -269,14 +371,14 @@ BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
 if [ $BR_FLAG -eq 1 ];then
     echo -n "Restore your old config files ... "
     (
-      cd /
-      eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
+        cd /
+        eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
     )
     tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
     [ -f ./etc/config/dockerman ] &&  sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
     [ -f ./etc/config/dockerd ] && sed -e "s/option wan_mode '0'/option wan_mode '1'/" -i ./etc/config/dockerd 2>/dev/null
     [ -f ./etc/config/verysync ] && sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
-    
+
     # 还原 fstab
     cp -f .snapshots/etc-000/fstab ./etc/fstab
     cp -f .snapshots/etc-000/config/fstab ./etc/config/fstab
@@ -296,6 +398,8 @@ ddd=$((sss/86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 # 修复amule每次升级后重复添加条目的问题
 sed -e "/amule:x:/d" -i ./etc/shadow
+# 修复dropbear每次升级后重复添加sshd条目的问题
+sed -e "/sshd:x:/d" -i ./etc/shadow
 if [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ];then
     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
     echo "sshd:x:22:sshd" >> ./etc/group
@@ -317,8 +421,8 @@ rm -f ./etc/part_size ./usr/bin/mk_newpart.sh
 mv ./etc/rc.local ./etc/rc.local.orig
 cat > ./etc/rc.local <<EOF
 if [ ! -f /etc/rc.d/*dockerd ];then
-	/etc/init.d/dockerd enable
-	/etc/init.d/dockerd start
+    /etc/init.d/dockerd enable
+    /etc/init.d/dockerd start
 fi
 opkg remove --force-removal-of-dependent-packages shairport-sync-openssl
 mv /etc/rc.local.orig /etc/rc.local
@@ -367,5 +471,10 @@ cd $WORK_DIR
 umount -f ${P1} ${P2}
 losetup -D
 rmdir ${P1} ${P2}
-echo "Update done, please reboot!"
-echo
+sync
+
+echo "Successfully updated, automatic restarting..."
+sleep 3
+reboot
+exit 0
+

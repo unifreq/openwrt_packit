@@ -63,3 +63,32 @@ https://www.right.com.cn/forum/thread-981406-1-1.html
 https://www.right.com.cn/forum/thread-4055451-1-1.html
 
 https://www.right.com.cn/forum/thread-4076037-1-1.html
+
+四、TG群友打包的固件地址
+
+暴躁老哥：
+https://github.com/breakings/OpenWrt
+
+有一妙计：
+https://github.com/HoldOnBro/Actions-OpenWrt/
+
+诸葛先生：
+https://github.com/hibuddies/openwrt/
+
+那坨：
+https://github.com/Netflixxp/N1HK1dabao
+
+五、Github Actions 打包使用方法
+
+在 `.github/workflows/*.yml` 云编译脚本中引入此 Actions 即可使用。详细使用说明：[README.ACTION.md](README.ACTION.md)
+
+```yaml
+
+- name: Package Armvirt as OpenWrt
+  uses: unifreq/openwrt_packit@master
+  env:
+    OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
+    PACKAGE_SOC: s905d_s905x3_beikeyun
+    KERNEL_VERSION_NAME: 5.13.2_5.4.132
+
+```
