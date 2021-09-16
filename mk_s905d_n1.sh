@@ -44,22 +44,6 @@ echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 # 目标镜像文件
 TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}.img"
 
-# 判断内核版本是否 >= 5.10
-K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
-K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
-
-if [ $K_VER -eq 5 ];then
-	if [ $K_MAJ -ge 10 ];then
-		K510=1
-	else
-		K510=0
-	fi
-elif [ $K_VER -gt 5 ];then
-	K510=1
-else
-	K510=0
-fi
-
 # 补丁和脚本
 ###########################################################################
 REGULATORY_DB="${PWD}/files/regulatory.db.tar.gz"

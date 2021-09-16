@@ -457,6 +457,7 @@ mkdir -p ./etc/modprobe.d
 
 sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
 sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
 
 cd $TGT_ROOT/lib/modules/${KERNEL_VERSION}/
 find . -name '*.ko' -exec ln -sf {} . \;
