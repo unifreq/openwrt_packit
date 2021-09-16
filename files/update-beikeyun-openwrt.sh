@@ -20,13 +20,13 @@ BACKUP_RESTORE_CONFIG=${3}
 
 # Current device model
 MYDEVICE_NAME=$(cat /proc/device-tree/model 2>/dev/null)
-if [ -z "${MYDEVICE_NAME}" ]; then
-    echo "Unknown device"
+if [[ -z "${MYDEVICE_NAME}" ]]; then
+    echo "The device name is empty and cannot be recognized."
     exit 1
-elif [ "${MYDEVICE_NAME}" == "Chainedbox L1 Pro" ]; then
+elif [[ "$(echo ${MYDEVICE_NAME} | grep "Chainedbox L1 Pro")" != "" ]]; then
     MYDTB_FTDFILE="rk3328-l1pro-1296mhz.dtb"
     SOC="l1pro"
-elif [ "${MYDEVICE_NAME}" == "BeikeYun" ]; then
+elif [[ "$(echo ${MYDEVICE_NAME} | grep "BeikeYun")" != "" ]]; then
     MYDTB_FTDFILE="rk3328-beikeyun-1296mhz.dtb"
     SOC="beikeyun"
 else
@@ -44,7 +44,10 @@ elif [[ "$(echo "${EMMC_NAME}" | awk -F 'mmcblk' '{print NF-1}')" -ne "1" ]]; th
     echo "Please remove the more SD-card and try again."
     exit 1
 fi
+
 cd /mnt/${EMMC_NAME}p4/
+mv -f /tmp/upload/* . 2>/dev/null && sync
+mv -f .tmp_upload/* . 2>/dev/null && sync
 
 if [[ "${IMG_NAME}" == *.img ]]; then
     echo -e "Update using [ ${IMG_NAME} ] file. Please wait a moment ..."
@@ -54,61 +57,33 @@ elif [ $( ls *.img -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
 elif [ $( ls *.img.xz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
     xz_file=$( ls *.img.xz | head -n 1 )
     echo -e "Update using [ ${xz_file} ] file. Please wait a moment ..."
-    xz -d ${xz_file}
+    xz -d ${xz_file} 2>/dev/null
     IMG_NAME=$( ls *.img | head -n 1 )
 elif [ $( ls *.img.gz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
     gz_file=$( ls *.img.gz | head -n 1 )
     echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
-    gzip -df ${gz_file}
+    gzip -df ${gz_file} 2>/dev/null
     IMG_NAME=$( ls *.img | head -n 1 )
 elif [ $( ls *.7z -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
     gz_file=$( ls *.7z | head -n 1 )
     echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
-    bsdtar -xmf ${gz_file}
-    #7z x ${gz_file} -aoa -y
+    bsdtar -xmf ${gz_file} 2>/dev/null
+    [ $? -eq 0 ] || 7z x ${gz_file} -aoa -y 2>/dev/null
     IMG_NAME=$( ls *.img | head -n 1 )
 elif [ $( ls *.zip -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
     zip_file=$( ls *.zip | head -n 1 )
     echo -e "Update using [ ${zip_file} ] file. Please wait a moment ..."
-    unzip -o ${zip_file}
-    IMG_NAME=$( ls *.img | head -n 1 )
-elif [ $( ls /tmp/upload/*.img.xz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
-    xz_file=$( ls /tmp/upload/*.img.xz | head -n 1 )
-    echo -e "Update using [ ${xz_file} ] file. Please wait a moment ..."
-    mv -f ${xz_file} .
-    xz_file=${xz_file##*/}
-    xz -d ${xz_file}
-    IMG_NAME=$( ls *.img | head -n 1 )
-elif [ $( ls /tmp/upload/*.img.gz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
-    gz_file=$( ls /tmp/upload/*.img.gz | head -n 1 )
-    echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
-    mv -f ${gz_file} .
-    gz_file=${gz_file##*/}
-    gzip -df ${gz_file}
-    IMG_NAME=$( ls *.img | head -n 1 )
-elif [ $( ls /tmp/upload/*.7z -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
-    gz_file=$( ls /tmp/upload/*.7z | head -n 1 )
-    echo -e "Update using [ ${gz_file} ] file. Please wait a moment ..."
-    mv -f ${gz_file} .
-    gz_file=${gz_file##*/}
-    bsdtar -xmf ${gz_file}
-    #7z x ${gz_file} -aoa -y
-    IMG_NAME=$( ls *.img | head -n 1 )
-elif [ $( ls /tmp/upload/*.zip -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
-    zip_file=$( ls /tmp/upload/*.zip | head -n 1 )
-    echo -e "Update using [ ${zip_file} ] file. Please wait a moment ..."
-    mv -f ${zip_file} .
-    zip_file=${zip_file##*/}
-    unzip -o  ${zip_file}
+    unzip -o ${zip_file} 2>/dev/null
     IMG_NAME=$( ls *.img | head -n 1 )
 else
-    echo -e "Please upload or specify the update file."
-    echo -e "Upload method: system menu → file transfer → upload the update file to [ /tmp/upload/ ]"
-    echo -e "Specify method: Place the update file in [ /mnt/mmcblk*p4/ ]"
+    echo -e "Please upload or specify the update openwrt firmware file."
+    echo -e "Upload method: system menu → Amlogic Service → Manually Upload Update"
+    echo -e "Specify method: Place the openwrt firmware file in [ /mnt/${EMMC_NAME}p4/ ]"
     echo -e "The supported file suffixes are: *.img, *.img.xz, *.img.gz, *.7z, *.zip"
-    echo -e "After upload the update file, run [ openwrt-update-rockchip ] again."
+    echo -e "After upload the openwrt firmware file, run again."
     exit 1
 fi
+sync
 
 # check file
 if  [ ! -f "${IMG_NAME}" ]; then
@@ -453,9 +428,10 @@ echo "done"
 echo
 
 cd $WORK_DIR
-umount -f ${P1} ${P2}
-losetup -D
-rmdir ${P1} ${P2}
+umount -f ${P1} ${P2} 2>/dev/null
+losetup -D 2>/dev/null
+rmdir ${P1} ${P2} 2>/dev/null
+rm -f ${IMG_NAME} 2>/dev/null
 sync
 
 echo "Successfully updated, automatic restarting..."
