@@ -519,9 +519,23 @@ alias pwm pwm_meson
 alias wifi brcmfmac
 EOF
 
-sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
-sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
-sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
+if [ -f ./etc/config/turboacc ];then
+    sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+    sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+    sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
+else
+    cat > ./etc/config/turboacc <<EOF
+
+config turboacc 'config'
+        option sw_flow '${SW_FLOWOFFLOAD}'
+        option hw_flow '${HW_FLOWOFFLOAD}'
+	option sfe_flow '${SFE_FLOW}'
+        option bbr_cca '0'
+        option fullcone_nat '1'
+        option dns_caching '0'
+
+EOF
+fi
 
 echo pwm_meson > ./etc/modules.d/pwm_meson
 echo panfrost > ./etc/modules.d/panfrost
