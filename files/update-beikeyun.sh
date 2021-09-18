@@ -1,1 +1,0 @@
-update-rockchip-rk3328.sh
