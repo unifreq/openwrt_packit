@@ -36,7 +36,8 @@
                     ->  perlbase-utf8        
        Utilities -> Disc -> blkid、fdisk、lsblk、parted            
                  -> Filesystem -> attr、btrfs-progs(Build with zstd support)、chattr、dosfstools、
-                                  e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs    
+                                  e2fsprogs、f2fs-tools、f2fsck、lsattr、mkf2fs、xfs-fsck、xfs-mkfs、
+                                  bsdtar 或 p7zip(非官方源)
                  -> Shells  ->  bash         
                  -> gawk、getopt、losetup、tar、uuidgen
 
