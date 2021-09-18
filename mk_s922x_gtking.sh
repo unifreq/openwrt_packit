@@ -9,6 +9,26 @@ fi
 # 源镜像文件
 ##########################################################################
 source make.env
+function check_k510() {
+    # 判断内核版本是否 >= 5.10
+    K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
+    K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
+
+    if [ $K_VER -eq 5 ];then
+        if [ $K_MAJ -ge 10 ];then
+            K510=1
+        else
+	    K510=0
+        fi
+    elif [ $K_VER -gt 5 ];then
+        K510=1
+    else
+        K510=0
+    fi
+    export K510
+}
+check_k510
+
 # 盒子型号识别参数 
 SOC=s922x
 BOARD=gtking
