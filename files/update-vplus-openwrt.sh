@@ -19,7 +19,7 @@ AUTO_MAINLINE_UBOOT=${2}
 BACKUP_RESTORE_CONFIG=${3}
 
 # Current device model
-MYDEVICE_NAME=$(cat /proc/device-tree/model 2>/dev/null)
+MYDEVICE_NAME=$(cat /proc/device-tree/model | tr -d '\000')
 if [[ -z "${MYDEVICE_NAME}" ]]; then
     echo "The device name is empty and cannot be recognized."
     exit 1
