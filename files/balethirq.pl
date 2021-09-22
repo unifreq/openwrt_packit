@@ -149,7 +149,7 @@ sub enable_eth_rps_rfs {
 	    print $fh $eth_cpu_mask_hex;
 	    close $fh;
 
-            &tunning_eth_ring($eth) if ($eth ne "eth0");
+	    #&tunning_eth_ring($eth) if ($eth ne "eth0");
         }
     }
     open my $fh, ">", "/proc/sys/net/core/rps_sock_flow_entries" or die;
