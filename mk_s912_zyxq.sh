@@ -86,8 +86,12 @@ SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 COREMARK="${PWD}/files/coremark.sh"
 
 # 20200930 add
-INST_SCRIPT="${PWD}/files/s912/install-to-emmc.sh"
-UPDATE_SCRIPT="${PWD}/files/s912/update-to-emmc.sh"
+#INST_SCRIPT="${PWD}/files/s912/install-to-emmc.sh"
+#UPDATE_SCRIPT="${PWD}/files/s912/update-to-emmc.sh"
+# 20210923 modify
+INST_SCRIPT="${PWD}/files/openwrt-install-amlogic"
+UPDATE_SCRIPT="${PWD}/files/openwrt-update-amlogic"
+
 SND_MOD="${PWD}/files/s912/snd-meson-gx"
 DAEMON_JSON="${PWD}/files/s912/daemon.json"
 
@@ -347,8 +351,8 @@ if [ -d "${FIP_HOME}" ];then
        cp -v "${FIP_HOME}"/*.sd.bin lib/u-boot/ 
 fi
 
-[ -f $INST_SCRIPT ] && cp $INST_SCRIPT root/
-# [ -f $UPDATE_SCRIPT ] && cp $UPDATE_SCRIPT root/
+[ -f $INST_SCRIPT ] && cp $INST_SCRIPT usr/bin/ && ln -s ../usr/bin/openwrt-install-openwrt root/install-to-emmc.sh
+[ -f $UPDATE_SCRIPT ] && cp $UPDATE_SCRIPT usr/bin/
 [ -f $MAC_SCRIPT1 ] && cp $MAC_SCRIPT1 usr/bin/
 [ -f $MAC_SCRIPT2 ] && cp $MAC_SCRIPT2 usr/bin/
 [ -f $MAC_SCRIPT3 ] && cp $MAC_SCRIPT3 usr/bin/

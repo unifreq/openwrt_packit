@@ -336,7 +336,7 @@ ln -sf tmp/ var
 sync
 
 COPY_SRC="root etc bin sbin lib opt usr www"
-echo "Copy data brgin ... "
+echo "Copy data begin ... "
 for src in $COPY_SRC; do
     echo "Copy [ $src ] ... "
     (cd ${P2} && tar cf - $src) | tar xf -
@@ -394,6 +394,7 @@ fi
 
 #rm -f /mnt/${NEW_ROOT_NAME}/usr/bin/openwrt-install-amlogic
 #rm -f /mnt/${NEW_ROOT_NAME}/usr/bin/openwrt-update-amlogic
+rm -f /mnt/${NEW_ROOT_NAME}/root/install-to-emmc.sh
 sync
 echo "Copy data complete ..."
 
