@@ -360,7 +360,7 @@ if [ -d "${FIP_HOME}" ];then
        cp -v "${FIP_HOME}"/*.sd.bin lib/u-boot/ 
 fi
 
-[ -f $INST_SCRIPT ] && cp $INST_SCRIPT usr/bin/ && ln -s ../usr/bin/openwrt-install-openwrt root/install-to-emmc.sh
+[ -f $INST_SCRIPT ] && cp $INST_SCRIPT usr/bin/ && ln -s ../usr/bin/openwrt-install-amlogic root/install-to-emmc.sh
 [ -f $UPDATE_SCRIPT ] && cp $UPDATE_SCRIPT usr/bin/
 [ -f $MAC_SCRIPT1 ] && cp $MAC_SCRIPT1 usr/bin/
 [ -f $MAC_SCRIPT2 ] && cp $MAC_SCRIPT2 usr/bin/
