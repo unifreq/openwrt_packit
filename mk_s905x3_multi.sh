@@ -74,7 +74,7 @@ CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
 CPUSTAT_PATCH_02="${PWD}/files/luci-admin-status-index-html-02.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 TTYD="${PWD}/files/ttyd"
-FLIPPY="${PWD}/files/flippy"
+FLIPPY="${PWD}/files/scripts_deprecated/flippy_cn"
 BANNER="${PWD}/files/banner"
 
 # 20200314 add
@@ -398,7 +398,7 @@ fi
 [ -f $OPENWRT_INSTALL ] && cp $OPENWRT_INSTALL usr/sbin/ && ln -s ../usr/sbin/openwrt-install-amlogic root/install-to-emmc.sh
 [ -f $OPENWRT_UPDATE ] && cp $OPENWRT_UPDATE usr/sbin/
 [ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
-[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/
+[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && ln -sf openwrt-backup usr/sbin/flippy
 [ -f $MAC_SCRIPT1 ] && cp $MAC_SCRIPT1 usr/bin/
 [ -f $MAC_SCRIPT2 ] && cp $MAC_SCRIPT2 usr/bin/
 [ -f $MAC_SCRIPT3 ] && cp $MAC_SCRIPT3 usr/bin/

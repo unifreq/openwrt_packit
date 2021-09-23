@@ -59,7 +59,7 @@ BOOT_SCR="${PWD}/files/vplus/boot/boot.scr"
 DAEMON_JSON="${PWD}/files/vplus/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
-FLIPPY="${PWD}/files/flippy"
+FLIPPY="${PWD}/files/scripts_deprecated/flippy_cn"
 BANNER="${PWD}/files/banner"
 
 # 20200314 add
@@ -268,7 +268,7 @@ fi
 #[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
 [ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
-[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/
+[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && ln -sf openwrt-backup /usr/sbin/flippy
 [ -f ${OPENWRT_UPDATE} ] && cp ${OPENWRT_UPDATE} usr/sbin/
 if [ -f $BANNER ];then
     cp -f $BANNER etc/banner
