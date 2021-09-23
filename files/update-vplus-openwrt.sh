@@ -316,6 +316,16 @@ config mount
         option fstype 'vfat'
                 
 EOF
+(
+    cd etc/rc.d 
+    rm -f S??shortcut-fe
+    if grep "sfe_flow '1'" ../config/turboacc >/dev/null;then
+        if find ../../lib/modules -name 'shortcut-fe-cm.ko';then
+            ln -sf ../init.d/shortcut-fe S99shortcut-fe
+        fi
+    fi
+)
+sync
 
 echo "create the first etc snapshot -> .snapshots/etc-000"
 btrfs subvolume snapshot -r etc .snapshots/etc-000
@@ -393,6 +403,16 @@ if [ $BR_FLAG -eq 1 ];then
     echo
 fi
 sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
+(
+    cd etc/rc.d 
+    rm -f S??shortcut-fe
+    if grep "sfe_flow '1'" ../config/turboacc >/dev/null;then
+        if find ../../lib/modules -name 'shortcut-fe-cm.ko';then
+            ln -sf ../init.d/shortcut-fe S99shortcut-fe
+        fi
+    fi
+)
+sync
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 rm -f ./etc/part_size ./usr/bin/mk_newpart.sh

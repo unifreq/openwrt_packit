@@ -606,6 +606,12 @@ while [ $i -le $max_try ]; do
         #rm -f openwrt-install-amlogic openwrt-update-amlogic
         cd /mnt/${EMMC_NAME}p2/etc/rc.d
         ln -sf ../init.d/dockerd S99dockerd
+	rm -f S??shortcut-fe
+	if grep "sfe_flow '1'" ../config/turboacc >/dev/null;then
+	    if find ../../lib/modules -name 'shortcut-fe-cm.ko';then
+                ln -sf ../init.d/shortcut-fe S99shortcut-fe
+	    fi
+	fi
         cd /mnt/${EMMC_NAME}p2/etc
         cat > fstab <<EOF
 UUID=${ROOTFS1_UUID} / btrfs compress=zstd 0 1
