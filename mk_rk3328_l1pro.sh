@@ -45,7 +45,6 @@ CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
 CPUSTAT_PATCH_02="${PWD}/files/luci-admin-status-index-html-02.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
-UPDATE_SCRIPT="${PWD}/files/update-l1pro-openwrt.sh"
 KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 
@@ -103,6 +102,11 @@ DOCKER_README="${PWD}/files/DockerReadme.pdf"
 # 20210704 add
 SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
 FORCE_REBOOT="${PWD}/files/rk3328/reboot"
+
+# 20210923 add
+OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
+OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
+OPENWRT_UPDATE="${PWD}/files/openwrt-update-rockchip"
 #####################################################################
 
 SKIP_MB=16
@@ -270,9 +274,11 @@ if [ -x usr/bin/perl ];then
 else
 	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
 fi
-[ -f $UPDATE_SCRIPT ] && cp $UPDATE_SCRIPT usr/bin/
 #[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
+[ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
+[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/
+[ -f ${OPENWRT_UPDATE} ] && cp ${OPENWRT_UPDATE} usr/sbin/
 if [ -f $BANNER ];then
     cp -f $BANNER etc/banner
     echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner

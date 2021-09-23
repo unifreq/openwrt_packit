@@ -104,6 +104,11 @@ DOCKER_README="${PWD}/files/DockerReadme.pdf"
 # 20210704 add
 SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
 FORCE_REBOOT="${PWD}/files/vplus/reboot"
+
+# 20210923 add
+OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
+OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
+OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 ####################################################################
 
 # work dir
@@ -262,6 +267,9 @@ else
 fi
 #[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
+[ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
+[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/
+[ -f ${OPENWRT_UPDATE} ] && cp ${OPENWRT_UPDATE} usr/sbin/
 if [ -f $BANNER ];then
     cp -f $BANNER etc/banner
     echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner

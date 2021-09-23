@@ -1,1 +1,1 @@
-update-rockchip-rk3328-openwrt.sh
+openwrt-update-rockchip
