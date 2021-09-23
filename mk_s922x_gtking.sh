@@ -135,6 +135,8 @@ SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
 # 20210923 add
 OPENWRT_INSTALL="${PWD}/files/openwrt-install-amlogic"
 OPENWRT_UPDATE="${PWD}/files/openwrt-update-amlogic"
+OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
+OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 ###########################################################################
 
 # 检查环境
@@ -355,6 +357,8 @@ fi
 
 [ -f $OPENWRT_INSTALL ] && cp $OPENWRT_INSTALL usr/sbin/ && ln -s ../usr/sbin/openwrt-install-amlogic root/install-to-emmc.sh
 [ -f $OPENWRT_UPDATE ] && cp $OPENWRT_UPDATE usr/sbin/
+[ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
+[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/
 [ -f $MAC_SCRIPT1 ] && cp $MAC_SCRIPT1 usr/bin/
 [ -f $MAC_SCRIPT2 ] && cp $MAC_SCRIPT2 usr/bin/
 [ -f $MAC_SCRIPT3 ] && cp $MAC_SCRIPT3 usr/bin/
