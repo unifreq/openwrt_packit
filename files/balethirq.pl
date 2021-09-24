@@ -100,9 +100,9 @@ sub update_smp_affinity {
 }
 
 sub tunning_eth_ring {
-    my $eth = shift;
+    my ($eth, $target_rx_ring, $target_tx_ring) = @_;
     my $buf = `/usr/sbin/ethtool -g ${eth} 2>/dev/null`;
-    if($? == 0) {
+    if($buf) {
         $buf =~ s/\r|\n/\t/g;
 	if( $buf =~ m/.+?Pre-set maximums:\s+RX:\s+(\d+).+?TX:\s+(\d+).+?Current hardware settings:\s+RX:\s+(\d+).+?TX:\s+(\d+)/) {
             my $max_rx_ring  = $1;
@@ -110,15 +110,14 @@ sub tunning_eth_ring {
             my $cur_rx_ring  = $3;
             my $cur_tx_ring  = $4;
 
-   	    my $target_rx_ring = $max_rx_ring / 2;
-	    my $target_tx_ring = $max_tx_ring / 2;
-
-	    if( ($max_rx_ring > 0) && ($cur_rx_ring != $target_rx_ring ) ) {
+	    if( ($max_rx_ring > 0) && ($target_rx_ring>0) && ($max_rx_ring > $target_rx_ring) && ($cur_rx_ring != $target_rx_ring) ) {
 	        system "/usr/sbin/ethtool -G ${eth} rx ${target_rx_ring} >/dev/null 2>&1";
+		print "Set the rx ring of ${eth} to ${target_rx_ring}\n";
             }
-	    if( ($max_tx_ring > 0) && ($cur_tx_ring != $target_tx_ring ) ) {
+	    if( ($max_tx_ring > 0) && ($target_tx_ring>0) && ($max_tx_ring > $target_tx_ring) && ($cur_tx_ring != $target_tx_ring) ) {
 	        system "/usr/sbin/ethtool -G ${eth} tx ${target_tx_ring} >/dev/null 2>&1";
-            }
+		print "Set the tx ring of ${eth} to ${target_tx_ring}\n";
+	    }
 	}
     } 
 }
@@ -128,17 +127,18 @@ sub enable_eth_rps_rfs {
     for my $eth ("eth0","eth1") {
 
         if(-d "/sys/class/net/${eth}/queues/rx-0") {
-	    my $value = 4096;
-            $rps_sock_flow_entries += $value;
+	    my $value = 32768;
+	    $rps_sock_flow_entries += $value;
 	    my $eth_cpu_mask_hex;
+
 	    #if($eth eq "eth0") {
 	    #    $eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask - $uniq_eth_cpu_map{$eth} - $uniq_eth_cpu_map{eth1});
 	    #} else {
-	    #    $eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask - $uniq_eth_cpu_map{$eth});
+	        $eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask - $uniq_eth_cpu_map{$eth});
 	    #}
+	    #$eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask);
 	    
-	    $eth_cpu_mask_hex = sprintf("%0x", $all_cpu_mask);
-	    print "Set the rps cpu mask for $eth to 0x$eth_cpu_mask_hex\n";
+	    print "Set the rps cpu mask of $eth to 0x$eth_cpu_mask_hex\n";
 	    open my $fh, ">", "/sys/class/net/${eth}/queues/rx-0/rps_cpus" or die;
 	    print $fh $eth_cpu_mask_hex;
 	    close $fh;
@@ -151,7 +151,7 @@ sub enable_eth_rps_rfs {
 	    print $fh $eth_cpu_mask_hex;
 	    close $fh;
 
-	    #&tunning_eth_ring($eth) if ($eth ne "eth0");
+	    &tunning_eth_ring($eth, 256, 0) if ($eth ne "eth0");
         }
     }
     open my $fh, ">", "/proc/sys/net/core/rps_sock_flow_entries" or die;
