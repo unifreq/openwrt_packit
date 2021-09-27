@@ -235,7 +235,7 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     cd openwrt_packit
 
     if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER}" == "auto" ]]; then
-        OPENWRT_VER=$(cat make.env | grep "OPENWRT_VER" | cut -d '"' -f2)
+        OPENWRT_VER=$(cat make.env | grep "OPENWRT_VER=\"" | cut -d '"' -f2)
         echo -e "${INFO} (${k}) OPENWRT_VER: ${OPENWRT_VER}"
     fi
 
