@@ -401,13 +401,13 @@ if  [ -f /mnt/${NEW_ROOT_NAME}/etc/config/AdGuardHome ]; then
     ln -sf /mnt/${EMMC_NAME}p4/AdGuardHome /mnt/${NEW_ROOT_NAME}/usr/bin/AdGuardHome
 fi
 
-#rm -f /mnt/${NEW_ROOT_NAME}/usr/bin/openwrt-install-amlogic
-#rm -f /mnt/${NEW_ROOT_NAME}/usr/bin/openwrt-update-amlogic
+#rm -f /mnt/${NEW_ROOT_NAME}/usr/sbin/openwrt-install-amlogic
+#rm -f /mnt/${NEW_ROOT_NAME}/usr/sbin/openwrt-update-amlogic
 rm -f /mnt/${NEW_ROOT_NAME}/root/install-to-emmc.sh
 sync
 echo "Copy data complete ..."
 
-BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
+BACKUP_LIST=$(${P2}/usr/sbin/openwrt-backup -p)
 if [[ "${BR_FLAG}" -eq "1" && -n "${BACKUP_LIST}" ]];then
     echo -n "Start restoring configuration files ... "
     (

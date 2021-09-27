@@ -355,7 +355,7 @@ sync
 echo "copy done"
 echo
 
-BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
+BACKUP_LIST=$(${P2}/usr/sbin/openwrt-backup -p)
 if [ $BR_FLAG -eq 1 ];then
     echo -n "Restore your old config files ... "
     (
