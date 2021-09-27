@@ -363,7 +363,7 @@ fi
 [ -f $OPENWRT_INSTALL ] && cp $OPENWRT_INSTALL usr/sbin/ && ln -s ../usr/sbin/openwrt-install-amlogic root/install-to-emmc.sh
 [ -f $OPENWRT_UPDATE ] && cp $OPENWRT_UPDATE usr/sbin/
 [ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
-[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/  &&  ln -sf openwrt-backup usr/sbin/flippy
+[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && (cd usr/sbin && ln -sf openwrt-backup flippy)
 [ -f $MAC_SCRIPT1 ] && cp $MAC_SCRIPT1 usr/bin/
 [ -f $MAC_SCRIPT2 ] && cp $MAC_SCRIPT2 usr/bin/
 [ -f $MAC_SCRIPT3 ] && cp $MAC_SCRIPT3 usr/bin/
