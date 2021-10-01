@@ -50,6 +50,14 @@ mkdir -p "$TMPDIR"  && gzip -dc ${SRC_IMG} | ( cd "$TMPDIR" && tar xf - && rm -r
 	echo "The docker aarch64 special edition" >> $TMPDIR/etc/banner && \
 	echo "\n" >> $TMPDIR/etc/banner
 
+cat >> $TMPDIR/etc/sysupgrade.conf <<EOF
+/etc/ssh/ssh_host_ed25519_key
+/etc/ssh/ssh_host_ed25519_key.pub
+/etc/ssh/ssh_host_rsa_key
+/etc/ssh/ssh_host_rsa_key.pub
+/root/.ssh/
+EOF
+
 cp -f files/docker/rc.local "$TMPDIR/etc/" && \
 cp -f files/99-custom.conf "$TMPDIR/etc/sysctl.d/" && \
 cp -f files/cpustat "$TMPDIR/usr/bin/" && chmod 755 "$TMPDIR/usr/bin/cpustat" && \
