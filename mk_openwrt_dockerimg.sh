@@ -40,6 +40,16 @@ OUTDIR=${PWD}/tmp
 
 mkdir -p "$TMPDIR"  && gzip -dc ${SRC_IMG} | ( cd "$TMPDIR" && tar xf - && rm -rf ./lib/firmware/* && rm -rf ./lib/modules/*)
 
+[ -x $TMPDIR/bin/bash ] && \
+	cp -f files/docker/30-sysinfo.sh $TMPDIR/etc/profile.d/ && \
+	sed -e "s/\/bin\/ash/\/bin\/bash/" -i $TMPDIR/etc/passwd && \
+	sed -e "s/\/bin\/ash/\/bin\/bash/" -i $TMPDIR/usr/libexec/login.sh
+
+[ -f files/banner ] && \
+	cp -f files/banner $TMPDIR/etc/ && \
+	echo "The docker aarch64 special edition" >> $TMPDIR/etc/banner && \
+	echo "\n" >> $TMPDIR/etc/banner
+
 cp -f files/docker/rc.local "$TMPDIR/etc/" && \
 cp -f files/99-custom.conf "$TMPDIR/etc/sysctl.d/" && \
 cp -f files/cpustat "$TMPDIR/usr/bin/" && chmod 755 "$TMPDIR/usr/bin/cpustat" && \
