@@ -47,6 +47,7 @@ WHOAMI_VALUE="flippy"
 OPENWRT_VER_VALUE="auto"
 SW_FLOWOFFLOAD_VALUE="1"
 HW_FLOWOFFLOAD_VALUE="0"
+SFE_FLOW_VALUE="1"
 ENABLE_WIFI_K504_VALUE="1"
 ENABLE_WIFI_K510_VALUE="0"
 
@@ -92,6 +93,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${OPENWRT_VER}" ]] || OPENWRT_VER="${OPENWRT_VER_VALUE}"
 [[ -n "${SW_FLOWOFFLOAD}" ]] || SW_FLOWOFFLOAD="${SW_FLOWOFFLOAD_VALUE}"
 [[ -n "${HW_FLOWOFFLOAD}" ]] || HW_FLOWOFFLOAD="${HW_FLOWOFFLOAD_VALUE}"
+[[ -n "${SFE_FLOW}" ]] || SFE_FLOW="${SFE_FLOW_VALUE}"
 [[ -n "${ENABLE_WIFI_K504}" ]] || ENABLE_WIFI_K504="${ENABLE_WIFI_K504_VALUE}"
 [[ -n "${ENABLE_WIFI_K510}" ]] || ENABLE_WIFI_K510="${ENABLE_WIFI_K510_VALUE}"
 
@@ -203,6 +205,27 @@ echo -e "${STEPS} Start packaging openwrt..."
 k=1
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
 
+    # Determine whether the kernel version >= 5.10
+    K_VER=$(echo "${KERNEL_VAR}" | cut -d '.' -f1)
+    K_MAJ=$(echo "${KERNEL_VAR}" | cut -d '.' -f2)
+    if [ "${K_VER}" -eq "5" ]; then
+        if [ "${K_MAJ}" -ge "10" ]; then
+            K510=1
+        else
+            K510=0
+        fi
+    elif [ "${K_VER}" -gt "5" ]; then
+        K510=1
+    else
+        K510=0
+    fi
+    export K510
+
+    # If flowoffload is turned on, or the kernel version >= 5.10, then sfe is forced to be closed by default
+    if [ "${SW_FLOWOFFLOAD}" -eq "1" ] || [ "${K510}" -eq "1" ]; then
+        SFE_FLOW=0
+    fi
+
     boot_kernel_file=$( ls kernel/boot-${KERNEL_VAR}* 2>/dev/null | head -n 1 )
     boot_kernel_file=${boot_kernel_file##*/}
     boot_kernel_file=${boot_kernel_file//boot-/}
@@ -212,7 +235,7 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     cd openwrt_packit
 
     if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER}" == "auto" ]]; then
-        OPENWRT_VER=$(cat make.env | grep "OPENWRT_VER" | cut -d '"' -f2)
+        OPENWRT_VER=$(cat make.env | grep "OPENWRT_VER=\"" | cut -d '"' -f2)
         echo -e "${INFO} (${k}) OPENWRT_VER: ${OPENWRT_VER}"
     fi
 
@@ -224,6 +247,7 @@ KERNEL_VERSION="${boot_kernel_file}"
 KERNEL_PKG_HOME="/opt/kernel"
 SW_FLOWOFFLOAD="${SW_FLOWOFFLOAD}"
 HW_FLOWOFFLOAD="${HW_FLOWOFFLOAD}"
+SFE_FLOW="${SFE_FLOW}"
 ENABLE_WIFI_K504="${ENABLE_WIFI_K504}"
 ENABLE_WIFI_K510="${ENABLE_WIFI_K510}"
 EOF
