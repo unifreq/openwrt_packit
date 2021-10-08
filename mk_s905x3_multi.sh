@@ -686,7 +686,7 @@ fi
 cd brcm
 source ${GET_RANDOM_MAC}
 
-# gtking/gtking pro 采用 bcm4356 wifi/bluetooth 模块
+# gtking/gtking pro wifi5版本 采用 bcm4356 wifi/bluetooth 模块
 get_random_mac
 sed -e "s/macaddr=00:90:4c:1a:10:01/macaddr=${MACADDR}/" "brcmfmac4356-sdio.txt" > "brcmfmac4356-sdio.azw,gtking.txt"
 
@@ -699,6 +699,14 @@ get_random_mac
 sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.amlogic,sm1.txt"
 get_random_mac
 sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
+
+# 旧版ugoos x3 采用 bcm43455 wifi/bluetooth 模块
+get_random_mac
+sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
+
+# 新版ugoos x3 采用 brm43456
+get_random_mac
+sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43456-sdio.txt" > "brcmfmac43456-sdio.amlogic,sm1.txt"
 
 rm -f ${TGT_ROOT}/etc/bench.log
 cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
