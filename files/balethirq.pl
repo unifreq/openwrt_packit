@@ -162,7 +162,7 @@ sub enable_eth_rps_rfs {
             close $fh;
 
             # USB外接网卡：eth1(RTL8153)，经实测最佳的rx_ring在 100-500范围, 默认值是100，超过500之后， 多CPU负载会失衡
-            &tunning_eth_ring($eth, 256, 0) if ($eth ne "eth0");
+            &tunning_eth_ring($eth, 192, 0) if ($eth ne "eth0");
         }
     }
     open my $fh, ">", "/proc/sys/net/core/rps_sock_flow_entries" or die;
