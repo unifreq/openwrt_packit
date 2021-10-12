@@ -128,7 +128,7 @@ losetup -D
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 
 echo "DISK SIZE = $SIZE MB"
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE
+dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
 losetup -f -P $TGT_IMG
 TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
 echo "Target dev is $TGT_DEV"
