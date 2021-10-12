@@ -126,7 +126,7 @@ cd $TEMP_DIR
 # mk tgt_img
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 echo "DISK SIZE = $SIZE MB"
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE
+dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
 losetup -f -P $TGT_IMG
 TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
 echo "Target dev is $TGT_DEV"
@@ -144,12 +144,21 @@ parted -s $TGT_DEV print 2>/dev/null
 echo "分区完成"
 echo
 
+function wait_dev {
+    while [ ! -b $1 ];do
+        echo "wait for $1 ..."
+        sleep 1
+    done
+}
+
 # mk boot filesystem (ext4)
 echo "格式化 boot分区： ${TGT_DEV}p1 ..."
+wait_dev ${TGT_DEV}p1
 mkfs.vfat -n EMMC_BOOT ${TGT_DEV}p1
 echo "完成"
 # mk root filesystem (btrfs)
 echo "格式化 ROOTFS分区：${TGT_DEV}p2 ..."
+wait_dev ${TGT_DEV}p2
 ROOTFS_UUID=$(uuidgen)
 mkfs.btrfs -U ${ROOTFS_UUID} -L EMMC_ROOTFS1 -m single ${TGT_DEV}p2
 echo "ROOTFS UUID IS $ROOTFS_UUID"

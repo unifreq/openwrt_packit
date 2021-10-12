@@ -128,7 +128,7 @@ losetup -D
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 
 echo "DISK SIZE = $SIZE MB"
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE
+dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
 losetup -f -P $TGT_IMG
 TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
 echo "Target dev is $TGT_DEV"
@@ -143,11 +143,20 @@ END=$((ROOTFS_MB * 1024 * 1024 + START -1))
 parted -s $TGT_DEV mkpart primary btrfs ${START}b 100% 2>/dev/null
 parted -s $TGT_DEV print 2>/dev/null
 
+function wait_dev {
+    while [ ! -b $1 ];do
+        echo "wait for $1 ..."
+        sleep 1
+    done
+}
+
 # mk boot filesystem (ext4)
+wait_dev ${TGT_DEV}p1
 BOOT_UUID=$(uuidgen)
 mkfs.ext4 -U ${BOOT_UUID} -L EMMC_BOOT ${TGT_DEV}p1
 echo "BOOT UUID IS $BOOT_UUID"
 # mk root filesystem (btrfs)
+wait_dev ${TGT_DEV}p2
 ROOTFS_UUID=$(uuidgen)
 mkfs.btrfs -U ${ROOTFS_UUID} -L EMMC_ROOTFS1 -m single ${TGT_DEV}p2
 echo "ROOTFS UUID IS $ROOTFS_UUID"

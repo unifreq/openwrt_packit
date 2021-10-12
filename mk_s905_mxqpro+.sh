@@ -212,7 +212,7 @@ ROOTFS_MB=640
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 echo $SIZE
 
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE
+dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE  conv=fsync && sync
 losetup -f -P $TGT_IMG
 TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
 
@@ -236,8 +236,17 @@ if [ $? -ne 0 ];then
 fi
 parted -s $TGT_DEV print 2>/dev/null
 
+function wait_dev {
+    while [ ! -b $1 ];do
+        echo "wait for $1 ..."
+        sleep 1
+    done
+}
+
 # 格式化文件系统
+wait_dev ${TGT_DEV}p1
 mkfs.vfat -n BOOT ${TGT_DEV}p1
+wait_dev ${TGT_DEV}p2
 ROOTFS_UUID=$(uuidgen)
 echo "ROOTFS_UUID = $ROOTFS_UUID"
 mkfs.btrfs -U ${ROOTFS_UUID} -L ROOTFS -m single ${TGT_DEV}p2
