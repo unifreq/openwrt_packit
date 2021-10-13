@@ -213,14 +213,14 @@ SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 echo $SIZE
 
 dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE  conv=fsync && sync
-losetup -f -P $TGT_IMG
+losetup -f -P $TGT_IMG || exit 1
 TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
 
 echo "创建磁盘分区和文件系统 ..."
-parted -s $TGT_DEV mklabel msdos 2>/dev/null
+parted -s $TGT_DEV mklabel msdos 2>/dev/null || exit 1
 BEGIN=$((SKIP_MB * 1024 * 1024))
 END=$(( BOOT_MB * 1024 * 1024 + BEGIN -1))
-parted -s $TGT_DEV mkpart primary fat32 ${BEGIN}b ${END}b 2>/dev/null
+parted -s $TGT_DEV mkpart primary fat32 ${BEGIN}b ${END}b 2>/dev/null || exit 1
 if [ $? -ne 0 ];then
     echo "创建 boot 分区失败!"
     losetup -D
@@ -228,7 +228,7 @@ if [ $? -ne 0 ];then
 fi
 BEGIN=$((END + 1))
 END=$((ROOTFS_MB * 1024 * 1024 + BEGIN -1))
-parted -s $TGT_DEV mkpart primary btrfs ${BEGIN}b 100% 2>/dev/null
+parted -s $TGT_DEV mkpart primary btrfs ${BEGIN}b 100% 2>/dev/null || exit 1
 if [ $? -ne 0 ];then
     echo "创建 rootfs 分区失败!"
     losetup -D
@@ -245,18 +245,18 @@ function wait_dev {
 
 # 格式化文件系统
 wait_dev ${TGT_DEV}p1
-mkfs.vfat -n BOOT ${TGT_DEV}p1
+mkfs.vfat -n BOOT ${TGT_DEV}p1 || exit 1
 wait_dev ${TGT_DEV}p2
 ROOTFS_UUID=$(uuidgen)
 echo "ROOTFS_UUID = $ROOTFS_UUID"
-mkfs.btrfs -U ${ROOTFS_UUID} -L ROOTFS -m single ${TGT_DEV}p2
+mkfs.btrfs -U ${ROOTFS_UUID} -L ROOTFS -m single ${TGT_DEV}p2 || exit 1
 
 echo "挂载目标设备 ..."
 TGT_BOOT=${TEMP_DIR}/tgt_boot
 TGT_ROOT=${TEMP_DIR}/tgt_root
 mkdir $TGT_BOOT $TGT_ROOT
-mount -t vfat ${TGT_DEV}p1 $TGT_BOOT
-mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
+mount -t vfat ${TGT_DEV}p1 $TGT_BOOT || exit 1
+mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
 
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
