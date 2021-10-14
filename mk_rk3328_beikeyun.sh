@@ -9,29 +9,23 @@ fi
 # Image sources
 ###################################################################
 source make.env
+source public_funcs
 SOC=rk3328
 BOARD=beikeyun
 SUBVER=$1
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-rockchip-${KERNEL_VERSION}.tar.gz
-if [ ! -f ${MODULES_TGZ} ];then
-	echo "${MODULES_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${BOOT_TGZ} ];then
-	echo "${BOOT_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${DTBS_TGZ} ];then
-	echo "${DTBS_TGZ} not exists!"
-	exit 1
-fi
+check_file ${DTBS_TGZ}
+
 ###################################################################
 
 # Openwrt 
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
+check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target Image
@@ -115,6 +109,8 @@ ROOTFS_MB=720
 
 # work dir
 cd $WORK_DIR
+check_depends
+
 TEMP_DIR=$(mktemp -p $WORK_DIR)
 rm -rf $TEMP_DIR
 mkdir -p $TEMP_DIR

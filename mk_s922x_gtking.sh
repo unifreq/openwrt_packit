@@ -9,24 +9,7 @@ fi
 # 源镜像文件
 ##########################################################################
 source make.env
-function check_k510() {
-    # 判断内核版本是否 >= 5.10
-    K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
-    K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
-
-    if [ $K_VER -eq 5 ];then
-        if [ $K_MAJ -ge 10 ];then
-            K510=1
-        else
-	    K510=0
-        fi
-    elif [ $K_VER -gt 5 ];then
-        K510=1
-    else
-        K510=0
-    fi
-    export K510
-}
+source public_funcs
 check_k510
 
 # 盒子型号识别参数 
@@ -36,25 +19,17 @@ BOARD=gtking
 SUBVER=$1
 
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-amlogic-${KERNEL_VERSION}.tar.gz
-if [ ! -f ${MODULES_TGZ} ];then
-	echo "${MODULES_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${BOOT_TGZ} ];then
-	echo "${BOOT_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${DTBS_TGZ} ];then
-	echo "${DTBS_TGZ} not exists!"
-	exit 1
-fi
+check_file ${DTBS_TGZ}
 ###########################################################################
 
 # Openwrt root 源文件
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
+check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # 目标镜像文件
@@ -139,61 +114,10 @@ OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
 OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 ###########################################################################
 
-# 检查环境
-if [ $(id -u) -ne 0 ];then
-	echo "这个脚本需要用root用户来执行，你好象不是root吧？"
-	exit 1
-fi
-
-if [ ! -f "$OPWRT_ROOTFS_GZ" ];then
-	echo "Openwrt镜像: ${OPWRT_ROOTFS_GZ} 不存在, 请检查!"
-	exit 1
-fi
-
-if mkfs.btrfs -V >/dev/null;then
-	echo "check mkfs.btrfs ok"
-else
-	echo "mkfs.btrfs 程序不存在，请安装 btrfsprogs"
-	exit 1
-fi
-
-if mkfs.vfat --help 1>/dev/nul 2>&1;then
-	echo "check mkfs.vfat ok"
-else
-	echo "mkfs.vfat 程序不存在，请安装 dosfstools"
-	exit 1
-fi
-
-if uuidgen>/dev/null;then
-	echo "check uuidgen ok"
-else
-	echo "uuidgen 程序不存在，请安装 uuid-runtime"
-	exit 1
-fi
-
-if losetup -V >/dev/null;then
-	echo "check losetup ok"
-else
-	echo "losetup 程序不存在，请安装 mount"
-	exit 1
-fi
-
-if lsblk --version >/dev/null 2>&1;then
-	echo "check lsblk ok"
-else
-	echo "lsblk 程序不存在，请安装 util-linux"
-	exit 1
-fi
-
-if parted --version >/dev/null 2>&1;then
-	echo "check parted ok"
-else
-	echo "parted 程序不存在，请安装 parted"
-	exit 1
-fi
-
 # work dir
 cd $WORK_DIR
+check_depends
+
 TEMP_DIR=$(mktemp -p $WORK_DIR)
 rm -rf $TEMP_DIR
 mkdir -p $TEMP_DIR

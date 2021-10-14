@@ -106,12 +106,13 @@ OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 
 # work dir
 cd $WORK_DIR
+check_depends
+
 TEMP_DIR=$(mktemp -p $WORK_DIR)
 rm -rf $TEMP_DIR
 mkdir -p $TEMP_DIR
 echo $TEMP_DIR
 
-check_depends
 losetup -D
 
 # temp dir
