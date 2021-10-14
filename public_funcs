@@ -1,0 +1,116 @@
+#!/bin/bash
+
+function check_file() {
+    if [ ! -f "$1" ];then
+        echo "文件: [$1] 不存在!"
+        if [ "$2" == "" ];then
+            exit 1
+        else
+            sleep $2
+        fi
+    fi
+}
+
+function check_dir() {
+    if [ ! -d "$1" ];then
+        echo "目录: [$1] 不存在!"
+        if [ "$2" == "" ];then
+            exit 1
+        else
+            sleep $2
+        fi
+    fi
+}
+
+function check_block_dev() {
+    if [ ! -b "$1" ];then
+        echo "块设备: [$1] 不存在!"
+        if [ "$2" == "" ];then
+            exit 1
+        else
+            sleep $2
+        fi
+    fi
+}
+
+function check_k510() {
+    # 判断内核版本是否 >= 5.10
+    K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
+    K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
+
+    if [ $K_VER -eq 5 ];then
+        if [ $K_MAJ -ge 10 ];then
+            K510=1
+        else
+	    K510=0
+        fi
+    elif [ $K_VER -gt 5 ];then
+        K510=1
+    else
+        K510=0
+    fi
+    export K510
+}
+
+function check_depends() {
+    if [ $(id -u) -ne 0 ];then
+	echo "这个脚本需要用root用户来执行，你好象不是root吧？"
+	exit 1
+    fi
+
+    if [ ! -f "$OPWRT_ROOTFS_GZ" ];then
+	echo "Openwrt镜像: ${OPWRT_ROOTFS_GZ} 不存在, 请检查!"
+	exit 1
+    fi
+
+    if mkfs.btrfs -V >/dev/null;then
+	echo "check mkfs.btrfs ok"
+    else
+	echo "mkfs.btrfs 程序不存在，请安装 btrfs-progs"
+	exit 1
+    fi
+
+    if mkfs.vfat --help 1>/dev/nul 2>&1;then
+	echo "check mkfs.vfat ok"
+    else
+	echo "mkfs.vfat 程序不存在，请安装 dosfstools"
+	exit 1
+    fi
+
+    if uuidgen>/dev/null;then
+	echo "check uuidgen ok"
+    else
+	echo "uuidgen 程序不存在，请安装 uuid-runtime"
+	exit 1
+    fi
+
+    if losetup -V >/dev/null;then
+	echo "check losetup ok"
+    else
+	echo "losetup 程序不存在，请安装 mount"
+	exit 1
+    fi
+
+    lsblk_version=$(lsblk --version|awk '{print $NF}' 2>/dev/null)
+    if [ "$lsblk_version" != "" ];then
+	m_v=${lsblk_version%%.*}
+        s_v=${lsblk_version%.*}
+	s_v=${s_v##*.}
+	if [ $m_v -gt 2 ] || [ $m_v -eq 2 ] && [ $s_v -ge 33 ];then
+	    echo "check lsblk ok"
+        else
+	    echo "lsblk 的需要版本 2.33 或更高的版本, 当前的版本是 $lsblk_version !"
+	    exit 1
+        fi	
+    else
+	echo "lsblk 程序不存在，请安装 util-linux"
+	exit 1
+    fi
+
+    if parted --version >/dev/null 2>&1;then
+	echo "check parted ok"
+    else
+	echo "parted 程序不存在，请安装 parted"
+	exit 1
+    fi
+}
