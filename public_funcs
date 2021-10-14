@@ -109,3 +109,11 @@ function check_depends() {
 	exit 1
     fi
 }
+
+function wait_dev {
+    while [ ! -b $1 ];do
+        echo "wait for $1 ..."
+        sleep 1
+    done
+    sleep 1
+}

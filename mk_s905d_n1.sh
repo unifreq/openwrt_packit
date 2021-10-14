@@ -163,13 +163,6 @@ if [ $? -ne 0 ];then
 fi
 parted -s $TGT_DEV print 2>/dev/null
 
-function wait_dev {
-    while [ ! -b $1 ];do
-        echo "wait for $1 ..."
-        sleep 1
-    done
-}
-
 # 格式化文件系统
 wait_dev ${TGT_DEV}p1
 mkfs.vfat -n BOOT ${TGT_DEV}p1 || exit 1

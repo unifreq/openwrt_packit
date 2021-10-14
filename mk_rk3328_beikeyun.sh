@@ -138,13 +138,6 @@ END=$((ROOTFS_MB * 1024 * 1024 + START -1))
 parted -s $TGT_DEV mkpart primary btrfs ${START}b 100% 2>/dev/null || exit 1
 parted -s $TGT_DEV print 2>/dev/null
 
-function wait_dev {
-    while [ ! -b $1 ];do
-        echo "wait for $1 ..."
-        sleep 1
-    done
-}
-
 # mk boot filesystem (ext4)
 wait_dev ${TGT_DEV}p1
 BOOT_UUID=$(uuidgen)
