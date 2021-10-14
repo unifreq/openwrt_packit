@@ -58,11 +58,6 @@ function check_depends() {
 	exit 1
     fi
 
-    if [ ! -f "$OPWRT_ROOTFS_GZ" ];then
-	echo "Openwrt镜像: ${OPWRT_ROOTFS_GZ} 不存在, 请检查!"
-	exit 1
-    fi
-
     if mkfs.btrfs -V >/dev/null;then
 	echo "check mkfs.btrfs ok"
     else
