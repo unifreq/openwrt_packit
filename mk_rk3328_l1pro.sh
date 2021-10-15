@@ -149,43 +149,8 @@ mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
 
-# extract root
-echo "openwrt 根文件系统解包 ... "
-(
-  cd $TGT_ROOT && \
-  tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf $OPWRT_ROOTFS_GZ && \
-  rm -rf ./lib/firmware/* ./lib/modules/* && \
-  mkdir -p .reserved boot rom proc sys run
-)
-
-echo "Armbian firmware 解包 ... "
-( 
-  cd ${TGT_ROOT} && \
-  tar xJf $FIRMWARE_TXZ
-)
-  
-echo "内核模块解包 ... "
-( 
-  cd ${TGT_ROOT} && \
-  mkdir -p lib/modules && \
-  cd lib/modules && \
-  tar xzf ${MODULES_TGZ}
-)
-
-echo "boot 文件解包 ... "
-( 
-  cd ${TGT_BOOT} && \
-  cp -v "${BOOTFILES_HOME}"/* . && \
-  tar xzf "${BOOT_TGZ}" && \
-  rm -f initrd.img-${KERNEL_VERSION} && \
-  ln -sfv vmlinuz-${KERNEL_VERSION} Image && \
-  ln -sfv uInitrd-${KERNEL_VERSION} uInitrd && \
-  mkdir -p dtb-${KERNEL_VERSION}/rockchip && \
-  ln -sfv dtb-${KERNEL_VERSION} dtb && \
-  cd dtb/rockchip && \
-  tar xzf "${DTBS_TGZ}" && \
-  sync
-)
+extract_rootfs_files
+extract_rockchip_boot_files
 
 echo "modify boot ... "
 # modify boot
@@ -297,7 +262,6 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-[ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp -v ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
 [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} usr/bin/

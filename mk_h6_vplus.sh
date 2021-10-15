@@ -146,42 +146,8 @@ mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
 
-# extract root
-echo "extract openwrt rootfs ... "
-(
-  cd $TGT_ROOT && \
-  tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf $OPWRT_ROOTFS_GZ && \
-  rm -rf ./lib/firmware/* ./lib/modules/* && \
-  mkdir -p .reserved boot rom proc sys run
-)
-
-echo "extract armbian firmware ... "
-( 
-  cd ${TGT_ROOT} && \
-  tar xJf $FIRMWARE_TXZ
-)
-  
-echo "extract kernel modules ... "
-( 
-  cd ${TGT_ROOT} && \
-  mkdir -p lib/modules && \
-  cd lib/modules && \
-  tar xzf ${MODULES_TGZ}
-)
-
-echo "extract boot files ... "
-( 
-  cd ${TGT_BOOT} && \
-  cp -v "${BOOTFILES_HOME}"/* . && \
-  tar xzf "${BOOT_TGZ}" && \
-  rm -f initrd.img-${KERNEL_VERSION} && \
-  cp -v vmlinuz-${KERNEL_VERSION} zImage && \
-  cp -v uInitrd-${KERNEL_VERSION} uInitrd && \
-  mkdir -p dtb/allwinner && \
-  cd dtb/allwinner && \
-  tar xzf "${DTBS_TGZ}" && \
-  sync
-)
+extract_rootfs_files
+extract_allwinner_boot_files
 
 echo "modify boot ... "
 # modify boot
@@ -287,7 +253,6 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-[ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -f $FORCE_REBOOT ] && cp $FORCE_REBOOT usr/sbin/
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
 [ -d overlay ] || mkdir -p overlay
