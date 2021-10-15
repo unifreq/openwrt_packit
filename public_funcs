@@ -72,6 +72,13 @@ function check_depends() {
 	exit 1
     fi
 
+    if gawk --version >/dev/null;then
+	echo "check gawk ok"
+    else
+	echo "gawk 程序不存在，请安装 gawk"
+	exit 1
+    fi
+
     if uuidgen>/dev/null;then
 	echo "check uuidgen ok"
     else
