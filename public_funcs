@@ -93,7 +93,7 @@ function check_depends() {
 	if [ $m_v -gt 2 ] || [ $m_v -eq 2 ] && [ $s_v -ge 33 ];then
 	    echo "check lsblk ok"
         else
-	    echo "lsblk 的需要版本 2.33 或更高的版本, 当前的版本是 $lsblk_version !"
+	    echo "lsblk 需要版本 2.33 或更高的版本, 当前的版本是 $lsblk_version !"
 	    exit 1
         fi	
     else
@@ -107,12 +107,37 @@ function check_depends() {
 	echo "parted 程序不存在，请安装 parted"
 	exit 1
     fi
+    echo
 }
 
-function wait_dev {
+function wait_dev() {
     while [ ! -b $1 ];do
         echo "wait for $1 ..."
         sleep 1
     done
     sleep 1
+}
+
+function init_work_env() {
+    export WORK_DIR="${PWD}/tmp"
+    [ -d ${WORK_DIR} ] || mkdir -p ${WORK_DIR}
+    echo "The work directory is : [$WORK_DIR]"
+
+    export TEMP_DIR=$(mktemp -p $WORK_DIR)
+    rm -rf $TEMP_DIR
+    mkdir -p $TEMP_DIR
+    echo "The temporary directory is : [$TEMP_DIR]"
+
+    export TGT_BOOT=${TEMP_DIR}/tgt_boot
+    export TGT_ROOT=${TEMP_DIR}/tgt_root
+    mkdir -p $TGT_BOOT $TGT_ROOT
+    echo "The target boot directory is : [$TGT_BOOT]"
+    echo "The target rootfs directory is : [$TGT_ROOT]"
+
+    export OUTPUT_DIR="${PWD}/output/"
+    [ -d ${OUTPUT_DIR} ] || mkdir -p ${OUTPUT_DIR}
+    echo "The output directory is : [$OUTPUT_DIR]"
+
+    losetup -D
+    echo 
 }

@@ -1,18 +1,16 @@
 #!/bin/bash
 
 echo "========================= begin $0 ==========================="
-WORK_DIR="${PWD}/tmp"
-if [ ! -d ${WORK_DIR} ];then
-	mkdir -p ${WORK_DIR}
-fi
-
-# Image sources
-######################################################################
 source make.env
 source public_funcs
+init_work_env
+
 SOC="rk3328"
 BOARD="l1pro"
 SUBVER=$1
+
+# Kernel image sources
+###################################################################
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
 check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
@@ -102,24 +100,13 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 OPENWRT_UPDATE="${PWD}/files/openwrt-update-rockchip"
 #####################################################################
 
+check_depends
+
+# 创建空白镜像文件
+echo "创建空白的目标镜像文件 ..."
 SKIP_MB=16
 BOOT_MB=160
 ROOTFS_MB=720
-
-# work dir
-cd $WORK_DIR
-check_depends
-
-TEMP_DIR=$(mktemp -p $WORK_DIR)
-rm -rf $TEMP_DIR
-mkdir -p $TEMP_DIR
-echo $TEMP_DIR
-
-# temp dir
-cd $TEMP_DIR
-losetup -D
-
-# mk tgt_img
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 
 echo "DISK SIZE = $SIZE MB"
@@ -156,9 +143,6 @@ dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=1 count=442 conv=fsync
 dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=512 skip=1 seek=1 conv=fsync
 sync
 
-TGT_BOOT=${TEMP_DIR}/tgt_boot
-TGT_ROOT=${TEMP_DIR}/tgt_root
-mkdir $TGT_BOOT $TGT_ROOT
 mount -t ext4 ${TGT_DEV}p1 $TGT_BOOT || exit 1
 mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
 
@@ -522,6 +506,7 @@ cd $TEMP_DIR
 umount -f $TGT_ROOT $TGT_BOOT
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
-echo "done!"
+mv ${TGT_IMG} ${OUTPUT_DIR}
+echo "镜像已生成! 存放在 ${OUTPUT_DIR} 下面!"
 echo "========================== end $0 ================================"
 echo

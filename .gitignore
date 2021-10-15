@@ -5,6 +5,7 @@
 /dp1
 /dp2
 /tmp
+/output
 flowoffload
 sfe*
 openwrt-armvirt-64-default-rootfs.tar.gz

@@ -1,29 +1,23 @@
 #!/bin/bash
 
 echo "========================= begin $0 ================="
-WORK_DIR="${PWD}/tmp"
-if [ ! -d ${WORK_DIR} ];then
-    mkdir -p ${WORK_DIR}
-fi
-
-# Image sources
-###################################################################
 source make.env
 source public_funcs
+init_work_env
+
 SOC=h6
 BOARD=vplus
 SUBVER=$1
 
-SKIP_MB=16
-BOOT_MB=160
-ROOTFS_MB=720
-
+# Kernel image sources
+###################################################################
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
 check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
 check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-allwinner-${KERNEL_VERSION}.tar.gz
 check_file ${DTBS_TGZ}
+###################################################################
 
 # Openwrt 
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
@@ -104,21 +98,13 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 ####################################################################
 
-# work dir
-cd $WORK_DIR
 check_depends
 
-TEMP_DIR=$(mktemp -p $WORK_DIR)
-rm -rf $TEMP_DIR
-mkdir -p $TEMP_DIR
-echo $TEMP_DIR
-
-losetup -D
-
-# temp dir
-cd $TEMP_DIR
-
-# mk tgt_img
+# 创建空白镜像文件
+echo "创建空白的目标镜像文件 ..."
+SKIP_MB=16
+BOOT_MB=160
+ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 echo "DISK SIZE = $SIZE MB"
 dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
@@ -154,9 +140,6 @@ sync
 echo "完成"
 echo
 
-TGT_BOOT=${TEMP_DIR}/tgt_boot
-TGT_ROOT=${TEMP_DIR}/tgt_root
-mkdir $TGT_BOOT $TGT_ROOT
 mount -t vfat ${TGT_DEV}p1 $TGT_BOOT || exit 1
 mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
 
@@ -530,6 +513,7 @@ cd $TEMP_DIR
 umount -f $TGT_ROOT $TGT_BOOT
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
-echo "镜像已生成!"
+mv $TGT_IMG $OUTPUT_DIR
+echo "镜像已生成, 存放在 ${OUTPUT_DIR} 下面"
 echo "========================== end $0 ================================"
 echo
