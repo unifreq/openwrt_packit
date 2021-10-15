@@ -107,6 +107,7 @@ echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}
 # clone openwrt_packit repo
 echo -e "${STEPS} Cloning package script repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into openwrt_packit."
 git clone --depth 1 ${SCRIPT_REPO_URL} -b ${SCRIPT_REPO_BRANCH} openwrt_packit
+sync
 
 # Load openwrt-armvirt-64-default-rootfs.tar.gz
 if [[ ${OPENWRT_ARMVIRT} == http* ]]; then
@@ -205,6 +206,7 @@ echo -e "${STEPS} Start packaging openwrt..."
 k=1
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
 
+    cd /opt
     # Determine whether the kernel version >= 5.10
     K_VER=$(echo "${KERNEL_VAR}" | cut -d '.' -f1)
     K_MAJ=$(echo "${KERNEL_VAR}" | cut -d '.' -f2)
@@ -259,6 +261,7 @@ sync
     i=1
     for PACKAGE_VAR in ${PACKAGE_OPENWRT[*]}; do
         {
+            cd /opt/openwrt_packit
             echo -e "${STEPS} (${k}.${i}) Start packaging OpenWrt, Kernel is [ ${KERNEL_VAR} ], SoC is [ ${PACKAGE_VAR} ]"
 
             now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//')
