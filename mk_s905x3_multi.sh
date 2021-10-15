@@ -647,7 +647,7 @@ fi
 
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
-mv ${TGT_IMG} ${OUTPUT_DIR}
+mv ${TGT_IMG} ${OUTPUT_DIR} && sync
 echo "镜像已生成! 存放在 ${OUTPUT_DIR} 下面!"
 echo "========================== end $0 ================================"
 echo
