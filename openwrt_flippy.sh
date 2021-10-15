@@ -29,7 +29,8 @@ KERNEL_AUTO_LATEST_VALUE="true"
 PACKAGE_SOC_VALUE="s905d_s905x3_beikeyun"
 GZIP_IMGS_VALUE="true"
 # Set the working directory under /opt
-SELECT_OUTPUTPATH_VALUE="openwrt_packit"
+SELECT_PACKITPATH_VALUE="openwrt_packit"
+SELECT_OUTPUTPATH_VALUE="output"
 SAVE_OPENWRT_ARMVIRT_VALUE="true"
 
 # Set the default packaging script
@@ -75,6 +76,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${KERNEL_VERSION_NAME}" ]] || KERNEL_VERSION_NAME="${KERNEL_VERSION_NAME_VALUE}"
 [[ -n "${KERNEL_AUTO_LATEST}" ]] || KERNEL_AUTO_LATEST="${KERNEL_AUTO_LATEST_VALUE}"
 [[ -n "${GZIP_IMGS}" ]] || GZIP_IMGS=${GZIP_IMGS_VALUE}
+[[ -n "${SELECT_PACKITPATH}" ]] || SELECT_PACKITPATH="${SELECT_PACKITPATH_VALUE}"
 [[ -n "${SELECT_OUTPUTPATH}" ]] || SELECT_OUTPUTPATH="${SELECT_OUTPUTPATH_VALUE}"
 [[ -n "${SAVE_OPENWRT_ARMVIRT}" ]] || SAVE_OPENWRT_ARMVIRT="${SAVE_OPENWRT_ARMVIRT_VALUE}"
 
@@ -105,28 +107,28 @@ cd /opt
 # Server space usage
 echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}) \n"
 
-# clone ${SELECT_OUTPUTPATH} repo
-echo -e "${STEPS} Cloning package script repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into ${SELECT_OUTPUTPATH}."
-git clone --depth 1 ${SCRIPT_REPO_URL} -b ${SCRIPT_REPO_BRANCH} ${SELECT_OUTPUTPATH}
+# clone ${SELECT_PACKITPATH} repo
+echo -e "${STEPS} Cloning package script repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into ${SELECT_PACKITPATH}."
+git clone --depth 1 ${SCRIPT_REPO_URL} -b ${SCRIPT_REPO_BRANCH} ${SELECT_PACKITPATH}
 sync
 
 # Load openwrt-armvirt-64-default-rootfs.tar.gz
 if [[ ${OPENWRT_ARMVIRT} == http* ]]; then
-   echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into ${SELECT_OUTPUTPATH}"
-   wget ${OPENWRT_ARMVIRT} -q -P ${SELECT_OUTPUTPATH}
+   echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
+   wget ${OPENWRT_ARMVIRT} -q -P ${SELECT_PACKITPATH}
 else
-   echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_OUTPUTPATH}"
-   cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_OUTPUTPATH}
+   echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
+   cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}
 fi
 sync
 
 # Normal openwrt-armvirt-64-default-rootfs.tar.gz file should not be less than 10MB
-armvirt_rootfs_size=$(ls -l ${SELECT_OUTPUTPATH}/openwrt-armvirt-64-default-rootfs.tar.gz 2>/dev/null | awk '{print $5}')
+armvirt_rootfs_size=$(ls -l ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz 2>/dev/null | awk '{print $5}')
 echo -e "${INFO} armvirt_rootfs_size: [ ${armvirt_rootfs_size} ]"
 if [[ "${armvirt_rootfs_size}" -ge "10000000" ]]; then
-   echo -e "${INFO} ${SELECT_OUTPUTPATH}/openwrt-armvirt-64-default-rootfs.tar.gz loaded successfully."
+   echo -e "${INFO} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz loaded successfully."
 else
-   echo -e "${ERROR} ${SELECT_OUTPUTPATH}/openwrt-armvirt-64-default-rootfs.tar.gz failed to load."
+   echo -e "${ERROR} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz failed to load."
    exit 1
 fi
 
@@ -236,7 +238,7 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     boot_kernel_file=${boot_kernel_file//.tar.gz/}
     echo -e "${INFO} (${k}) KERNEL_VERSION: ${boot_kernel_file}"
     
-    cd ${SELECT_OUTPUTPATH}
+    cd ${SELECT_PACKITPATH}
 
     if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER}" == "auto" ]]; then
         OPENWRT_VER=$(cat make.env | grep "OPENWRT_VER=\"" | cut -d '"' -f2)
@@ -263,7 +265,7 @@ sync
     i=1
     for PACKAGE_VAR in ${PACKAGE_OPENWRT[*]}; do
         {
-            cd /opt/${SELECT_OUTPUTPATH}
+            cd /opt/${SELECT_PACKITPATH}
             echo -e "${STEPS} (${k}.${i}) Start packaging OpenWrt, Kernel is [ ${KERNEL_VAR} ], SoC is [ ${PACKAGE_VAR} ]"
 
             now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//')
@@ -291,27 +293,25 @@ sync
             sync
             
             if  [[ "${GZIP_IMGS_VALUE}" == "true" ]]; then
-                echo -e "${STEPS} gzip the openwrt*.img files in the tmp folder. \n"
-                cd tmp && gzip *.img && sync && cd ../
+                echo -e "${STEPS} gzip the openwrt*.img files in the ${SELECT_OUTPUTPATH} folder. \n"
+                cd ${SELECT_OUTPUTPATH} && gzip *.img && sync
             fi
             
             let i++
         }
     done
 
-    cd ../
-    
     let k++
 done
 echo -e "${SUCCESS} All packaged completed. \n"
 
 echo -e "${STEPS} Output environment variables."
-if  [[ -d ${SELECT_OUTPUTPATH}/tmp ]]; then
+if  [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
 
-    cd ${SELECT_OUTPUTPATH}/tmp
+    cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
 
     if  [[ "${SAVE_OPENWRT_ARMVIRT}" == "true" ]]; then
-        echo -e "${STEPS} copy openwrt-armvirt-64-default-rootfs.tar.gz files into tmp folder."
+        echo -e "${STEPS} copy openwrt-armvirt-64-default-rootfs.tar.gz files into ${SELECT_OUTPUTPATH} folder."
         cp -f ../openwrt-armvirt-64-default-rootfs.tar.gz . && sync
     fi
     
@@ -323,7 +323,7 @@ if  [[ -d ${SELECT_OUTPUTPATH}/tmp ]]; then
     echo -e "PACKAGED_OUTPUTDATE: $(date +"%Y.%m.%d.%H%M")"
     echo -e "PACKAGED_STATUS: success"
     echo -e "${INFO} PACKAGED_OUTPUTPATH files list:"
-    echo -e "$(ls /opt/${SELECT_OUTPUTPATH}/tmp 2>/dev/null) \n"
+    echo -e "$(ls /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} 2>/dev/null) \n"
 else
     echo -e "${ERROR} Packaging failed. \n"
     echo "PACKAGED_STATUS=failure" >> $GITHUB_ENV
