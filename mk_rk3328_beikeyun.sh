@@ -102,48 +102,21 @@ OPENWRT_UPDATE="${PWD}/files/openwrt-update-rockchip"
 
 check_depends
 
-# 创建空白镜像文件
-echo "创建空白的目标镜像文件 ..."
 SKIP_MB=16
 BOOT_MB=160
 ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
-echo "DISK SIZE = $SIZE MB"
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
-losetup -f -P $TGT_IMG || exit 1
-TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
-echo "Target dev is $TGT_DEV"
-
-# make partition
-parted -s $TGT_DEV mklabel msdos 2>/dev/null || exit 1
-START=$((SKIP_MB * 1024 * 1024))
-END=$((BOOT_MB * 1024 * 1024 + START -1))
-parted -s $TGT_DEV mkpart primary ext4 ${START}b ${END}b 2>/dev/null || exit 1
-START=$((END + 1))
-END=$((ROOTFS_MB * 1024 * 1024 + START -1))
-parted -s $TGT_DEV mkpart primary btrfs ${START}b 100% 2>/dev/null || exit 1
-parted -s $TGT_DEV print 2>/dev/null
-
-# mk boot filesystem (ext4)
-wait_dev ${TGT_DEV}p1
-BOOT_UUID=$(uuidgen)
-mkfs.ext4 -U ${BOOT_UUID} -L EMMC_BOOT ${TGT_DEV}p1 || exit 1
-echo "BOOT UUID IS $BOOT_UUID"
-# mk root filesystem (btrfs)
-wait_dev ${TGT_DEV}p2
-ROOTFS_UUID=$(uuidgen)
-mkfs.btrfs -U ${ROOTFS_UUID} -L EMMC_ROOTFS1 -m single ${TGT_DEV}p2 || exit 1
-echo "ROOTFS UUID IS $ROOTFS_UUID"
-
-echo "parted ok"
+create_image "$TGT_IMG" "$SIZE"
+create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "ext4" "$ROOTFS_MB" "btrfs"
 
 # write bootloader
 dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=1 count=442
 dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=512 skip=1 seek=1
 sync
 
-mount -t ext4 ${TGT_DEV}p1 $TGT_BOOT || exit 1
-mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
+make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
+mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
+mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
 
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc

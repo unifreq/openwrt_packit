@@ -99,49 +99,15 @@ OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 ####################################################################
 
 check_depends
-
-# 创建空白镜像文件
-echo "创建空白的目标镜像文件 ..."
 SKIP_MB=16
 BOOT_MB=160
 ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
-echo "DISK SIZE = $SIZE MB"
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
-losetup -f -P $TGT_IMG || exit 1
-TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
-echo "Target dev is $TGT_DEV"
-
-# make partition
-echo "开始分区 ..."
-parted -s $TGT_DEV mklabel msdos 2>/dev/null || exit 1
-START=$((SKIP_MB * 1024 * 1024))
-END=$((BOOT_MB * 1024 * 1024 + START -1))
-parted -s $TGT_DEV mkpart primary fat32 ${START}b ${END}b 2>/dev/null || exit 1
-START=$((END + 1))
-END=$((ROOTFS_MB * 1024 * 1024 + START -1))
-parted -s $TGT_DEV mkpart primary btrfs ${START}b 100% 2>/dev/null || exit 1
-parted -s $TGT_DEV print 2>/dev/null
-echo "分区完成"
-echo
-
-# mk boot filesystem (ext4)
-echo "格式化 boot分区： ${TGT_DEV}p1 ..."
-wait_dev ${TGT_DEV}p1
-mkfs.vfat -n EMMC_BOOT ${TGT_DEV}p1 || exit 1
-echo "完成"
-# mk root filesystem (btrfs)
-echo "格式化 ROOTFS分区：${TGT_DEV}p2 ..."
-wait_dev ${TGT_DEV}p2
-ROOTFS_UUID=$(uuidgen)
-mkfs.btrfs -U ${ROOTFS_UUID} -L EMMC_ROOTFS1 -m single ${TGT_DEV}p2 || exit 1
-echo "ROOTFS UUID IS $ROOTFS_UUID"
-sync
-echo "完成"
-echo
-
-mount -t vfat ${TGT_DEV}p1 $TGT_BOOT || exit 1
-mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
+create_image "$TGT_IMG" "$SIZE"
+create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "fat32" "$ROOTFS_MB" "btrfs"
+make_filesystem "$TGT_DEV" "B" "fat32" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
+mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "vfat"
+mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
 
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
@@ -355,7 +321,7 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 cat > etc/fstab <<EOF
 UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
-LABEL=EMMC_BOOT /boot vfat defaults 0 2
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
 
@@ -378,7 +344,7 @@ config mount
 
 config mount
         option target '/boot'
-        option label 'EMMC_BOOT'
+        option label '${BOOT_LABEL}'
         option enabled '1'
         option enabled_fsck '1'
         option fstype 'vfat'

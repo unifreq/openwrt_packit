@@ -111,67 +111,21 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 
 check_depends
 
-# 创建空白镜像文件
-echo "创建空白的目标镜像文件 ..."
 SKIP_MB=4
 BOOT_MB=256
 ROOTFS_MB=640
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
-echo $SIZE
-
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
-losetup -f -P $TGT_IMG || exit 1
-TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
-
-echo "创建磁盘分区和文件系统 ..."
-parted -s $TGT_DEV mklabel msdos 2>/dev/null || exit 1
-BEGIN=$((SKIP_MB * 1024 * 1024))
-END=$(( BOOT_MB * 1024 * 1024 + BEGIN -1))
-parted -s $TGT_DEV mkpart primary fat32 ${BEGIN}b ${END}b 2>/dev/null || exit 1
-if [ $? -ne 0 ];then
-    echo "创建 boot 分区失败!"
-    losetup -D
-    exit 1
-fi
-BEGIN=$((END + 1))
-END=$((ROOTFS_MB * 1024 * 1024 + BEGIN -1))
-parted -s $TGT_DEV mkpart primary btrfs ${BEGIN}b 100% 2>/dev/null || exit 1
-if [ $? -ne 0 ];then
-    echo "创建 rootfs 分区失败!"
-    losetup -D
-    exit 1
-fi
-parted -s $TGT_DEV print 2>/dev/null
-
-# 格式化文件系统
-wait_dev ${TGT_DEV}p1
-mkfs.vfat -n BOOT ${TGT_DEV}p1 || exit 1
-wait_dev ${TGT_DEV}p2
-ROOTFS_UUID=$(uuidgen)
-echo "ROOTFS_UUID = $ROOTFS_UUID"
-mkfs.btrfs -U ${ROOTFS_UUID} -L ROOTFS -m single ${TGT_DEV}p2 || exit 1
-
-echo "挂载目标设备 ..."
-mount -t vfat ${TGT_DEV}p1 $TGT_BOOT || exit 1
-mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT || exit 1
+create_image "$TGT_IMG" "$SIZE"
+create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "fat32" "$ROOTFS_MB" "btrfs"
+make_filesystem "$TGT_DEV" "B" "fat32" "BOOT" "R" "btrfs" "ROOTFS"
+mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "vfat"
+mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
 
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
 
 extract_rootfs_files
 extract_amlogic_boot_files
-
-while :;do
-	lsblk -l -o NAME,PATH,UUID 
-	BOOT_UUID=$(lsblk -l -o NAME,PATH,UUID | grep "${TGT_DEV}p1" | awk '{print $3}')
-	#ROOTFS_UUID=$(lsblk -l -o NAME,PATH,UUID | grep "${TGT_DEV}p2" | awk '{print $3}')
-	echo "BOOT_UUID is $BOOT_UUID"
-	echo "ROOTFS_UUID is $ROOTFS_UUID"
-	if [ "$ROOTFS_UUID" != "" ];then
-		break
-	fi
-	sleep 1
-done
 
 echo "修改引导分区相关配置 ... "
 # modify boot
@@ -369,7 +323,7 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 cat > ./etc/fstab <<EOF
 UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
-LABEL=BOOT /boot vfat defaults 0 2
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
 echo "/etc/fstab --->"
@@ -394,7 +348,7 @@ config mount
 
 config mount
         option target '/boot'
-        option label 'BOOT'
+        option label '${BOOT_LABEL}'
         option enabled '1'
         option enabled_fsck '1'
 	option fstype 'vfat'
