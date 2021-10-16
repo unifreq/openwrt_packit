@@ -119,7 +119,7 @@ ROOTFS_MB=640
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "fat32" "$ROOTFS_MB" "btrfs"
-make_filesystem "$TGT_DEV" "B" "fat32" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
+make_filesystem "$TGT_DEV" "B" "fat32" "BOOT" "R" "btrfs" "ROOTFS"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "vfat"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
 
