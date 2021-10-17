@@ -217,28 +217,68 @@ function create_image() {
     echo
 }
 
-# 创建分区
+# 创建分区(允许在空白磁盘里新建分区，也允许在现有分区表中扩充分区)
 # 参数1： 块设备名
-# 参数2+3+4： 分区1跳过MB 分区1大小MB 分区1类型
-# 参数5+6+7： 分区2跳过MB 分区2大小MB 分区2类型
-# 参数8+9+10： 分区3跳过MB 分区3大小MB 分区3类型
-# 参数11+12+13: 分区4跳过MB 分区4大小MB 分区4类型
+# 参数2： 分区表类型： msdos|gpt|none  none表示在现有的磁盘中添加新分区
+# 参数3+4+5： 分区1跳过MB 分区1大小MB 分区1类型
+# 参数6+7+8： 分区2跳过MB 分区2大小MB 分区2类型
+# 参数9+10+11： 分区3跳过MB 分区3大小MB 分区3类型
+# 参数12+13+14: 分区4跳过MB 分区4大小MB 分区4类型
+# ...
 function create_partition() {
     local device_name=$1
     check_block_dev $device_name
     shift
 
+    local partition_label=$1
+    shift
+
+    local max_pt_cnt
+    local cur_pt_cnt=0
+    case ${partition_label} in
+        msdos) max_pt_cnt=4
+               ;;
+          gpt) max_pt_cnt=128
+               ;;
+         none) local label=$(parted $device_name print 2>/dev/null | grep 'Partition Table'  | gawk '{print $NF}')
+               case $label in 
+                   msdos) partition_label="msdos"
+                          max_pt_cnt=4
+                          cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
+                          ;;
+                     gpt) partition_label="gpt"
+                          max_pt_cnt=128
+                          cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
+                          ;;
+                 unknown) echo "找不到磁盘现存分区表类型!"
+                          exit 1
+                          ;;
+               esac
+               ;;
+            *) echo "未指定分区表类型, 必须为 gpt|msdos|none"
+               exit 1
+               ;;
+    esac
+
     echo "对磁盘设备 [$device_name] 进行分区 ..."
-    parted -s ${device_name} mklabel msdos 2>/dev/null
-    if [ $? -ne 0 ];then
-        echo "分区失败!"
-        detach_loopdev
-        exit 1
+    if [ $cur_pt_cnt -eq 0 ];then
+        echo -n "创建新的分区表 ... "
+        parted -s ${device_name} mklabel ${partition_label} 2>/dev/null
+        if [ $? -ne 0 ];then
+            echo "失败!"
+            detach_loopdev
+            exit 1
+        else
+            echo "成功"
+        fi
     fi
 
     local start=0
-    i=1
-    while [ $i -le 4 ]; do
+    if [ $cur_pt_cnt -gt 0 ];then
+        start=$(fdisk -l $device_name | tail -n1 | gawk '{ print ($3 + 1) / 512 * 1024 * 1024 }')
+    fi
+    i=$((cur_pt_cnt + 1))
+    while [ $i -le ${max_pt_cnt} ]; do
         local skip_mb=$1
         shift
         local pt_size=$1
@@ -252,8 +292,8 @@ function create_partition() {
 
         start=$(( skip_mb * 1024 * 1024 + start ))
 
-	local end
-	if [ "${pt_size}" == "-1" ] || [ "${pt_size}" == "100%" ];then
+        local end
+        if [ "${pt_size}" == "-1" ] || [ "${pt_size}" == "100%" ];then
             echo -n "创建第 [$i] 个分区, 分区大小: 所有剩余空间, 分区类型: [$pt_type] ... "
             parted -s ${device_name} mkpart primary ${pt_type} ${start}b "100%" 2>/dev/null
             if [ $? -ne 0 ];then
@@ -262,9 +302,9 @@ function create_partition() {
                 exit 1
             else
                 echo "成功"
-	        break
+                break
             fi
-	else
+        else
             end=$(( pt_size * 1024 * 1024 +  start - 1 ))
             echo -n "创建第 [$i] 个分区, 分区大小: [$pt_size] MB, 分区类型: [$pt_type] ... "
             parted -s ${device_name} mkpart primary ${pt_type} ${start}b ${end}b 2>/dev/null
@@ -275,7 +315,7 @@ function create_partition() {
             else
                 echo "成功"
             fi
-	fi
+        fi
 
         start=$(( end + 1 ))
         i=$((i + 1))
