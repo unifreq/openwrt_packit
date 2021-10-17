@@ -219,7 +219,7 @@ function create_image() {
 
 # 创建分区(允许在空白磁盘里新建分区，也允许在现有分区表中扩充分区)
 # 参数1： 块设备名
-# 参数2： 分区表类型： msdos|gpt|none  none表示在现有的磁盘中添加新分区
+# 参数2： 分区表类型： msdos|gpt|auto  auto表示在现有的磁盘中添加新分区
 # 参数3+4+5： 分区1跳过MB 分区1大小MB 分区1类型
 # 参数6+7+8： 分区2跳过MB 分区2大小MB 分区2类型
 # 参数9+10+11： 分区3跳过MB 分区3大小MB 分区3类型
@@ -240,7 +240,7 @@ function create_partition() {
                ;;
           gpt) max_pt_cnt=128
                ;;
-         none) local label=$(parted $device_name print 2>/dev/null | grep 'Partition Table'  | gawk '{print $NF}')
+         auto) local label=$(parted $device_name print 2>/dev/null | gawk '$NF=="msdos" || $NF=="gpt" || $NF=="unknown" {print $NF}')
                case $label in 
                    msdos) partition_label="msdos"
                           max_pt_cnt=4
@@ -250,12 +250,14 @@ function create_partition() {
                           max_pt_cnt=128
                           cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
                           ;;
-                 unknown) echo "找不到磁盘现存分区表类型!"
-                          exit 1
+                       *) # 自动模式下，如果检测到空白磁盘，将会用msdos格式新建分区表
+			  partition_label="msdos"
+			  max_pt_cnt=4
+			  cur_pt_cnt=0
                           ;;
                esac
                ;;
-            *) echo "未指定分区表类型, 必须为 gpt|msdos|none"
+            *) echo "未指定分区表类型, 必须为 gpt|msdos|auto"
                exit 1
                ;;
     esac
