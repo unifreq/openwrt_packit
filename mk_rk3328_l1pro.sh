@@ -107,7 +107,7 @@ BOOT_MB=160
 ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
-create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "ext4" "$ROOTFS_MB" "btrfs"
+create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
 
 # write bootloader
 dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=1 count=442 conv=fsync

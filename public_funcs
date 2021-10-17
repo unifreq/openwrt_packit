@@ -219,18 +219,13 @@ function create_image() {
 
 # 创建分区
 # 参数1： 块设备名
-# 参数2： 跳过 x MB
-# 参数3+参数4： 分区1大小MB 分区1类型
-# 参数5+参数6： 分区2大小MB 分区2类型
-# 参数7+参数8： 分区3大小MB 分区3类型
-# 参数9+参数10：分区4大小MB 分区4类型
+# 参数2+3+4： 分区1跳过MB 分区1大小MB 分区1类型
+# 参数5+6+7： 分区2跳过MB 分区2大小MB 分区2类型
+# 参数8+9+10： 分区3跳过MB 分区3大小MB 分区3类型
+# 参数11+12+13: 分区4跳过MB 分区4大小MB 分区4类型
 function create_partition() {
     local device_name=$1
     check_block_dev $device_name
-    shift
-
-    local skip_mb=$1
-    local start=$((skip_mb * 1024 * 1024))
     shift
 
     echo "对磁盘设备 [$device_name] 进行分区 ..."
@@ -240,27 +235,47 @@ function create_partition() {
         detach_loopdev
         exit 1
     fi
+
+    local start=0
     i=1
     while [ $i -le 4 ]; do
+        local skip_mb=$1
+        shift
         local pt_size=$1
         shift
         local pt_type=$1
         shift
         
-        if [ "$pt_size" == "" ] || [ "$pt_type" == "" ];then
+        if [ "$skip_mb" == "" ] || [ "$pt_size" == "" ] || [ "$pt_type" == "" ];then
             break
         fi            
 
-        local end=$(( pt_size * 1024 * 1024 +  start - 1 ))
-        echo -n "创建第 [$i] 个分区, 分区大小: [$pt_size] MB, 分区类型: [$pt_type] ... "
-        parted -s ${device_name} mkpart primary ${pt_type} ${start}b ${end}b 2>/dev/null
-        if [ $? -ne 0 ];then
-            echo "失败!"
-            detach_loopdev
-            exit 1
-        else
-            echo "成功"
-        fi
+        start=$(( skip_mb * 1024 * 1024 + start ))
+
+	local end
+	if [ "${pt_size}" == "-1" ] || [ "${pt_size}" == "100%" ];then
+            echo -n "创建第 [$i] 个分区, 分区大小: 所有剩余空间, 分区类型: [$pt_type] ... "
+            parted -s ${device_name} mkpart primary ${pt_type} ${start}b "100%" 2>/dev/null
+            if [ $? -ne 0 ];then
+                echo "失败!"
+                detach_loopdev
+                exit 1
+            else
+                echo "成功"
+	        break
+            fi
+	else
+            end=$(( pt_size * 1024 * 1024 +  start - 1 ))
+            echo -n "创建第 [$i] 个分区, 分区大小: [$pt_size] MB, 分区类型: [$pt_type] ... "
+            parted -s ${device_name} mkpart primary ${pt_type} ${start}b ${end}b 2>/dev/null
+            if [ $? -ne 0 ];then
+                echo "失败!"
+                detach_loopdev
+                exit 1
+            else
+                echo "成功"
+            fi
+	fi
 
         start=$(( end + 1 ))
         i=$((i + 1))
