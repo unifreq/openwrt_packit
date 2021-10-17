@@ -687,3 +687,29 @@ function adjust_ntfs_config() {
         fi
     )
 }
+
+# CPU状态补丁
+function patch_admin_status_index_html() {
+    echo "打补丁：[状态页面相关信息补丁] ... "
+    (  
+        cd $TGT_ROOT
+        if [ ! -f usr/bin/perl ];then
+             echo "未发现 perl 实用程序, 放弃补丁!"
+        else 
+            if [ -f "$CPUSTAT_PATCH" ];then 
+                 patch -p1 < ${CPUSTAT_PATCH} 
+		 if [ $? -ne 0 ];then
+                     echo "补丁失败!"
+		 else
+	             if [ -f "${CPUSTAT_PATCH_02}" ] ;then
+		         patch -p1 < ${CPUSTAT_PATCH_02}
+		         if [ $? -ne 0 ];then
+                            echo "补丁失败!"
+			 fi
+		     fi
+                 fi
+	    fi
+	    echo "完成"
+        fi
+    )
+}

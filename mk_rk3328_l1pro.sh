@@ -387,9 +387,7 @@ EOF
 fi
 
 adjust_ntfs_config
-
-[ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
-[ -x "${TGT_ROOT}/usr/bin/perl" ] && [ -f "${CPUSTAT_PATCH_02}" ] && cd ${TGT_ROOT} && patch -p1 < ${CPUSTAT_PATCH_02}
+patch_admin_status_index_html
 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"

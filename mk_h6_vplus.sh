@@ -379,9 +379,7 @@ EOF
 fi
 
 adjust_ntfs_config
-
-[ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
-[ -x "${TGT_ROOT}/usr/bin/perl" ] && [ -f "${CPUSTAT_PATCH_02}" ] && cd ${TGT_ROOT} && patch -p1 < ${CPUSTAT_PATCH_02}
+patch_admin_status_index_html
 
 if [ -f ${UBOOT_BIN} ];then
     mkdir -p $TGT_ROOT/lib/u-boot && cp -v ${UBOOT_BIN} $TGT_ROOT/lib/u-boot
