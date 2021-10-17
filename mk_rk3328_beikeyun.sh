@@ -236,11 +236,6 @@ fi
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp -v ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
 [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/
 [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} usr/bin/
-[ -d overlay ] || mkdir -p overlay
-[ -d rom ] || mkdir -p rom
-[ -d sys ] || mkdir -p sys
-[ -d proc ] || mkdir -p proc
-[ -d run ] || mkdir -p run
 
 mkdir -p ./etc/modules.d.remove
 mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
@@ -393,11 +388,6 @@ config turboacc 'config'
 
 EOF
 fi
-
-
-cd $TGT_ROOT/lib/modules/${KERNEL_VERSION}/
-find . -name '*.ko' -exec ln -sf {} . \;
-rm -f ntfs.ko
 
 cd $TGT_ROOT/sbin
 if [ ! -x kmod ];then
