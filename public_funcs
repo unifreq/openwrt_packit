@@ -752,7 +752,7 @@ function adjust_ntfs_config() {
 
 # 调整 turboacc 相关配置
 function adjust_turboacc_config() {
-    echo -n "调整 ntfs 配置 ... "
+    echo -n "调整 turboacc 配置 ... "
     ( 
         cd $TGT_ROOT
         if [ -f ./etc/config/turboacc ];then
