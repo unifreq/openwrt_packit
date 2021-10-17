@@ -174,12 +174,6 @@ fi
 [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp $DAEMON_JSON "etc/docker/daemon.json"
 [ -f $FORCE_REBOOT ] && cp $FORCE_REBOOT usr/sbin/
 [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
-if [ -x usr/bin/perl ];then
-	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/cpustat && chmod 755 usr/bin/cpustat
-	[ -f $GETCPU_SCRIPT ] && cp $GETCPU_SCRIPT bin/
-else
-	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
-fi
 #[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
 [ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && (cd usr/sbin && ln -sf openwrt-backup flippy)
@@ -300,41 +294,7 @@ sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/docke
 mv -f ./etc/rc.d/S??dockerd ./etc/rc.d/S99dockerd 2>/dev/null
 rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
-cat > ./etc/fstab <<EOF
-UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
-LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
-#tmpfs /tmp tmpfs defaults,nosuid 0 0
-EOF
-echo "/etc/fstab --->"
-cat ./etc/fstab
-
-cat > ./etc/config/fstab <<EOF
-config global
-        option anon_swap '0'
-        option auto_swap '0'
-        option anon_mount '1'
-        option auto_mount '1'
-        option delay_root '5'
-        option check_fs '0'
-
-config mount
-        option target '/overlay'
-        option uuid '${ROOTFS_UUID}'
-        option enabled '1'
-        option enabled_fsck '1'
-	option options 'compress=zstd'
-	option fstype 'btrfs'
-
-config mount
-        option target '/boot'
-        option label '${BOOT_LABEL}'
-        option enabled '1'
-        option enabled_fsck '1'
-	option fstype 'vfat'
-EOF
-
-echo "/etc/config/fstab --->"
-cat ./etc/config/fstab
+create_fstab_config
 
 [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
@@ -431,11 +391,6 @@ echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
 mkdir -p .snapshots && \
 btrfs subvolume snapshot -r etc .snapshots/etc-000
-
-# 2021.04.01添加
-# 强制锁定fstab,防止用户擅自修改挂载点
-# 开启了快照功能之后，不再需要锁定fstab
-#chattr +ia ./etc/config/fstab
 
 # clean temp_dir
 cd $TEMP_DIR

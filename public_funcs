@@ -671,6 +671,68 @@ function extract_allwinner_boot_files() {
     fi
 }
 
+# 生成 openwrt 所需的 fstab 文件
+function create_fstab_config() {
+    echo "创建 fstab 配置文件 ... "
+    (
+        cd $TGT_ROOT
+        if [ ! -z "${BOOT_UUID}" ];then
+            cat > ./etc/fstab <<EOF
+UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+UUID=${BOOT_UUID} /boot ext4 noatime,errors=remount-ro 0 2
+#tmpfs /tmp tmpfs defaults,nosuid 0 0
+EOF
+        else 
+            cat > ./etc/fstab <<EOF
+UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
+#tmpfs /tmp tmpfs defaults,nosuid 0 0
+EOF
+        fi
+
+        cat > ./etc/config/fstab <<EOF
+config global
+        option anon_swap '0'
+        option auto_swap '0'
+        option anon_mount '1'
+        option auto_mount '1'
+        option delay_root '5'
+        option check_fs '0'
+
+config mount
+        option target '/overlay'
+        option enabled '1'
+        option enabled_fsck '1'
+        option uuid '${ROOTFS_UUID}'
+        option fstype 'btrfs'
+        option options 'compress=zstd'
+
+config mount
+        option target '/boot'
+        option enabled '1'
+        option enabled_fsck '1'
+EOF
+        if [ ! -z "${BOOT_UUID}" ];then
+            cat >> ./etc/config/fstab <<EOF
+        option uuid '${BOOT_UUID}'
+        option fstype 'ext4'
+
+EOF
+        else
+            cat >> ./etc/config/fstab <<EOF
+        option label '${BOOT_LABEL}'
+        option fstype 'vfat'
+
+EOF
+        fi
+    )
+    echo "当前 fstab 内容如下："
+    echo "==============================================="
+    cat $TGT_ROOT/etc/config/fstab
+    echo "==============================================="
+    echo
+}
+
 # 调整ntfs相关配置
 function adjust_ntfs_config() {
     echo -n "调整 ntfs 配置 ... "
@@ -696,20 +758,23 @@ function patch_admin_status_index_html() {
         if [ ! -f usr/bin/perl ];then
              echo "未发现 perl 实用程序, 放弃补丁!"
         else 
+            [ -f $CPUSTAT_SCRIPT ] && cp -v $CPUSTAT_SCRIPT ./usr/bin/cpustat && chmod 755 ./usr/bin/cpustat  
+            [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
             if [ -f "$CPUSTAT_PATCH" ];then 
                  patch -p1 < ${CPUSTAT_PATCH} 
-		 if [ $? -ne 0 ];then
+                 if [ $? -ne 0 ];then
                      echo "补丁失败!"
-		 else
-	             if [ -f "${CPUSTAT_PATCH_02}" ] ;then
-		         patch -p1 < ${CPUSTAT_PATCH_02}
-		         if [ $? -ne 0 ];then
+                 else
+                     if [ -f "${CPUSTAT_PATCH_02}" ] ;then
+                         patch -p1 < ${CPUSTAT_PATCH_02}
+                         if [ $? -ne 0 ];then
                             echo "补丁失败!"
-			 fi
-		     fi
+                         fi
+                     fi
                  fi
-	    fi
-	    echo "完成"
+            fi
+            echo "完成"
         fi
+        echo
     )
 }
