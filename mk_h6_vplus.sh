@@ -1,41 +1,28 @@
 #!/bin/bash
 
 echo "========================= begin $0 ================="
-WORK_DIR="${PWD}/tmp"
-if [ ! -d ${WORK_DIR} ];then
-	mkdir -p ${WORK_DIR}
-fi
-
-# Image sources
-###################################################################
 source make.env
+source public_funcs
+init_work_env
+
 SOC=h6
 BOARD=vplus
 SUBVER=$1
 
-SKIP_MB=16
-BOOT_MB=160
-ROOTFS_MB=720
-
+# Kernel image sources
+###################################################################
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-allwinner-${KERNEL_VERSION}.tar.gz
-if [ ! -f ${MODULES_TGZ} ];then
-	echo "${MODULES_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${BOOT_TGZ} ];then
-	echo "${BOOT_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${DTBS_TGZ} ];then
-	echo "${DTBS_TGZ} not exists!"
-	exit 1
-fi
+check_file ${DTBS_TGZ}
+###################################################################
 
 # Openwrt 
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
+check_file ${OP_ROOT_TGZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target Image
@@ -111,106 +98,20 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 ####################################################################
 
-# work dir
-cd $WORK_DIR
-TEMP_DIR=$(mktemp -p $WORK_DIR)
-rm -rf $TEMP_DIR
-mkdir -p $TEMP_DIR
-echo $TEMP_DIR
-
-losetup -D
-
-# temp dir
-cd $TEMP_DIR
-
-# mk tgt_img
+check_depends
+SKIP_MB=16
+BOOT_MB=160
+ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
-echo "DISK SIZE = $SIZE MB"
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
-losetup -f -P $TGT_IMG
-TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
-echo "Target dev is $TGT_DEV"
-
-# make partition
-echo "开始分区 ..."
-parted -s $TGT_DEV mklabel msdos 2>/dev/null
-START=$((SKIP_MB * 1024 * 1024))
-END=$((BOOT_MB * 1024 * 1024 + START -1))
-parted -s $TGT_DEV mkpart primary fat32 ${START}b ${END}b 2>/dev/null
-START=$((END + 1))
-END=$((ROOTFS_MB * 1024 * 1024 + START -1))
-parted -s $TGT_DEV mkpart primary btrfs ${START}b 100% 2>/dev/null
-parted -s $TGT_DEV print 2>/dev/null
-echo "分区完成"
-echo
-
-function wait_dev {
-    while [ ! -b $1 ];do
-        echo "wait for $1 ..."
-        sleep 1
-    done
-}
-
-# mk boot filesystem (ext4)
-echo "格式化 boot分区： ${TGT_DEV}p1 ..."
-wait_dev ${TGT_DEV}p1
-mkfs.vfat -n EMMC_BOOT ${TGT_DEV}p1
-echo "完成"
-# mk root filesystem (btrfs)
-echo "格式化 ROOTFS分区：${TGT_DEV}p2 ..."
-wait_dev ${TGT_DEV}p2
-ROOTFS_UUID=$(uuidgen)
-mkfs.btrfs -U ${ROOTFS_UUID} -L EMMC_ROOTFS1 -m single ${TGT_DEV}p2
-echo "ROOTFS UUID IS $ROOTFS_UUID"
-sync
-echo "完成"
-echo
-
-TGT_BOOT=${TEMP_DIR}/tgt_boot
-TGT_ROOT=${TEMP_DIR}/tgt_root
-mkdir $TGT_BOOT $TGT_ROOT
-mount -t vfat ${TGT_DEV}p1 $TGT_BOOT
-mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
-
+create_image "$TGT_IMG" "$SIZE"
+create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "fat32" "$ROOTFS_MB" "btrfs"
+make_filesystem "$TGT_DEV" "B" "fat32" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
+mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "vfat"
+mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
-
-# extract root
-echo "extract openwrt rootfs ... "
-(
-  cd $TGT_ROOT && \
-  tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf $OPWRT_ROOTFS_GZ && \
-  rm -rf ./lib/firmware/* ./lib/modules/* && \
-  mkdir -p .reserved boot rom proc sys run
-)
-
-echo "extract armbian firmware ... "
-( 
-  cd ${TGT_ROOT} && \
-  tar xJf $FIRMWARE_TXZ
-)
-  
-echo "extract kernel modules ... "
-( 
-  cd ${TGT_ROOT} && \
-  mkdir -p lib/modules && \
-  cd lib/modules && \
-  tar xzf ${MODULES_TGZ}
-)
-
-echo "extract boot files ... "
-( 
-  cd ${TGT_BOOT} && \
-  cp -v "${BOOTFILES_HOME}"/* . && \
-  tar xzf "${BOOT_TGZ}" && \
-  rm -f initrd.img-${KERNEL_VERSION} && \
-  cp -v vmlinuz-${KERNEL_VERSION} zImage && \
-  cp -v uInitrd-${KERNEL_VERSION} uInitrd && \
-  mkdir -p dtb/allwinner && \
-  cd dtb/allwinner && \
-  tar xzf "${DTBS_TGZ}" && \
-  sync
-)
+extract_rootfs_files
+extract_allwinner_boot_files
 
 echo "modify boot ... "
 # modify boot
@@ -316,14 +217,8 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-[ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -f $FORCE_REBOOT ] && cp $FORCE_REBOOT usr/sbin/
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
-[ -d overlay ] || mkdir -p overlay
-[ -d rom ] || mkdir -p rom
-[ -d sys ] || mkdir -p sys
-[ -d proc ] || mkdir -p proc
-[ -d run ] || mkdir -p run
 
 mkdir -p ./etc/modules.d.remove
 mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
@@ -419,7 +314,7 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 cat > etc/fstab <<EOF
 UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
-LABEL=EMMC_BOOT /boot vfat defaults 0 2
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
 
@@ -442,16 +337,13 @@ config mount
 
 config mount
         option target '/boot'
-        option label 'EMMC_BOOT'
+        option label '${BOOT_LABEL}'
         option enabled '1'
         option enabled_fsck '1'
         option fstype 'vfat'
 
 EOF
 
-[ -f ./etc/docker-init ] && rm -f ./etc/docker-init
-[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
-[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset ./sbin/jffs2mark
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 # 写入版本信息
@@ -486,30 +378,11 @@ config turboacc 'config'
 EOF
 fi
 
-cd $TGT_ROOT/lib/modules/${KERNEL_VERSION}/
-find . -name '*.ko' -exec ln -sf {} . \;
-rm -f ntfs.ko
-
 cd $TGT_ROOT/sbin
-if [ ! -x kmod ];then
-	cp $KMOD .
-fi
-ln -sf kmod depmod
-ln -sf kmod insmod
-ln -sf kmod lsmod
-ln -sf kmod modinfo
-ln -sf kmod modprobe
-ln -sf kmod rmmod
 if [ -f mount.ntfs3 ];then
     ln -sf mount.ntfs3 mount.ntfs
 elif [ -f ../usr/bin/ntfs-3g ];then
     ln -sf /usr/bin/ntfs-3g mount.ntfs
-fi
-
-cd $TGT_ROOT/lib/firmware
-mv *.hcd brcm/ 2>/dev/null
-if [ -f "$REGULATORY_DB" ];then
-	tar xvzf "$REGULATORY_DB"
 fi
 
 [ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
@@ -542,6 +415,7 @@ cd $TEMP_DIR
 umount -f $TGT_ROOT $TGT_BOOT
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
-echo "镜像已生成!"
+mv $TGT_IMG $OUTPUT_DIR && sync
+echo "镜像已生成, 存放在 ${OUTPUT_DIR} 下面"
 echo "========================== end $0 ================================"
 echo

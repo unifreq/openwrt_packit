@@ -1,32 +1,9 @@
 #!/bin/bash
 
 echo "========================= begin $0 ==========================="
-WORK_DIR="${PWD}/tmp"
-if [ ! -d ${WORK_DIR} ];then
-	mkdir -p ${WORK_DIR}
-fi
-
-# 源镜像文件
-##########################################################################
 source make.env
-function check_k510() {
-    # 判断内核版本是否 >= 5.10
-    K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
-    K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
-
-    if [ $K_VER -eq 5 ];then
-        if [ $K_MAJ -ge 10 ];then
-            K510=1
-        else
-	    K510=0
-        fi
-    elif [ $K_VER -gt 5 ];then
-        K510=1
-    else
-        K510=0
-    fi
-    export K510
-}
+source public_funcs
+init_work_env
 check_k510
 
 # 盒子型号识别参数 
@@ -35,26 +12,20 @@ BOARD=multi
 
 SUBVER=$1
 
+# Kernel image sources
+###################################################################
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-amlogic-${KERNEL_VERSION}.tar.gz
-if [ ! -f ${MODULES_TGZ} ];then
-	echo "${MODULES_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${BOOT_TGZ} ];then
-	echo "${BOOT_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${DTBS_TGZ} ];then
-	echo "${DTBS_TGZ} not exists!"
-	exit 1
-fi
+check_file ${DTBS_TGZ}
 ###########################################################################
 
 # Openwrt root 源文件
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
+check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # 目标镜像文件
@@ -140,176 +111,21 @@ OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
 OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 ###########################################################################
 
-# 检查环境
-if [ $(id -u) -ne 0 ];then
-	echo "这个脚本需要用root用户来执行，你好象不是root吧？"
-	exit 1
-fi
+check_depends
 
-if [ ! -f "$OPWRT_ROOTFS_GZ" ];then
-	echo "Openwrt镜像: ${OPWRT_ROOTFS_GZ} 不存在, 请检查!"
-	exit 1
-fi
-
-if mkfs.btrfs -V >/dev/null;then
-	echo "check mkfs.btrfs ok"
-else
-	echo "mkfs.btrfs 程序不存在，请安装 btrfsprogs"
-	exit 1
-fi
-
-if mkfs.vfat --help 1>/dev/nul 2>&1;then
-	echo "check mkfs.vfat ok"
-else
-	echo "mkfs.vfat 程序不存在，请安装 dosfstools"
-	exit 1
-fi
-
-if uuidgen>/dev/null;then
-	echo "check uuidgen ok"
-else
-	echo "uuidgen 程序不存在，请安装 uuid-runtime"
-	exit 1
-fi
-
-if losetup -V >/dev/null;then
-	echo "check losetup ok"
-else
-	echo "losetup 程序不存在，请安装 mount"
-	exit 1
-fi
-
-if lsblk --version >/dev/null 2>&1;then
-	echo "check lsblk ok"
-else
-	echo "lsblk 程序不存在，请安装 util-linux"
-	exit 1
-fi
-
-if parted --version >/dev/null 2>&1;then
-	echo "check parted ok"
-else
-	echo "parted 程序不存在，请安装 parted"
-	exit 1
-fi
-
-# work dir
-cd $WORK_DIR
-TEMP_DIR=$(mktemp -p $WORK_DIR)
-rm -rf $TEMP_DIR
-mkdir -p $TEMP_DIR
-echo $TEMP_DIR
-
-# temp dir
-cd $TEMP_DIR
-losetup -D
-
-# 创建空白镜像文件
-echo "创建空白的目标镜像文件 ..."
 SKIP_MB=4
 BOOT_MB=256
 ROOTFS_MB=640
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
-echo $SIZE
-
-dd if=/dev/zero of=$TGT_IMG bs=1M count=$SIZE conv=fsync && sync
-losetup -f -P $TGT_IMG
-TGT_DEV=$(losetup | grep "$TGT_IMG" | gawk '{print $1}')
-
-echo "创建磁盘分区和文件系统 ..."
-parted -s $TGT_DEV mklabel msdos 2>/dev/null
-BEGIN=$((SKIP_MB * 1024 * 1024))
-END=$(( BOOT_MB * 1024 * 1024 + BEGIN -1))
-parted -s $TGT_DEV mkpart primary fat32 ${BEGIN}b ${END}b 2>/dev/null
-if [ $? -ne 0 ];then
-    echo "创建 boot 分区失败!"
-    losetup -D
-    exit 1
-fi
-BEGIN=$((END + 1))
-END=$((ROOTFS_MB * 1024 * 1024 + BEGIN -1))
-parted -s $TGT_DEV mkpart primary btrfs ${BEGIN}b 100% 2>/dev/null
-if [ $? -ne 0 ];then
-    echo "创建 rootfs 分区失败!"
-    losetup -D
-    exit 1
-fi
-parted -s $TGT_DEV print 2>/dev/null
-
-function wait_dev {
-    while [ ! -b $1 ];do
-        echo "wait for $1 ..."
-        sleep 1
-    done
-}
-
-# 格式化文件系统
-wait_dev ${TGT_DEV}p1
-mkfs.vfat -n BOOT ${TGT_DEV}p1
-wait_dev ${TGT_DEV}p2
-ROOTFS_UUID=$(uuidgen)
-echo "ROOTFS_UUID = $ROOTFS_UUID"
-mkfs.btrfs -U ${ROOTFS_UUID} -L ROOTFS -m single ${TGT_DEV}p2
-
-echo "挂载目标设备 ..."
-TGT_BOOT=${TEMP_DIR}/tgt_boot
-TGT_ROOT=${TEMP_DIR}/tgt_root
-mkdir $TGT_BOOT $TGT_ROOT
-mount -t vfat ${TGT_DEV}p1 $TGT_BOOT
-mount -t btrfs -o compress=zstd ${TGT_DEV}p2 $TGT_ROOT
-
+create_image "$TGT_IMG" "$SIZE"
+create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "fat32" "$ROOTFS_MB" "btrfs"
+make_filesystem "$TGT_DEV" "B" "fat32" "BOOT" "R" "btrfs" "ROOTFS"
+mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "vfat"
+mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
-
-# extract root
-echo "openwrt 根文件系统解包 ... "
-(
-  cd $TGT_ROOT && \
-  tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf $OPWRT_ROOTFS_GZ && \
-  rm -rf ./lib/firmware/* ./lib/modules/* && \
-  mkdir -p .reserved boot rom proc sys run
-)
-
-echo "Armbian firmware 解包 ... "
-( 
-  cd ${TGT_ROOT} && \
-  tar xJf $FIRMWARE_TXZ
-)
-  
-echo "内核模块解包 ... "
-( 
-  cd ${TGT_ROOT} && \
-  mkdir -p lib/modules && \
-  cd lib/modules && \
-  tar xzf ${MODULES_TGZ}
-)
-
-echo "boot 文件解包 ... "
-( 
-  cd ${TGT_BOOT} && \
-  cp -v "${BOOTFILES_HOME}"/* . && \
-  tar xzf "${BOOT_TGZ}" && \
-  rm -f initrd.img-${KERNEL_VERSION} && \
-  cp -v vmlinuz-${KERNEL_VERSION} zImage && \
-  cp -v uInitrd-${KERNEL_VERSION} uInitrd && \
-  cp -v ${UBOOT_WITHOUT_FIP_HOME}/* . && \
-  mkdir -p dtb/amlogic && \
-  cd dtb/amlogic && \
-  tar xzf "${DTBS_TGZ}" && \
-  sync
-)
-
-while :;do
-	lsblk -l -o NAME,PATH,UUID 
-	BOOT_UUID=$(lsblk -l -o NAME,PATH,UUID | grep "${TGT_DEV}p1" | awk '{print $3}')
-	#ROOTFS_UUID=$(lsblk -l -o NAME,PATH,UUID | grep "${TGT_DEV}p2" | awk '{print $3}')
-	echo "BOOT_UUID is $BOOT_UUID"
-	echo "ROOTFS_UUID is $ROOTFS_UUID"
-	if [ "$ROOTFS_UUID" != "" ];then
-		break
-	fi
-	sleep 1
-done
+extract_rootfs_files
+extract_amlogic_boot_files
 
 echo "修改引导分区相关配置 ... "
 # modify boot
@@ -368,14 +184,6 @@ EOF
 
 echo "uEnv.txt --->"
 cat uEnv.txt
-
-# 5.10以后的内核，需要增加u-boot重载
-if [ $K510 -eq 1 ];then
-	cp -fv ${UBOOT_WITHOUT_FIP} u-boot.ext
-	rm -f u-boot.sd u-boot.usb
-else
-	rm -f u-boot*.bin
-fi
 
 echo "修改根文件系统相关配置 ... "
 
@@ -461,15 +269,8 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-[ -d ${FMW_HOME} ] && cp -a ${FMW_HOME}/* lib/firmware/
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
 [ -f ${GET_RANDOM_MAC} ] && cp ${GET_RANDOM_MAC} usr/bin/
-[ -d boot ] || mkdir -p boot
-[ -d overlay ] || mkdir -p overlay
-[ -d rom ] || mkdir -p rom
-[ -d sys ] || mkdir -p sys
-[ -d proc ] || mkdir -p proc
-[ -d run ] || mkdir -p run
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
@@ -547,7 +348,7 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 cat > ./etc/fstab <<EOF
 UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
-LABEL=BOOT /boot vfat defaults 0 2
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
 echo "/etc/fstab --->"
@@ -572,7 +373,7 @@ config mount
 
 config mount
         option target '/boot'
-        option label 'BOOT'
+        option label '${BOOT_LABEL}'
         option enabled '1'
         option enabled_fsck '1'
 	option fstype 'vfat'
@@ -581,9 +382,6 @@ EOF
 echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
-[ -f ./etc/docker-init ] && rm -f ./etc/docker-init
-[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
-[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset ./sbin/jffs2mark
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 mkdir -p ./etc/modprobe.d
@@ -665,57 +463,12 @@ UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
 EOF
 fi
 
-cd $TGT_ROOT/lib/modules/${KERNEL_VERSION}/
-rm -f build source
-find . -name '*.ko' -exec ln -sf {} . \;
-rm -f ntfs.ko
-
 cd $TGT_ROOT/sbin
-if [ ! -x kmod ];then
-	cp $KMOD .
-fi
-ln -sf kmod depmod
-ln -sf kmod insmod
-ln -sf kmod lsmod
-ln -sf kmod modinfo
-ln -sf kmod modprobe
-ln -sf kmod rmmod
 if [ -f mount.ntfs3 ];then
     ln -sf mount.ntfs3 mount.ntfs
 elif [ -f ../usr/bin/ntfs-3g ];then
     ln -sf /usr/bin/ntfs-3g mount.ntfs
 fi
-
-cd $TGT_ROOT/lib/firmware
-mv *.hcd brcm/ 2>/dev/null
-if [ -f "$REGULATORY_DB" ];then
-	tar xzf "$REGULATORY_DB"
-fi
-
-cd brcm
-source ${GET_RANDOM_MAC}
-
-# gtking/gtking pro wifi5版本 采用 bcm4356 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=00:90:4c:1a:10:01/macaddr=${MACADDR}/" "brcmfmac4356-sdio.txt" > "brcmfmac4356-sdio.azw,gtking.txt"
-
-# Phicomm N1 采用 bcm43455 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.phicomm,n1.txt"
-
-# HK1 Box 和 H96 Max X3 采用 bcm54339 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.amlogic,sm1.txt"
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
-
-# 旧版ugoos x3 采用 bcm43455 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
-
-# 新版ugoos x3 采用 brm43456
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43456-sdio.txt" > "brcmfmac43456-sdio.amlogic,sm1.txt"
 
 rm -f ${TGT_ROOT}/etc/bench.log
 cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
@@ -748,7 +501,7 @@ fi
 
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
-echo
-echo "镜像打包已完成，再见!"
+mv ${TGT_IMG} ${OUTPUT_DIR} && sync
+echo "镜像已生成! 存放在 ${OUTPUT_DIR} 下面!"
 echo "========================== end $0 ================================"
 echo

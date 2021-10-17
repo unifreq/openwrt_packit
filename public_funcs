@@ -1,0 +1,615 @@
+#!/bin/bash
+
+get_random_mac ()
+{
+    # MAC地址第一段可在 02 06 0A 0E 中任选一个
+    if [ "$SHELL" == "/bin/bash" ];then
+        #MACADDR=$(printf "%02X:%02X:%02X:%02X:%02X:%02X\n" $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255])
+        MACADDR=$(printf "06:%02X:%02X:%02X:%02X:%02X\n" $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255])
+    else
+        uuid=$(cat /proc/sys/kernel/random/uuid)
+        mac1="0E"
+        #mac1=${uuid:24:2}
+        mac2=${uuid:26:2}
+        mac3=${uuid:28:2}
+        mac4=${uuid:30:2}
+        mac5=${uuid:32:2}
+        mac6=${uuid:34:2}
+        MACADDR=$(echo "$mac1:$mac2:$mac3:$mac4:$mac5:$mac6" | tr '[a-z]' '[A-Z]')
+    fi
+}
+
+function check_file() {
+    if [ ! -f "$1" ];then
+        echo "文件: [$1] 不存在!"
+        if [ "$2" == "" ];then
+            exit 1
+        else
+            sleep $2
+        fi
+    fi
+}
+
+function check_dir() {
+    if [ ! -d "$1" ];then
+        echo "目录: [$1] 不存在!"
+        if [ "$2" == "" ];then
+            exit 1
+        else
+            sleep $2
+        fi
+    fi
+}
+
+function check_block_dev() {
+    if [ ! -b "$1" ];then
+        echo "块设备: [$1] 不存在!"
+        if [ "$2" == "" ];then
+            exit 1
+        else
+            sleep $2
+        fi
+    fi
+}
+
+function check_k510() {
+    # 判断内核版本是否 >= 5.10
+    K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
+    K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
+
+    if [ $K_VER -eq 5 ];then
+        if [ $K_MAJ -ge 10 ];then
+            K510=1
+        else
+            K510=0
+        fi
+    elif [ $K_VER -gt 5 ];then
+        K510=1
+    else
+        K510=0
+    fi
+    export K510
+}
+
+function check_depends() {
+    if [ $(id -u) -ne 0 ];then
+        echo "这个脚本需要用root用户来执行，你好象不是root吧？"
+        exit 1
+    fi
+
+    if mkfs.btrfs -V >/dev/null;then
+        echo "check mkfs.btrfs ok"
+    else
+        echo "mkfs.btrfs 程序不存在，请安装 btrfs-progs"
+        exit 1
+    fi
+
+    if mkfs.vfat --help 1>/dev/nul 2>&1;then
+        echo "check mkfs.vfat ok"
+    else
+        echo "mkfs.vfat 程序不存在，请安装 dosfstools"
+        exit 1
+    fi
+
+    if gawk --version >/dev/null;then
+        echo "check gawk ok"
+    else
+        echo "gawk 程序不存在，请安装 gawk"
+        exit 1
+    fi
+
+    if uuidgen>/dev/null;then
+        echo "check uuidgen ok"
+    else
+        echo "uuidgen 程序不存在，请安装 uuid-runtime"
+        exit 1
+    fi
+
+    if losetup -V >/dev/null;then
+        echo "check losetup ok"
+    else
+        echo "losetup 程序不存在，请安装 mount"
+        exit 1
+    fi
+
+    lsblk_version=$(lsblk --version|awk '{print $NF}' 2>/dev/null)
+    if [ "$lsblk_version" != "" ];then
+        m_v=$(echo ${lsblk_version} | cut -d '.' -f1)
+        s_v=$(echo ${lsblk_version} | cut -d '.' -f2)
+        if [ $m_v -gt 2 ] || [ $m_v -eq 2 ] && [ $s_v -ge 33 ];then
+            echo "check lsblk ok"
+        else
+            echo "lsblk 需要版本 2.33 或更高的版本, 当前的版本是 $lsblk_version !"
+            exit 1
+        fi        
+    else
+        echo "lsblk 程序不存在，请安装 util-linux"
+        exit 1
+    fi
+
+    if fdisk --version >/dev/null 2>&1;then
+        echo "check fdisk ok"
+    else
+        echo "fdisk 程序不存在，请安装 fdisk"
+        exit 1
+    fi
+
+    if parted --version >/dev/null 2>&1;then
+        echo "check parted ok"
+    else
+        echo "parted 程序不存在，请安装 parted"
+        exit 1
+    fi
+    echo
+}
+
+function wait_dev() {
+    while [ ! -b $1 ];do
+        echo "wait for $1 ..."
+        sleep 1
+    done
+    sleep 1
+}
+
+function init_work_env() {
+    export WORK_DIR="${PWD}/tmp"
+    [ -d ${WORK_DIR} ] || mkdir -p ${WORK_DIR}
+    echo "The work directory is : [$WORK_DIR]"
+
+    export TEMP_DIR=$(mktemp -p $WORK_DIR)
+    rm -rf $TEMP_DIR
+    mkdir -p $TEMP_DIR
+    echo "The temporary directory is : [$TEMP_DIR]"
+
+    export TGT_BOOT=${TEMP_DIR}/tgt_boot
+    export TGT_ROOT=${TEMP_DIR}/tgt_root
+    mkdir -p $TGT_BOOT $TGT_ROOT
+    echo "The target boot directory is : [$TGT_BOOT]"
+    echo "The target rootfs directory is : [$TGT_ROOT]"
+
+    export OUTPUT_DIR="${PWD}/output/"
+    [ -d ${OUTPUT_DIR} ] || mkdir -p ${OUTPUT_DIR}
+    echo "The output directory is : [$OUTPUT_DIR]"
+
+    losetup -D
+    echo 
+}
+
+function detach_loopdev() {
+    cd ${TEMP_DIR}
+    umount -f * 2>/dev/null
+    losetup -D
+    rm -rf ${TEMP_DIR}
+}
+
+function create_image() {
+    local img_name=$1
+    local size_mb=$2
+    if [ "$img_name" == "" ];then
+        echo "镜像名称为空，请指定一个具体的镜像名称！"
+        exit 1
+    fi
+
+    if [ "$size_mb" == "" ];then
+        echo "镜像大小为空，请指定不小于 1 的整数尺寸！"
+        exit 1
+    fi
+    
+    echo "创建空白的目标镜像文件, 大小是 $size_mb MB  ... "
+    dd if=/dev/zero of="$img_name" bs=1M count=$size_mb conv=fsync && sync
+    if [ $? -ne 0 ];then
+        echo "空白镜像创建失败！"
+        exit 1
+    else
+        echo "空白镜像创建成功"
+    fi
+
+    echo -n "设置分区循环设备 ... "
+    losetup -f -P "$img_name"
+    if [ $? -ne 0 ];then
+        echo "失败！"
+        exit 1
+    else
+        TGT_DEV=$(losetup | grep "$img_name" | gawk '{print $1}')
+        export TGT_DEV
+        echo "成功: [$TGT_DEV]"
+    fi
+    echo
+}
+
+# 创建分区
+# 参数1： 块设备名
+# 参数2： 跳过 x MB
+# 参数3+参数4： 分区1大小MB 分区1类型
+# 参数5+参数6： 分区2大小MB 分区2类型
+# 参数7+参数8： 分区3大小MB 分区3类型
+# 参数9+参数10：分区4大小MB 分区4类型
+function create_partition() {
+    local device_name=$1
+    check_block_dev $device_name
+    shift
+
+    local skip_mb=$1
+    local start=$((skip_mb * 1024 * 1024))
+    shift
+
+    echo "对磁盘设备 [$device_name] 进行分区 ..."
+    parted -s ${device_name} mklabel msdos 2>/dev/null
+    if [ $? -ne 0 ];then
+        echo "分区失败!"
+        detach_loopdev
+        exit 1
+    fi
+    i=1
+    while [ $i -le 4 ]; do
+        local pt_size=$1
+        shift
+        local pt_type=$1
+        shift
+        
+        if [ "$pt_size" == "" ] || [ "$pt_type" == "" ];then
+            break
+        fi            
+
+        local end=$(( pt_size * 1024 * 1024 +  start - 1 ))
+        echo -n "创建第 [$i] 个分区, 分区大小: [$pt_size] MB, 分区类型: [$pt_type] ... "
+        parted -s ${device_name} mkpart primary ${pt_type} ${start}b ${end}b 2>/dev/null
+        if [ $? -ne 0 ];then
+            echo "失败!"
+            detach_loopdev
+            exit 1
+        else
+            echo "成功"
+        fi
+
+        start=$(( end + 1 ))
+        i=$((i + 1))
+    done
+
+    echo "[$device_name] 磁盘分区一览:"
+    echo "==================================================================="
+    fdisk -l $device_name 2>/dev/null
+    echo "==================================================================="
+    echo
+}
+
+# 格式化文件系统
+# 参数1:  块设备名
+# 参数2:  分区1用途: boot=B rootfs=R other=O
+# 参数3： 分区1类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数4： 分区1卷标
+# 参数5:  分区2用途: boot=B rootfs=R other=O
+# 参数6： 分区2类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数7： 分区2卷标
+# 参数8:  分区3用途: boot=B rootfs=R other=O
+# 参数9： 分区3类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数10: 分区3卷标
+# 参数11: 分区4用途: boot=B rootfs=R other=O
+# 参数12: 分区4类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数13：分区4卷标
+function make_filesystem() {
+    local device_name=$1
+    check_block_dev $device_name
+    shift
+
+    echo "==================================================================="
+    echo "在 [$device_name] 上创建文件系统 ... " 
+    i=1
+    while [ $i -le 4 ]; do
+        local fs_use=$1
+        shift
+        local fs_type=$1
+        shift
+        local fs_label=$1
+        shift
+        if [ "$fs_use" == "" ] || [ "$fs_type" == "" ] || [ "$fs_label" == "" ];then
+             break
+        fi
+
+        local fs_uuid=$(uuidgen)
+        case $fs_use in
+            B) if [ "$fs_type" == "ext4" ] || [ "$fs_type" == "xfs" ] || [ "$fs_type" == "btrfs" ] || [ "$fs_type" == "f2fs" ];then
+                    BOOT_UUID=${fs_uuid}
+                    echo "The boot uuid is ${BOOT_UUID}"
+                    export BOOT_UUID
+               fi
+               BOOT_LABEL=${fs_label}
+               echo "The boot label is ${BOOT_LABEL}"
+               export BOOT_LABEL
+               ;;
+            R) ROOTFS_UUID=${fs_uuid}
+               ROOTFS_LABEL=${fs_label}
+               echo "The rootfs uuid is ${ROOTFS_UUID}"
+               echo "The rootfs label is ${ROOTFS_LABEL}"
+               export ROOTFS_UUID ROOTFS_LABEL
+               ;;
+            O) ;;
+            *) echo "分区用途： [$fs_use] 无法识别！仅支持 B/R/O 三种!"
+               detach_loopdev
+               exit 1
+               ;;
+        esac
+
+        echo "格式化 [${device_name}p${i}], 类型为 [$fs_type], 卷标为 [$fs_label] ... "
+        wait_dev ${device_name}p${i}
+        case $fs_type in 
+            fat32) mkfs.vfat -n "${fs_label}" ${device_name}p${i}
+                   if [ $? -ne 0 ];then
+                        echo "[${device_name}p${i}] 格式化失败！"
+                        detach_loopdev
+                        exit 1
+                   else
+                        echo "[${device_name}p${i}] 格式化成功"
+                   fi
+                   ;;
+             ext4) mkfs.ext4 -U ${fs_uuid} -L "${fs_label}" ${device_name}p${i}
+                   if [ $? -ne 0 ];then
+                        echo "[${device_name}p${i}] 格式化失败！"
+                        detach_loopdev
+                        exit 1
+                   else
+                        echo "[${device_name}p${i}] 格式化成功"
+                   fi
+                   ;;
+              xfs) mkfs.xfs -U ${fs_uuid} -L "${fs_label}" ${device_name}p${i}
+                   if [ $? -ne 0 ];then
+                        echo "[${device_name}p${i}] 格式化失败！"
+                        detach_loopdev
+                        exit 1
+                   else
+                        echo "[${device_name}p${i}] 格式化成功"
+                   fi
+                   ;;
+             f2fs) mkfs.f2fs -U ${fs_uuid} -l "${fs_label}" ${device_name}p${i}
+                   if [ $? -ne 0 ];then
+                        echo "[${device_name}p${i}] 格式化失败！"
+                        detach_loopdev
+                        exit 1
+                   else
+                        echo "[${device_name}p${i}] 格式化成功"
+                   fi
+                   ;;
+            btrfs) mkfs.btrfs -U ${fs_uuid} -L "${fs_label}" -m single ${device_name}p${i}
+                   if [ $? -ne 0 ];then
+                        echo "[${device_name}p${i}] 格式化失败！"
+                        detach_loopdev
+                        exit 1
+                   else
+                        echo "[${device_name}p${i}] 格式化成功"
+                   fi
+                   ;;
+                *) echo "文件系统类型 [$fs_type] 不受支持!"
+                   detach_loopdev
+                   exit 1
+                   ;;
+        esac
+
+        i=$((i+1))
+    done
+    echo "[$device_name] 文件系统已创建." 
+    echo "==================================================================="
+    echo
+}
+
+function mount_fs() {
+    local device_name=$1
+    check_block_dev $device_name
+
+    local mount_point=$2
+    check_dir $mount_point
+
+    local fs_type=$3
+    if [ -z "$fs_type" ];then
+         echo "未指定文件系统类型"
+         detach_loopdev
+         exit 1
+    fi
+
+    local mount_options=$4
+
+    echo -n "挂载 ${device_name} --> ${mount_point} ... "
+    if [ "$mount_options" == "" ];then
+        mount -t "$fs_type" "$device_name" "$mount_point"
+    else
+        mount -t "$fs_type" -o "$mount_options" "$device_name" "$mount_point"
+    fi
+    if [ $? -ne 0 ];then
+         echo "失败!"
+         detach_loopdev
+         exit 1
+    else
+         echo "成功"
+    fi
+}
+
+function extract_rootfs_files() {
+   echo -n "释放 Openwrt rootfs 压缩包 ... "
+   (
+       cd ${TGT_ROOT} && \
+          tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf "$OPWRT_ROOTFS_GZ" && \
+          mkdir -p .reserved boot rom overlay proc sys run && \
+          sync
+   )
+   if [ $? -ne 0 ];then
+        echo "失败！"
+        detach_loopdev
+        exit 1
+   else 
+        echo "完成"
+   fi
+   echo -n "裁减 Rootfs 中用不到的文件 ... "
+   (
+       cd ${TGT_ROOT}
+       rm -rf ./lib/firmware/* ./lib/modules/*
+       rm -f ./etc/docker-init ./sbin/firstboot ./sbin/jffs2reset ./sbin/jffs2mark
+   )
+   echo "完成"
+
+   echo -n "重新链接 kmod 程序 ... "
+   (  cd $TGT_ROOT/sbin 
+      [ ! -x "kmod" ] && [ -f "${KMOD}" ] && cp "$KMOD" kmod
+      if [ -x "kmod" ];then
+          rm -f depmod insmod lsmod modinfo modprobe rmmod
+          ln -sf kmod depmod
+          ln -sf kmod insmod
+          ln -sf kmod lsmod
+          ln -sf kmod modinfo
+          ln -sf kmod modprobe
+          ln -sf kmod rmmod
+      fi
+   )
+   echo "完成"
+
+   echo -n "释放 Armbian firmware 压缩包 ... "
+   ( cd ${TGT_ROOT} && tar xJf "$FIRMWARE_TXZ" && sync )
+   if [ $? -ne 0 ];then
+        echo "失败！"
+        detach_loopdev
+        exit 1
+   else 
+        echo "完成"
+   fi
+
+   if [ -d "${FMW_HOME}" ];then
+       echo -n "复制 Added firmware 文件 ... "
+       ( cd ${TGT_ROOT} && cp -a ${FMW_HOME}/* lib/firmware/ && sync )
+       echo "完成"
+   fi
+
+   echo -n "优化 firmware ... "
+   (
+       cd $TGT_ROOT/lib/firmware
+       mv *.hcd brcm/ 2>/dev/null
+       [ -f "$REGULATORY_DB" ] && tar xzf "$REGULATORY_DB"
+       cd brcm
+
+       # gtking/gtking pro 采用 bcm4356 wifi/bluetooth 模块
+       get_random_mac
+       # wifi5 module AP6356S
+       sed -e "s/macaddr=00:90:4c:1a:10:01/macaddr=${MACADDR}/" "brcmfmac4356-sdio.txt" > "brcmfmac4356-sdio.azw,gtking.txt"
+       get_random_mac
+       # wifi6 module AP6275S
+       sed -e "s/macaddr=00:90:4c:12:d0:01/macaddr=${MACADDR}/" "brcmfmac4375-sdio.txt" > "brcmfmac4375-sdio.azw,gtking.txt"
+       # Phicomm N1 采用 bcm43455 wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.phicomm,n1.txt"
+       # MXQ Pro+ 采用 AP6330(bcm4330) wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4330-sdio.txt" > "brcmfmac4330-sdio.crocon,mxq-pro-plus.txt"
+       # HK1 Box 和 H96 Max X3 采用 bcm54339 wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.amlogic,sm1.txt"
+       # 旧版ugoos x3 采用 bcm43455 wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
+       # 新版ugoos x3 采用 brm43456
+       get_random_mac
+       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43456-sdio.txt" > "brcmfmac43456-sdio.amlogic,sm1.txt"
+   )
+   echo "完成"
+
+   echo -n "释放 Kernel modules 压缩包 ... "
+   ( 
+      cd ${TGT_ROOT} && \
+          mkdir -p lib/modules && \
+          cd lib/modules && \
+              tar xzf ${MODULES_TGZ} && \
+              cd ${KERNEL_VERSION}/ && \
+                  find . -name '*.ko' -exec ln -sf {} . \; && \
+                  rm -f "build" "source" "ntfs.ko" && \
+          sync
+   )
+   if [ $? -ne 0 ];then
+        echo "失败！"
+        detach_loopdev
+        exit 1
+   else 
+        echo "完成"
+   fi
+}
+
+function extract_amlogic_boot_files() {
+    echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
+    ( 
+        cd ${TGT_BOOT} && \
+            cp "${BOOTFILES_HOME}"/* . && \
+            tar xzf "${BOOT_TGZ}" && \
+            rm -f initrd.img-${KERNEL_VERSION} && \
+            cp vmlinuz-${KERNEL_VERSION} zImage && \
+            cp uInitrd-${KERNEL_VERSION} uInitrd && \
+            cp ${UBOOT_WITHOUT_FIP_HOME}/* . && \
+            mkdir -p dtb/amlogic && \
+            cd dtb/amlogic && \
+            tar xzf "${DTBS_TGZ}" && \
+            sync
+    )
+    if [ $? -ne 0 ];then
+         echo "失败！"
+         detach_loopdev
+         exit 1
+    fi
+    ( 
+        cd ${TGT_BOOT}
+        # 5.4内核不再需要u-boot.sd 以及 u-boot.usb
+        rm -f u-boot.usb u-boot.sd
+        # 5.10以后的内核，需要增加u-boot重载
+        # 5.4内核可加可不加
+        if [ $K510 -eq 1 ];then
+            check_file ${UBOOT_WITHOUT_FIP}
+            cp -f ${UBOOT_WITHOUT_FIP} u-boot.ext
+            if [ $? -ne 0 ];then
+                echo "失败！"
+                detach_loopdev
+                exit 1
+            fi
+        fi
+    ) 
+    echo "完成"
+}
+
+function extract_rockchip_boot_files() {
+    echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
+    ( 
+          cd ${TGT_BOOT} && \
+              cp "${BOOTFILES_HOME}"/* . && \
+              tar xzf "${BOOT_TGZ}" && \
+              rm -f initrd.img-${KERNEL_VERSION} && \
+              ln -sf vmlinuz-${KERNEL_VERSION} Image && \
+              ln -sf uInitrd-${KERNEL_VERSION} uInitrd && \
+              mkdir -p dtb-${KERNEL_VERSION}/rockchip && \
+              ln -sf dtb-${KERNEL_VERSION} dtb && \
+              cd dtb/rockchip && \
+              tar xzf "${DTBS_TGZ}" && \
+              sync
+    )
+    if [ $? -ne 0 ];then
+        echo "失败！"
+        detach_loopdev
+        exit 1
+    else 
+        echo "完成"
+    fi
+}
+
+function extract_allwinner_boot_files() {
+    echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
+    ( 
+        cd ${TGT_BOOT} && \
+            cp "${BOOTFILES_HOME}"/* . && \
+            tar xzf "${BOOT_TGZ}" && \
+            rm -f initrd.img-${KERNEL_VERSION} && \
+            cp vmlinuz-${KERNEL_VERSION} zImage && \
+            cp uInitrd-${KERNEL_VERSION} uInitrd && \
+            mkdir -p dtb/allwinner && \
+            cd dtb/allwinner && \
+            tar xzf "${DTBS_TGZ}" && \
+            sync
+    )
+    if [ $? -ne 0 ];then
+        echo "失败！"
+        detach_loopdev
+        exit 1
+    else 
+        echo "完成"
+    fi
+}

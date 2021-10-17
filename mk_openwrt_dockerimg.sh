@@ -34,11 +34,11 @@ if [ ! -f ${SRC_IMG} ];then
 fi
 
 TMPDIR=${PWD}/openwrt_docker_rootfs
-OUTDIR=${PWD}/tmp
+OUTDIR=${PWD}/output
+[ -d "$OUTDIR" ] || mkdir -p ${OUTDIR}
 
-[ -d "$TMPDIR" ] && rm -rf "$TMPDIR"
-
-mkdir -p "$TMPDIR"  && gzip -dc ${SRC_IMG} | ( cd "$TMPDIR" && tar xf - && rm -rf ./lib/firmware/* && rm -rf ./lib/modules/*)
+[ -d "$TMPDIR" ] && rm -rf "$TMPDIR" 
+mkdir -p "$TMPDIR" && gzip -dc ${SRC_IMG} | ( cd "$TMPDIR" && tar xf - && rm -rf ./lib/firmware/* && rm -rf ./lib/modules/*)
 
 [ -x $TMPDIR/bin/bash ] && \
 	cp -f files/docker/30-sysinfo.sh $TMPDIR/etc/profile.d/ && \

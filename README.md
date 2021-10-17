@@ -80,6 +80,7 @@ https://github.com/hibuddies/openwrt/
 https://github.com/Netflixxp/N1HK1dabao
 
 五、Github Actions 打包使用方法
+    actions 源码来自 https://github.com/ophub (smith1998)，主脚本为 openwrt_flippy.sh  
 
 在 `.github/workflows/*.yml` 云编译脚本中引入此 Actions 即可使用。详细使用说明：[README.ACTION.md](README.ACTION.md)
 
@@ -93,3 +94,6 @@ https://github.com/Netflixxp/N1HK1dabao
     KERNEL_VERSION_NAME: 5.13.2_5.4.132
 
 ```
+六、采用 luci-app-amlogic 在线升级
+   
+   luci-app-amlogic 源码来自 https://github.com/ophub/luci-app-amlogic (smith1998)， 可以集成到openwrt固件中，并与本打包源码紧密结合，可实现在线升级内核和在线升级完整固件。
