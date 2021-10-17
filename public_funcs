@@ -478,9 +478,24 @@ function extract_amlogic_boot_files() {
          echo "失败！"
          detach_loopdev
          exit 1
-    else 
-         echo "完成"
     fi
+    ( 
+        cd ${TGT_BOOT}
+	# 5.4内核不再需要u-boot.sd 以及 u-boot.usb
+	rm -f u-boot.usb u-boot.sd
+        # 5.10以后的内核，需要增加u-boot重载
+        # 5.4内核可加可不加
+        if [ $K510 -eq 1 ];then
+	    check_file ${UBOOT_WITHOUT_FIP}
+	    cp -f ${UBOOT_WITHOUT_FIP} u-boot.ext
+            if [ $? -ne 0 ];then
+                echo "失败！"
+                detach_loopdev
+                exit 1
+	    fi
+        fi
+    ) 
+    echo "完成"
 }
 
 function extract_rockchip_boot_files() {

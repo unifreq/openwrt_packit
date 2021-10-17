@@ -153,20 +153,10 @@ EOF
 
 # 替换dtb文件
 [ "$REPLACE_DTB" == "y" ] && [ -f "$DTB_FILE" ] && cp "$DTB_FILE" ./dtb/amlogic/
-
 echo "uEnv.txt --->"
 cat uEnv.txt
 
-# 5.10以后的内核，需要增加u-boot重载
-if [ $K510 -eq 1 ];then
-	cp -fv ${UBOOT_WITHOUT_FIP} u-boot.ext
-	rm -f u-boot.sd u-boot.usb
-else
-	rm -f u-boot*.bin
-fi
-
 echo "修改根文件系统相关配置 ... "
-
 # modify root
 cd $TGT_ROOT
 ( [ -f "$SS_LIB" ] &&  cd lib && tar xJf "$SS_LIB" )
