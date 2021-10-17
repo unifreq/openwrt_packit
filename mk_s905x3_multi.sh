@@ -122,10 +122,8 @@ create_partition "$TGT_DEV" "$SKIP_MB" "$BOOT_MB" "fat32" "$ROOTFS_MB" "btrfs"
 make_filesystem "$TGT_DEV" "B" "fat32" "BOOT" "R" "btrfs" "ROOTFS"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "vfat"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
-
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
-
 extract_rootfs_files
 extract_amlogic_boot_files
 
@@ -384,9 +382,6 @@ EOF
 echo "/etc/config/fstab --->"
 cat ./etc/config/fstab
 
-[ -f ./etc/docker-init ] && rm -f ./etc/docker-init
-[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
-[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset ./sbin/jffs2mark
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 mkdir -p ./etc/modprobe.d
@@ -469,51 +464,11 @@ EOF
 fi
 
 cd $TGT_ROOT/sbin
-if [ ! -x kmod ];then
-	cp $KMOD .
-fi
-ln -sf kmod depmod
-ln -sf kmod insmod
-ln -sf kmod lsmod
-ln -sf kmod modinfo
-ln -sf kmod modprobe
-ln -sf kmod rmmod
 if [ -f mount.ntfs3 ];then
     ln -sf mount.ntfs3 mount.ntfs
 elif [ -f ../usr/bin/ntfs-3g ];then
     ln -sf /usr/bin/ntfs-3g mount.ntfs
 fi
-
-cd $TGT_ROOT/lib/firmware
-mv *.hcd brcm/ 2>/dev/null
-if [ -f "$REGULATORY_DB" ];then
-	tar xzf "$REGULATORY_DB"
-fi
-
-cd brcm
-source ${GET_RANDOM_MAC}
-
-# gtking/gtking pro wifi5版本 采用 bcm4356 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=00:90:4c:1a:10:01/macaddr=${MACADDR}/" "brcmfmac4356-sdio.txt" > "brcmfmac4356-sdio.azw,gtking.txt"
-
-# Phicomm N1 采用 bcm43455 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.phicomm,n1.txt"
-
-# HK1 Box 和 H96 Max X3 采用 bcm54339 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.amlogic,sm1.txt"
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
-
-# 旧版ugoos x3 采用 bcm43455 wifi/bluetooth 模块
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
-
-# 新版ugoos x3 采用 brm43456
-get_random_mac
-sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43456-sdio.txt" > "brcmfmac43456-sdio.amlogic,sm1.txt"
 
 rm -f ${TGT_ROOT}/etc/bench.log
 cat >> ${TGT_ROOT}/etc/crontabs/root << EOF

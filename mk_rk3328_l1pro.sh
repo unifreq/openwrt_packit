@@ -117,10 +117,8 @@ sync
 make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
-
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
-
 extract_rootfs_files
 extract_rockchip_boot_files
 
@@ -361,9 +359,6 @@ config mount
 
 EOF
 
-[ -f ./etc/docker-init ] && rm -f ./etc/docker-init
-[ -f ./sbin/firstboot ] && rm -f ./sbin/firstboot
-[ -f ./sbin/jffs2reset ] && rm -f ./sbin/jffs2reset ./sbin/jffs2mark
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
 rm -f ./etc/bench.log
@@ -392,25 +387,10 @@ EOF
 fi
 
 cd $TGT_ROOT/sbin
-if [ ! -x kmod ];then
-	cp $KMOD .
-fi
-ln -sf kmod depmod
-ln -sf kmod insmod
-ln -sf kmod lsmod
-ln -sf kmod modinfo
-ln -sf kmod modprobe
-ln -sf kmod rmmod
 if [ -f mount.ntfs3 ];then
     ln -sf mount.ntfs3 mount.ntfs
 elif [ -f ../usr/bin/ntfs-3g ];then
     ln -sf /usr/bin/ntfs-3g mount.ntfs
-fi
-
-cd $TGT_ROOT/lib/firmware
-mv *.hcd brcm/ 2>/dev/null
-if [ -f "$REGULATORY_DB" ];then
-	tar xvzf "$REGULATORY_DB"
 fi
 
 [ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}

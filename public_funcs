@@ -1,5 +1,24 @@
 #!/bin/bash
 
+get_random_mac ()
+{
+    # MAC地址第一段可在 02 06 0A 0E 中任选一个
+    if [ "$SHELL" == "/bin/bash" ];then
+        #MACADDR=$(printf "%02X:%02X:%02X:%02X:%02X:%02X\n" $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255])
+        MACADDR=$(printf "06:%02X:%02X:%02X:%02X:%02X\n" $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255] $[RANDOM%255])
+    else
+        uuid=$(cat /proc/sys/kernel/random/uuid)
+        mac1="0E"
+        #mac1=${uuid:24:2}
+        mac2=${uuid:26:2}
+        mac3=${uuid:28:2}
+        mac4=${uuid:30:2}
+        mac5=${uuid:32:2}
+        mac6=${uuid:34:2}
+        MACADDR=$(echo "$mac1:$mac2:$mac3:$mac4:$mac5:$mac6" | tr '[a-z]' '[A-Z]')
+    fi
+}
+
 function check_file() {
     if [ ! -f "$1" ];then
         echo "文件: [$1] 不存在!"
@@ -404,11 +423,10 @@ function mount_fs() {
 }
 
 function extract_rootfs_files() {
-   echo -n "正在释放 Openwrt rootfs 压缩包 ... "
+   echo -n "释放 Openwrt rootfs 压缩包 ... "
    (
        cd ${TGT_ROOT} && \
           tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf "$OPWRT_ROOTFS_GZ" && \
-          rm -rf "./lib/firmware/*" "./lib/modules/*" && \
           mkdir -p .reserved boot rom overlay proc sys run && \
           sync
    )
@@ -419,8 +437,30 @@ function extract_rootfs_files() {
    else 
         echo "完成"
    fi
+   echo -n "裁减 Rootfs 中用不到的文件 ... "
+   (
+       cd ${TGT_ROOT}
+       rm -rf ./lib/firmware/* ./lib/modules/*
+       rm -f ./etc/docker-init ./sbin/firstboot ./sbin/jffs2reset ./sbin/jffs2mark
+   )
+   echo "完成"
 
-   echo -n "正在释放 Armbian firmware 压缩包 ... "
+   echo -n "重新链接 kmod 程序 ... "
+   (  cd $TGT_ROOT/sbin 
+      [ ! -x "kmod" ] && [ -f "${KMOD}" ] && cp "$KMOD" kmod
+      if [ -x "kmod" ];then
+          rm -f depmod insmod lsmod modinfo modprobe rmmod
+          ln -sf kmod depmod
+          ln -sf kmod insmod
+          ln -sf kmod lsmod
+          ln -sf kmod modinfo
+          ln -sf kmod modprobe
+          ln -sf kmod rmmod
+      fi
+   )
+   echo "完成"
+
+   echo -n "释放 Armbian firmware 压缩包 ... "
    ( cd ${TGT_ROOT} && tar xJf "$FIRMWARE_TXZ" && sync )
    if [ $? -ne 0 ];then
         echo "失败！"
@@ -431,18 +471,44 @@ function extract_rootfs_files() {
    fi
 
    if [ -d "${FMW_HOME}" ];then
-       echo -n "正在复制 Added firmware 文件 ... "
+       echo -n "复制 Added firmware 文件 ... "
        ( cd ${TGT_ROOT} && cp -a ${FMW_HOME}/* lib/firmware/ && sync )
-       if [ $? -ne 0 ];then
-            echo "失败！"
-            detach_loopdev
-            exit 1
-       else 
-            echo "完成"
-       fi
+       echo "完成"
    fi
 
-   echo -n "正在释放 Kernel modules 压缩包 ... "
+   echo -n "优化 firmware ... "
+   (
+       cd $TGT_ROOT/lib/firmware
+       mv *.hcd brcm/ 2>/dev/null
+       [ -f "$REGULATORY_DB" ] && tar xzf "$REGULATORY_DB"
+       cd brcm
+
+       # gtking/gtking pro 采用 bcm4356 wifi/bluetooth 模块
+       get_random_mac
+       # wifi5 module AP6356S
+       sed -e "s/macaddr=00:90:4c:1a:10:01/macaddr=${MACADDR}/" "brcmfmac4356-sdio.txt" > "brcmfmac4356-sdio.azw,gtking.txt"
+       get_random_mac
+       # wifi6 module AP6275S
+       sed -e "s/macaddr=00:90:4c:12:d0:01/macaddr=${MACADDR}/" "brcmfmac4375-sdio.txt" > "brcmfmac4375-sdio.azw,gtking.txt"
+       # Phicomm N1 采用 bcm43455 wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.phicomm,n1.txt"
+       # MXQ Pro+ 采用 AP6330(bcm4330) wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4330-sdio.txt" > "brcmfmac4330-sdio.crocon,mxq-pro-plus.txt"
+       # HK1 Box 和 H96 Max X3 采用 bcm54339 wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.amlogic,sm1.txt"
+       # 旧版ugoos x3 采用 bcm43455 wifi/bluetooth 模块
+       get_random_mac
+       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.amlogic,sm1.txt"
+       # 新版ugoos x3 采用 brm43456
+       get_random_mac
+       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43456-sdio.txt" > "brcmfmac43456-sdio.amlogic,sm1.txt"
+   )
+   echo "完成"
+
+   echo -n "释放 Kernel modules 压缩包 ... "
    ( 
       cd ${TGT_ROOT} && \
           mkdir -p lib/modules && \
@@ -463,7 +529,7 @@ function extract_rootfs_files() {
 }
 
 function extract_amlogic_boot_files() {
-    echo -n "正在释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
+    echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
     ( 
         cd ${TGT_BOOT} && \
             cp "${BOOTFILES_HOME}"/* . && \
@@ -502,7 +568,7 @@ function extract_amlogic_boot_files() {
 }
 
 function extract_rockchip_boot_files() {
-    echo -n "正在释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
+    echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
     ( 
           cd ${TGT_BOOT} && \
               cp "${BOOTFILES_HOME}"/* . && \
@@ -526,7 +592,7 @@ function extract_rockchip_boot_files() {
 }
 
 function extract_allwinner_boot_files() {
-    echo -n "正在释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
+    echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
     ( 
         cd ${TGT_BOOT} && \
             cp "${BOOTFILES_HOME}"/* . && \
