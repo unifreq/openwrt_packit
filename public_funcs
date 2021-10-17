@@ -682,7 +682,7 @@ function adjust_ntfs_config() {
         elif [ -f ../usr/bin/ntfs-3g ];then
             ln -sf /usr/bin/ntfs-3g mount.ntfs
             echo "发现 ntfs-3g, 调整完成"
-        elif
+        else
             echo "固件中未包含 ntfs 相关程序"
         fi
     )
