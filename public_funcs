@@ -251,9 +251,9 @@ function create_partition() {
                           cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
                           ;;
                        *) # 自动模式下，如果检测到空白磁盘，将会用msdos格式新建分区表
-			  partition_label="msdos"
-			  max_pt_cnt=4
-			  cur_pt_cnt=0
+                          partition_label="msdos"
+                          max_pt_cnt=4
+                          cur_pt_cnt=0
                           ;;
                esac
                ;;
@@ -669,4 +669,21 @@ function extract_allwinner_boot_files() {
     else 
         echo "完成"
     fi
+}
+
+# 调整ntfs相关配置
+function adjust_ntfs_config() {
+    echo -n "调整 ntfs 配置 ... "
+    ( 
+        cd $TGT_ROOT/sbin
+        if [ -f mount.ntfs3 ];then
+            ln -sf mount.ntfs3 mount.ntfs
+            echo "发现 mount.ntfs3, 调整完成"
+        elif [ -f ../usr/bin/ntfs-3g ];then
+            ln -sf /usr/bin/ntfs-3g mount.ntfs
+            echo "发现 ntfs-3g, 调整完成"
+        elif
+            echo "固件中未包含 ntfs 相关程序"
+        fi
+    )
 }
