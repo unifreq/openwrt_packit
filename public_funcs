@@ -750,6 +750,32 @@ function adjust_ntfs_config() {
     )
 }
 
+# 调整 turboacc 相关配置
+function adjust_turboacc_config() {
+    echo -n "调整 ntfs 配置 ... "
+    ( 
+        cd $TGT_ROOT
+        if [ -f ./etc/config/turboacc ];then
+            sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+            sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+            sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
+        else
+            cat > ./etc/config/turboacc <<EOF
+
+config turboacc 'config'
+        option sw_flow '${SW_FLOWOFFLOAD}'
+        option hw_flow '${HW_FLOWOFFLOAD}'
+	option sfe_flow '${SFE_FLOW}'
+        option bbr_cca '0'
+        option fullcone_nat '1'
+        option dns_caching '0'
+
+EOF
+        fi
+    )
+    echo "完成"
+}
+
 # CPU状态补丁
 function patch_admin_status_index_html() {
     echo "打补丁：[状态页面相关信息补丁] ... "

@@ -332,24 +332,7 @@ EOF
 
 mkdir -p ./etc/modprobe.d
 
-if [ -f ./etc/config/turboacc ];then
-    sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
-    sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
-    sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
-else
-    cat > ./etc/config/turboacc <<EOF
-
-config turboacc 'config'
-        option sw_flow '${SW_FLOWOFFLOAD}'
-        option hw_flow '${HW_FLOWOFFLOAD}'
-	option sfe_flow '${SFE_FLOW}'
-        option bbr_cca '0'
-        option fullcone_nat '1'
-        option dns_caching '0'
-
-EOF
-fi
-
+adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
 
