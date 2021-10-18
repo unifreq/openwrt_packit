@@ -182,55 +182,12 @@ sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 
+adjust_samba_config
+adjust_nfs_config "mmcblk2p4"
 adjust_openssh_config
 
 # for collectd
 #[ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
-
-# for cifsd
-[ -f ./etc/init.d/cifsd ] && rm -f ./etc/rc.d/S98samba4
-# for smbd
-[ -f ./etc/init.d/smbd ] && rm -f ./etc/rc.d/S98samba4
-# for ksmbd
-[ -f ./etc/init.d/ksmbd ] && rm -f ./etc/rc.d/S98samba4 && sed -e 's/modprobe ksmbd/sleep 1 \&\& modprobe ksmbd/' -i ./etc/init.d/ksmbd
-# for samba4 enable smbv1 protocol
-[ -f ./etc/config/samba4 ] && \
-	sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua && \
-	[ -f ${SMB4_PATCH} ] && \
-	patch -p1 < ${SMB4_PATCH}
-
-# for nfs server
-if [ -f ./etc/init.d/nfsd ];then
-    cat > ./etc/exports <<EOF
-# /etc/exports: the access control list for filesystems which may be exported
-#               to NFS clients.  See exports(5).
-#
-# Example for NFSv2 and NFSv3:
-# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
-#
-# Example for NFSv4:
-# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
-# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
-#
-
-/mnt *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
-/mnt/mmcblk2p4 *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
-EOF
-    cat > ./etc/config/nfs <<EOF
-
-config share
-        option clients '*'
-        option enabled '1'
-        option path '/mnt'
-        option options 'ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash'
-
-config share
-        option enabled '1'
-        option path '/mnt/mmcblk2p4'
-        option clients '*'
-        option options 'rw,fsid=1,sync,no_subtree_check,no_root_squash'
-EOF
-fi
 
 # for openclash
 if [ -d ./etc/openclash/core ];then

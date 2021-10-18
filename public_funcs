@@ -925,3 +925,81 @@ function adjust_openssh_config() {
         fi
     )
 }
+
+# 调整 samba server 配置
+function adjust_samba_config() {
+    echo "调整 samba server 配置 ..."
+    (
+         # for cifsd
+         if [ -f ./etc/init.d/cifsd ];then
+             echo -n "发现 cifsd, 禁用 samba4. "        
+             rm -f ./etc/rc.d/S98samba4
+         fi
+          # for smbd
+         if [ -f ./etc/init.d/smbd ];then
+             echo -n "发现 smbd, 禁用 samba4. "        
+             rm -f ./etc/rc.d/S98samba4
+         fi                
+         # for ksmbd
+         if [ -f ./etc/init.d/ksmbd ];then
+             echo -n "发现 ksmbd, 禁用 samba4. "        
+             rm -f ./etc/rc.d/S98samba4
+             sed -e 's/modprobe ksmbd/sleep 1 \&\& modprobe ksmbd/' -i ./etc/init.d/ksmbd
+         fi
+         # for samba4 enable smbv1 protocol
+         if [ -f ./etc/config/samba4 ];then
+             echo "发现 samba4, 将启用 smbv1 协议. "        
+             sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua
+             [ -f ${SMB4_PATCH} ] && patch -p1 < ${SMB4_PATCH}
+         fi
+    )
+    echo "完成"
+    echo
+}
+
+# 调整 nfs server 配置
+function adjust_nfs_config() {
+    local mount_point=$1
+    [ -z "$mount_point" ] && return
+    echo "调整 nfs server 配置 ... "
+    (
+        # for nfs server
+        if [ -f ./etc/init.d/nfsd ];then
+            echo -n "已发现 nfsd 服务, 将调整其初始配置文件 ... "
+            cat > ./etc/exports <<EOF
+# /etc/exports: the access control list for filesystems which may be exported
+#               to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+
+/mnt *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
+/mnt/${mount_point} *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
+EOF
+             cat > ./etc/config/nfs <<EOF
+config share
+        option clients '*'
+        option enabled '1'
+        option path '/mnt'
+        option options 'ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash'
+
+config share
+        option enabled '1'
+        option path '/mnt/${mount_point}'
+        option clients '*'
+        option options 'rw,fsid=1,sync,no_subtree_check,no_root_squash'
+EOF
+        fi
+
+    )
+    echo "完成, 初始 nfs 配置文件为："
+    echo "==============================================================================="
+    cat $TGT_ROOT/etc/config/nfs
+    echo "==============================================================================="
+    echo
+}
