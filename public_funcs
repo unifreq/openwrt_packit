@@ -1069,3 +1069,21 @@ function adjust_qbittorrent_config() {
         fi
     )
 }
+
+# openssl 配置调整
+function adjust_openssl_config() {
+    echo "调整 openssl 配置 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f $SSL_CNF_PATCH ];then
+             if patch -p1 < $SSL_CNF_PATCH;then
+                 echo "完成"
+             else
+                 echo "失败！请检查 $SSL_CNF_PATCH "
+	     fi 
+	else
+            echo "未发现 openssl 配置文件，放弃调整"
+        fi
+    )
+    echo
+}

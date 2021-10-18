@@ -168,9 +168,6 @@ fi
 if [ -f $SYSFIXTIME_PATCH ];then
     patch -p1 < $SYSFIXTIME_PATCH
 fi
-if [ -f $SSL_CNF_PATCH ];then
-    patch -p1 < $SSL_CNF_PATCH
-fi
 if [ -f etc/init.d/dockerd ] && [ -f $DOCKERD_PATCH ];then
     patch -p1 < $DOCKERD_PATCH
 fi
@@ -178,6 +175,7 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
+adjust_openssl_config
 adjust_qbittorrent_config
 adjust_getty_config
 adjust_samba_config

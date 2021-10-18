@@ -181,9 +181,6 @@ fi
 if [ -f $SYSFIXTIME_PATCH ];then
     patch -p1 < $SYSFIXTIME_PATCH
 fi
-if [ -f $SSL_CNF_PATCH ];then
-    patch -p1 < $SSL_CNF_PATCH
-fi
 if [ -f etc/init.d/dockerd ] && [ -f $DOCKERD_PATCH ];then
     patch -p1 < $DOCKERD_PATCH
 fi
@@ -207,6 +204,7 @@ fi
 echo "r8188eu" > ./etc/modules.d/rtl8188eu
 echo "dw_wdt" > ./etc/modules.d/watchdog
 
+adjust_openssl_config
 adjust_qbittorrent_config
 adjust_getty_config
 adjust_samba_config
