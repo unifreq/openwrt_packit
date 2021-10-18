@@ -181,12 +181,6 @@ chmod 755 ./etc/init.d/*
 rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 create_fstab_config
-
-rm -f ./etc/bench.log
-cat >> ./etc/crontabs/root << EOF
-17 3 * * * /etc/coremark.sh
-EOF
-
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html

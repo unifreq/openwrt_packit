@@ -854,7 +854,11 @@ function copy_supplement_files() {
     (
         cd $TGT_ROOT
         [ -n "$DAEMON_JSON" ] && [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp -v $DAEMON_JSON "./etc/docker/daemon.json"
-        [ -n "$COREMARK" ] && [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -fv $COREMARK "./etc/coremark.sh" && chmod 755 "etc/coremark.sh"
+        [ -n "$COREMARK" ] && [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && \
+              cp -fv $COREMARK "./etc/coremark.sh" && chmod 755 "etc/coremark.sh" && \
+              rm -f ./etc/bench.log && \
+	      echo "17 3 * * * /etc/coremark.sh" >> ./etc/crontabs/root
+
         #[ -n "$TTYD" ] && [ -f $TTYD ] && cp -v $TTYD etc/init.d/
 
         [ -n "$FLIPPY" ] && [ -f $FLIPPY ] && cp -v $FLIPPY ./usr/sbin/

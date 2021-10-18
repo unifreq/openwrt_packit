@@ -270,12 +270,6 @@ echo "r8188eu" > ./etc/modules.d/rtl8188eu
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
-
-rm -f ${TGT_ROOT}/etc/bench.log
-cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
-37 5 * * * /etc/coremark.sh
-EOF
-
 write_release_info
 write_banner
 # 创建 /etc 初始快照

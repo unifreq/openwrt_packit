@@ -239,14 +239,9 @@ rm -f ./etc/rc.d/S*dockerd
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
-
-rm -f ${TGT_ROOT}/etc/bench.log
-cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
-37 5 * * * /etc/coremark.sh
-EOF
-
 write_release_info
 write_banner 
+
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
