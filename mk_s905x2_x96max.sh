@@ -164,9 +164,6 @@ fi
 if [ -f etc/config/cpufreq ];then
     sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
 fi
-if [ -f $SYSFIXTIME_PATCH ];then
-    patch -p1 < $SYSFIXTIME_PATCH
-fi
 if [ -f etc/init.d/dockerd ] && [ -f $DOCKERD_PATCH ];then
     patch -p1 < $DOCKERD_PATCH
 fi

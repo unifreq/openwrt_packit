@@ -864,12 +864,21 @@ function copy_supplement_files() {
         [ -n "$OPENWRT_BACKUP" ] && [ -f ${OPENWRT_BACKUP} ] && cp -v ${OPENWRT_BACKUP} ./usr/sbin/ && (cd usr/sbin && ln -sfv openwrt-backup flippy)
         [ -n "$OPENWRT_UPDATE" ] && [ -f ${OPENWRT_UPDATE} ] && cp -v ${OPENWRT_UPDATE} ./usr/sbin/
 
+	# 我家云, 风扇调速脚本
+        if [ "$PLATFORM" == "rockchip" ] && [ "$SOC" == "rk3328" ] && [ "$BOARD" == "l1pro" ] && [ -f "$PWM_FAN" ];then
+            cp -v $PWM_FAN ./usr/bin
+            echo "pwm_fan" > ./etc/modules.d/pwm_fan
+            sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
+        fi
+
         [ -n "$BAL_ETH_IRQ" ] && [ -f $BAL_ETH_IRQ ] && cp -v $BAL_ETH_IRQ ./usr/sbin && chmod 755 ./usr/sbin/balethirq.pl && \
               sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
+
         [ -n "$BAL_CONFIG" ] && [ -f $BAL_CONFIG ] && cp -v $BAL_CONFIG etc/config/
         [ -n "$CPUFREQ_INIT" ] && [ -f $CPUFREQ_INIT ] && cp -v $CPUFREQ_INIT etc/init.d/ && chmod 755 etc/init.d/cpufreq
         [ -n "$WIRELESS_CONFIG" ] && [ -f $WIRELESS_CONFIG ] && cp -v $WIRELESS_CONFIG etc/config/
         [ -n "$FIX_CPU_FREQ" ] && [ -f $FIX_CPU_FREQ ] && cp -v $FIX_CPU_FREQ ./usr/sbin && chmod 755 ./usr/sbin/fixcpufreq.pl
+	[ -n "$SYSFIXTIME_PATCH" ] && [ -f $SYSFIXTIME_PATCH ] && patch -p1 < $SYSFIXTIME_PATCH
         [ -n "$FORCE_REBOOT" ] && [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/ 
 
         [ -n "$GET_RANDOM_MAC" ] && [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} ./usr/bin/
