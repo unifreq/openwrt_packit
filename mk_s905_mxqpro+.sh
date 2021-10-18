@@ -147,6 +147,7 @@ echo "uEnv.txt --->"
 cat uEnv.txt
 
 echo "修改根文件系统相关配置 ... "
+copy_supplement_files
 # modify root
 cd $TGT_ROOT
 ( [ -f "$SS_LIB" ] &&  cd lib && tar xJf "$SS_LIB" )
@@ -167,32 +168,6 @@ if [ -d "${FIP_HOME}" ];then
        cp -v "${FIP_HOME}"/*.sd.bin lib/u-boot/ 
 fi
 
-#[ -f $INST_SCRIPT ] && cp $INST_SCRIPT root/
-# [ -f $UPDATE_SCRIPT ] && cp $UPDATE_SCRIPT root/
-[ -f $MAC_SCRIPT1 ] && cp $MAC_SCRIPT1 usr/bin/
-[ -f $MAC_SCRIPT2 ] && cp $MAC_SCRIPT2 usr/bin/
-[ -f $MAC_SCRIPT3 ] && cp $MAC_SCRIPT3 usr/bin/
-[ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp $DAEMON_JSON "etc/docker/daemon.json"
-[ -f $FORCE_REBOOT ] && cp $FORCE_REBOOT usr/sbin/
-[ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
-#[ -f $TTYD ] && cp $TTYD etc/init.d/
-[ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
-[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && (cd usr/sbin && ln -sf openwrt-backup flippy)
-[ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
-
-if [ -f $BAL_ETH_IRQ ];then
-    cp -v $BAL_ETH_IRQ usr/sbin
-    chmod 755 usr/sbin/balethirq.pl
-    sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
-    [ -f ${BAL_CONFIG} ] && cp -v ${BAL_CONFIG} etc/config/
-fi
-[ -f $CPUFREQ_INIT ] && cp -v $CPUFREQ_INIT etc/init.d/ && chmod 755 etc/init.d/cpufreq
-[ -f $WIRELESS_CONFIG ] && cp -v $WIRELESS_CONFIG etc/config/
-
-if [ -f $FIX_CPU_FREQ ];then
-    cp -v $FIX_CPU_FREQ usr/sbin
-    chmod 755 usr/sbin/fixcpufreq.pl
-fi
 if [ -f etc/config/cpufreq ];then
     sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
 fi
@@ -209,16 +184,12 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-[ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
-[ -f ${GET_RANDOM_MAC} ] && cp ${GET_RANDOM_MAC} usr/bin/
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
-[ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && \
-	sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 
@@ -289,9 +260,7 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 create_fstab_config
 
 [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
-[ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
-mkdir -p ./etc/modprobe.d
 cat > ./etc/modprobe.d/99-local.conf <<EOF
 blacklist snd_soc_meson_aiu_i2s
 alias brnf br_netfilter
@@ -303,7 +272,6 @@ echo pwm_meson > ./etc/modules.d/pwm_meson
 echo panfrost > ./etc/modules.d/panfrost
 echo meson_gxbb_wdt > ./etc/modules.d/watchdog
 
-mkdir ./etc/modules.d.remove
 mod_blacklist=$(cat ${KMOD_BLACKLIST})
 for mod in $mod_blacklist ;do
 	mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null

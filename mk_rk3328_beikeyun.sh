@@ -142,6 +142,8 @@ EOF
 
 echo "modify root ... "
 # modify root
+copy_supplement_files
+
 cd $TGT_ROOT
 ( [ -f "$SS_LIB" ] &&  cd lib && tar xJf "$SS_LIB" )
 if [ -f "$SS_BIN" ];then
@@ -182,25 +184,6 @@ exit 0
 EOF
 fi
 
-[ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp $DAEMON_JSON "etc/docker/daemon.json"
-[ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
-#[ -f $TTYD ] && cp $TTYD etc/init.d/
-[ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
-[ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
-[ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && (cd usr/sbin && ln -sf openwrt-backup flippy)
-[ -f ${OPENWRT_UPDATE} ] && cp ${OPENWRT_UPDATE} usr/sbin/
-
-if [ -f $BAL_ETH_IRQ ];then
-    cp -v $BAL_ETH_IRQ usr/sbin
-    chmod 755 usr/sbin/balethirq.pl
-    sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
-    [ -f $BAL_CONFIG ] && cp -v $BAL_CONFIG etc/config/
-fi
-
-if [ -f $FIX_CPU_FREQ ];then
-    cp -v $FIX_CPU_FREQ usr/sbin
-    chmod 755 usr/sbin/fixcpufreq.pl
-fi
 if [ -f etc/config/cpufreq ];then
     sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
 fi
@@ -217,11 +200,6 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-[ -f ${SYSCTL_CUSTOM_CONF} ] && cp -v ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
-[ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/
-[ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} usr/bin/
-
-mkdir -p ./etc/modules.d.remove
 mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
 mod_blacklist=$(cat ${KMOD_BLACKLIST})
 for mod in $mod_blacklist ;do
@@ -243,8 +221,6 @@ sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
-[ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && \
-	sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
 
@@ -313,14 +289,10 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 create_fstab_config
 
-[ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
-
 rm -f ./etc/bench.log
 cat >> ./etc/crontabs/root << EOF
 17 3 * * * /etc/coremark.sh
 EOF
-
-mkdir -p ./etc/modprobe.d
 
 adjust_turboacc_config
 adjust_ntfs_config

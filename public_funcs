@@ -784,8 +784,6 @@ function patch_admin_status_index_html() {
         if [ ! -f usr/bin/perl ];then
              echo "未发现 perl 实用程序, 放弃补丁!"
         else 
-            [ -f $CPUSTAT_SCRIPT ] && cp -v $CPUSTAT_SCRIPT ./usr/bin/cpustat && chmod 755 ./usr/bin/cpustat  
-            [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
             if [ -f "$CPUSTAT_PATCH" ];then 
                  patch -p1 < ${CPUSTAT_PATCH} 
                  if [ $? -ne 0 ];then
@@ -822,4 +820,46 @@ function write_banner() {
     )
     cat $TGT_ROOT/etc/banner
     echo 
+}
+
+# 复制增补文件
+function copy_supplement_files() {
+    echo "复制增补的文件 ... "
+    echo "==============================================================================="
+    (
+        cd $TGT_ROOT
+        [ -n "$DAEMON_JSON" ] && [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp -v $DAEMON_JSON "./etc/docker/daemon.json"
+        [ -n "$COREMARK" ] && [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -fv $COREMARK "./etc/coremark.sh" && chmod 755 "etc/coremark.sh"
+        #[ -n "$TTYD" ] && [ -f $TTYD ] && cp -v $TTYD etc/init.d/
+
+        [ -n "$FLIPPY" ] && [ -f $FLIPPY ] && cp -v $FLIPPY ./usr/sbin/
+	[ -n "$OPENWRT_INSTALL" ] && [ -f ${OPENWRT_INSTALL} ] && cp -v ${OPENWRT_INSTALL} ./usr/sbin/ && \
+              (cd root && ln -s ../usr/sbin/openwrt-install-amlogic ./install-to-emmc.sh)
+        [ -n "$OPENWRT_KERNEL" ] && [ -f ${OPENWRT_KERNEL} ] && cp -v ${OPENWRT_KERNEL} ./usr/sbin/
+        [ -n "$OPENWRT_BACKUP" ] && [ -f ${OPENWRT_BACKUP} ] && cp -v ${OPENWRT_BACKUP} ./usr/sbin/ && (cd usr/sbin && ln -sfv openwrt-backup flippy)
+        [ -n "$OPENWRT_UPDATE" ] && [ -f ${OPENWRT_UPDATE} ] && cp -v ${OPENWRT_UPDATE} ./usr/sbin/
+
+        [ -n "$BAL_ETH_IRQ" ] && [ -f $BAL_ETH_IRQ ] && cp -v $BAL_ETH_IRQ ./usr/sbin && chmod 755 ./usr/sbin/balethirq.pl && \
+              sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
+        [ -n "$BAL_CONFIG" ] && [ -f $BAL_CONFIG ] && cp -v $BAL_CONFIG etc/config/
+        [ -n "$CPUFREQ_INIT" ] && [ -f $CPUFREQ_INIT ] && cp -v $CPUFREQ_INIT etc/init.d/ && chmod 755 etc/init.d/cpufreq
+        [ -n "$WIRELESS_CONFIG" ] && [ -f $WIRELESS_CONFIG ] && cp -v $WIRELESS_CONFIG etc/config/
+	[ -n "$FIX_CPU_FREQ" ] && [ -f $FIX_CPU_FREQ ] && cp -v $FIX_CPU_FREQ ./usr/sbin && chmod 755 ./usr/sbin/fixcpufreq.pl
+        [ -n "$FORCE_REBOOT" ] && [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/ 
+
+        [ -n "$GET_RANDOM_MAC" ] && [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} ./usr/bin/
+        [ -n "$MAC_SCRIPT1" ] && [ -f $MAC_SCRIPT1 ] && cp -v $MAC_SCRIPT1 ./usr/bin/
+        [ -n "$MAC_SCRIPT2" ] && [ -f $MAC_SCRIPT2 ] && cp -v $MAC_SCRIPT2 ./usr/bin/
+        [ -n "$MAC_SCRIPT3" ] && [ -f $MAC_SCRIPT3 ] && cp -v $MAC_SCRIPT3 ./usr/bin/
+
+        [ -n "$CPUSTAT_SCRIPT" ] && [ -f $CPUSTAT_SCRIPT ] && cp -v $CPUSTAT_SCRIPT ./usr/bin/cpustat && chmod 755 ./usr/bin/cpustat  
+        [ -n "$GETCPU_SCRIPT" ] && [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
+	[ -n "$SYSCTL_CUSTOM_CONF" ] && [ -f ${SYSCTL_CUSTOM_CONF} ] && cp -v ${SYSCTL_CUSTOM_CONF} ./etc/sysctl.d/
+        [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
+             sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
+	[ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
+    )
+    echo "==============================================================================="
+    echo "完成"
+    echo
 }
