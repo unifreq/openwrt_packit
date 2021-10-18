@@ -312,22 +312,6 @@ echo "r8188eu" > ./etc/modules.d/rtl8188eu
 
 rm -f ./etc/rc.d/S*dockerd
 
-# 写入版本信息
-cat > ./etc/flippy-openwrt-release <<EOF
-SOC=${SOC}
-BOARD=${BOARD}
-KERNEL_VERSION=${KERNEL_VERSION}
-K510=${K510}
-SFE_FLAG=${SFE_FLAG}
-FLOWOFFLOAD_FLAG=${FLOWOFFLOAD_FLAG}
-EOF
-
-if [ $K510 -eq 1 ];then
-    cat >> ./etc/flippy-openwrt-release <<EOF
-UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
-EOF
-fi
-
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
@@ -337,6 +321,7 @@ cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
 37 5 * * * /etc/coremark.sh
 EOF
 
+write_release_info
 write_banner 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"

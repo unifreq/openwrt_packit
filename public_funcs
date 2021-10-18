@@ -803,6 +803,31 @@ function patch_admin_status_index_html() {
     )
 }
 
+# 写入 release 信息
+function write_release_info() {
+    echo "写入 release 信息 ... "
+    (
+        cd $TGT_ROOT
+
+	# 写入版本信息
+	cat > ./etc/flippy-openwrt-release <<EOF
+PLATFORM=${PLATFORM}
+SOC=${SOC}
+BOARD=${BOARD}
+KERNEL_VERSION=${KERNEL_VERSION}
+K510=${K510}
+EOF
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$UBOOT_WITHOUT_FIP" ];then
+            cat >> ./etc/flippy-openwrt-release <<EOF
+UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
+EOF
+        fi
+    )
+    cat $TGT_ROOT/etc/flippy-openwrt-release
+    echo 
+}
+
 # 写入 banner 信息
 function write_banner() {
     echo "写入 banner 信息 ... "

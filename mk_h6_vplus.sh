@@ -277,13 +277,6 @@ rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 create_fstab_config
 
-# 写入版本信息
-cat > ./etc/flippy-openwrt-release <<EOF
-SOC=${SOC}
-BOARD=${BOARD}
-KERNEL_VERSION=${KERNEL_VERSION}
-EOF
-
 rm -f ./etc/bench.log
 cat >> ./etc/crontabs/root << EOF
 17 3 * * * /etc/coremark.sh
@@ -304,6 +297,7 @@ if [ -f ${UBOOT_BIN} ];then
     echo
 fi
 
+write_release_info
 write_banner
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
