@@ -857,7 +857,7 @@ function copy_supplement_files() {
         [ -n "$COREMARK" ] && [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && \
               cp -fv $COREMARK "./etc/coremark.sh" && chmod 755 "etc/coremark.sh" && \
               rm -f ./etc/bench.log && \
-	      echo "17 3 * * * /etc/coremark.sh" >> ./etc/crontabs/root
+              echo "17 3 * * * /etc/coremark.sh" >> ./etc/crontabs/root
 
         #[ -n "$TTYD" ] && [ -f $TTYD ] && cp -v $TTYD etc/init.d/
 
@@ -1120,7 +1120,21 @@ function adjust_docker_config() {
         else
             echo "未发现 dockerd 服务，放弃调整"
         fi
-	#sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+        #sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
     )
     echo
+}
+
+# 用 xray-plugin 代替 v2ray-plugin
+function use_xrayplug_replace_v2rayplug() {
+    echo -n "用 xray-plugin 代替 v2ray-plugin ... "
+    (
+        cd $TGT_ROOT
+        if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
+            cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin
+            echo "完成"
+        else
+            echo "不符合替换条件，跳过"
+        fi
+    )
 }
