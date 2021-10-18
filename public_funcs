@@ -1003,3 +1003,20 @@ EOF
     echo "==============================================================================="
     echo
 }
+
+# 调整 openclash 配置
+function adjust_openclash_config() {
+    echo -n "调整 openclash 配置 ... "
+    (
+        cd $TGT_ROOT
+        if [ -d ./etc/openclash/core ];then
+            mkdir -p ./usr/share/openclash/core && \
+	    cd ./etc/openclash && \
+	    mv core ../../usr/share/openclash/ && \
+	    ln -s ../../usr/share/openclash/core .
+	    echo "完成"
+	else
+            echo "未发现 openclash, 放弃调整"
+        fi
+    )
+}

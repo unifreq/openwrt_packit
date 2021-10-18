@@ -185,19 +185,10 @@ sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 adjust_samba_config
 adjust_nfs_config "mmcblk2p4"
 adjust_openssh_config
+adjust_openclash_config
 
 # for collectd
 #[ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
-
-# for openclash
-if [ -d ./etc/openclash/core ];then
-    (
-        mkdir -p ./usr/share/openclash/core && \
-	cd ./etc/openclash && \
-	mv core ../../usr/share/openclash/ && \
-	ln -s ../../usr/share/openclash/core .
-    )
-fi
 
 chmod 755 ./etc/init.d/*
 
