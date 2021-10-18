@@ -140,20 +140,9 @@ echo
 echo "modify root ... "
 # modify root
 copy_supplement_files
+extract_glibc_programs
 
 cd $TGT_ROOT
-( [ -f "$SS_LIB" ] &&  cd lib && tar xJf "$SS_LIB" )
-if [ -f "$SS_BIN" ];then
-    (
-        cd usr/bin
-        mkdir -p ss-bin-musl && mv -f ss-server ss-redir ss-local ss-tunnel ss-bin-musl/ 2>/dev/null
-       	tar xJf "$SS_BIN"
-    )
-fi
-if [ -f "$JQ" ] && [ ! -f "./usr/bin/jq" ];then
-	cp -v ${JQ} ./usr/bin
-fi
-
 if [ -f "$FIRSTRUN_SCRIPT" ];then
 	chmod 755 "$FIRSTRUN_SCRIPT"
  	cp "$FIRSTRUN_SCRIPT" ./usr/bin/ 
