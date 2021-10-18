@@ -484,7 +484,7 @@ function extract_rootfs_files() {
    (
        cd ${TGT_ROOT} && \
           tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf "$OPWRT_ROOTFS_GZ" && \
-          mkdir -p .reserved boot rom overlay proc sys run && \
+          mkdir -p .reserved boot rom overlay proc sys run ./etc/modprobe.d ./etc/modules.d.remove && \
           sync
    )
    if [ $? -ne 0 ];then
@@ -765,7 +765,7 @@ function adjust_turboacc_config() {
 config turboacc 'config'
         option sw_flow '${SW_FLOWOFFLOAD}'
         option hw_flow '${HW_FLOWOFFLOAD}'
-	option sfe_flow '${SFE_FLOW}'
+        option sfe_flow '${SFE_FLOW}'
         option bbr_cca '0'
         option fullcone_nat '1'
         option dns_caching '0'
@@ -803,4 +803,23 @@ function patch_admin_status_index_html() {
         fi
         echo
     )
+}
+
+# 写入 banner 信息
+function write_banner() {
+    echo "写入 banner 信息 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f $BANNER ];then
+            cp -f $BANNER ./etc/banner
+            echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner
+            echo " Kernel ${KERNEL_VERSION}" >> etc/banner
+            TODAY=$(date +%Y-%m-%d)
+            echo " Packaged by ${WHOAMI} on ${TODAY}" >> etc/banner
+            echo " PLATFORM: ${PLATFORM}  SOC: ${SOC}  BOARD: ${BOARD}" >> etc/banner
+            echo >> etc/banner
+        fi
+    )
+    cat $TGT_ROOT/etc/banner
+    echo 
 }

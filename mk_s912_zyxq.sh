@@ -7,6 +7,7 @@ init_work_env
 check_k510
 
 # 盒子型号识别参数 
+PLATFORM=amlogic
 SOC=s912
 BOARD=zyxq
 
@@ -177,15 +178,6 @@ fi
 [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
 #[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
-if [ -f $BANNER ];then
-    cp -f $BANNER etc/banner
-    echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner
-    echo " Kernel ${KERNEL_VERSION}" >> etc/banner
-    TODAY=$(date +%Y-%m-%d)
-    echo " Packaged by ${WHOAMI} on ${TODAY}" >> etc/banner
-    echo " SOC: ${SOC}	BOARD: ${BOARD}" >> etc/banner
-    echo >> etc/banner
-fi
 
 if [ -f $BAL_ETH_IRQ ];then
     cp -v $BAL_ETH_IRQ usr/sbin
@@ -367,6 +359,7 @@ cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
 37 5 * * * /etc/coremark.sh
 EOF
 
+write_banner
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \

@@ -5,6 +5,7 @@ source make.env
 source public_funcs
 init_work_env
 
+PLATFORM=allwinner
 SOC=h6
 BOARD=vplus
 SUBVER=$1
@@ -174,15 +175,6 @@ fi
 [ -f ${OPENWRT_KERNEL} ] && cp ${OPENWRT_KERNEL} usr/sbin/
 [ -f ${OPENWRT_BACKUP} ] && cp ${OPENWRT_BACKUP} usr/sbin/ && (cd usr/sbin && ln -sf openwrt-backup flippy)
 [ -f ${OPENWRT_UPDATE} ] && cp ${OPENWRT_UPDATE} usr/sbin/
-if [ -f $BANNER ];then
-    cp -f $BANNER etc/banner
-    echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner
-    echo " Kernel ${KERNEL_VERSION}" >> etc/banner
-    TODAY=$(date +%Y-%m-%d)
-    echo " Packaged by ${WHOAMI} on ${TODAY}" >> etc/banner
-    echo " SOC: ${SOC}	BOARD: ${BOARD}" >> etc/banner
-    echo >> etc/banner
-fi
 
 if [ -f $BAL_ETH_IRQ ];then
     cp -v $BAL_ETH_IRQ usr/sbin
@@ -339,6 +331,7 @@ if [ -f ${UBOOT_BIN} ];then
     echo
 fi
 
+write_banner
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
