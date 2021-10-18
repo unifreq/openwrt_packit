@@ -893,7 +893,7 @@ function extract_glibc_programs() {
     echo -n "释放基于 glibc 的增补程序包 ... "
     (
         cd $TGT_ROOT
-	if [ -f "$SS_LIB" ];then
+        if [ -f "$SS_LIB" ];then
             ( cd ./lib && tar xJf "$SS_LIB" )
             ( [ -n "$JQ" ] && [ -f "$JQ" ] && [ ! -f "./usr/bin/jq" ] && cp ${JQ} ./usr/bin/jq )
             [ -n "$SS_BIN" ] && [ -f "$SS_BIN" ] && \
@@ -905,4 +905,23 @@ function extract_glibc_programs() {
     )
     echo "完成"
     echo
+}
+
+# 调整 openssh 配置
+function adjust_openssh_config() {
+    echo -n "调整 openssh 配置 ..."
+    (
+        cd $TGT_ROOT
+        sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
+        if [ -f "./etc/ssh/sshd_config" ];then
+            sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
+            sed -e "s/#PermitRootLogin no/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
+            utc_secs=$(date +%s)
+            days=$(( utc_secs / 86400 ))
+            sed -e "s/:0:0:99999:7:::/:${days}:0:99999:7:::/" -i ./etc/shadow
+            echo "完成"
+        else
+            echo "未发现 openssh 配置文件， 放弃调整"
+        fi
+    )
 }

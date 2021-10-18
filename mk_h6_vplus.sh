@@ -196,11 +196,8 @@ ttyS0::askfirst:/usr/libexec/login.sh
 EOF
 
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
-sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
-sss=$(date +%s)
-ddd=$((sss/86400))
-sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
-sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
+
+adjust_openssh_config
 
 # for collectd
 # [ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
