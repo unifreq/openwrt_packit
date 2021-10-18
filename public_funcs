@@ -1011,12 +1011,47 @@ function adjust_openclash_config() {
         cd $TGT_ROOT
         if [ -d ./etc/openclash/core ];then
             mkdir -p ./usr/share/openclash/core && \
-	    cd ./etc/openclash && \
-	    mv core ../../usr/share/openclash/ && \
-	    ln -s ../../usr/share/openclash/core .
-	    echo "完成"
-	else
+            cd ./etc/openclash && \
+            mv core ../../usr/share/openclash/ && \
+            ln -s ../../usr/share/openclash/core .
+            echo "完成"
+        else
             echo "未发现 openclash, 放弃调整"
         fi
+    )
+}
+
+# 调整 getty 配置
+function adjust_getty_config() {
+    echo -n "调整 getty 配置 ..."
+    (
+        cd $TGT_ROOT
+        case $PLATFORM in
+            allwinner)   cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+ttyS0::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+             rockchip)   cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+tty1::askfirst:/usr/libexec/login.sh
+ttyS2::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+             amlogic)    cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+ttyAML0::askfirst:/usr/libexec/login.sh
+tty0::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+                   *)    echo "Platform: ${PLATFORM} 不受支持！放弃调整"
+                         ;;
+        esac
     )
 }

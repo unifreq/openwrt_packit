@@ -189,14 +189,9 @@ fi
 echo "r8188eu" > ./etc/modules.d/rtl8188eu
 echo "sunxi_wdt" > ./etc/modules.d/watchdog
 
-cat > ./etc/inittab <<EOF
-::sysinit:/etc/init.d/rcS S boot
-::shutdown:/etc/init.d/rcS K shutdown
-ttyS0::askfirst:/usr/libexec/login.sh
-EOF
-
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 
+adjust_getty_config
 adjust_samba_config
 adjust_nfs_config "mmcblk0p4"
 adjust_openssh_config

@@ -207,10 +207,9 @@ fi
 echo "r8188eu" > ./etc/modules.d/rtl8188eu
 echo "dw_wdt" > ./etc/modules.d/watchdog
 
-sed -e 's/ttyAMA0/tty1/' -i ./etc/inittab
-sed -e 's/ttyS0/ttyS2/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
 
+adjust_getty_config
 adjust_samba_config
 adjust_nfs_config "mmcblk2p4"
 adjust_openssh_config
