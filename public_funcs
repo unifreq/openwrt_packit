@@ -1055,3 +1055,17 @@ EOF
         esac
     )
 }
+
+# qbittorrent 配置调整
+function adjust_qbittorrent_config() {
+    echo -n "调整 qbittorrent 配置 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f "./etc/config/qbittorrent" ];then
+            sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
+            echo "完成"
+        else
+            echo "未发现 qbittorrent 配置文件, 放弃调整"
+        fi
+    )
+}

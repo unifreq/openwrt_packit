@@ -173,8 +173,7 @@ if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
 fi
 
-sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
-
+adjust_qbittorrent_config
 adjust_getty_config
 adjust_samba_config
 adjust_nfs_config "mmcblk2p4"
