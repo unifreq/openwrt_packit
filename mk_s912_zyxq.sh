@@ -170,14 +170,6 @@ adjust_nfs_config "mmcblk2p4"
 adjust_openssh_config
 adjust_openclash_config
 use_xrayplug_replace_v2rayplug
-
-# for collectd
-#[ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
-
-chmod 755 ./etc/init.d/*
-
-rm -f ./etc/rc.d/S80nginx 2>/dev/null
-
 create_fstab_config
 
 cat > ./etc/modprobe.d/99-local.conf <<EOF

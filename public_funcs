@@ -499,6 +499,10 @@ function extract_rootfs_files() {
        cd ${TGT_ROOT}
        rm -rf ./lib/firmware/* ./lib/modules/*
        rm -f ./etc/docker-init ./sbin/firstboot ./sbin/jffs2reset ./sbin/jffs2mark
+       # for collectd
+       [ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
+       chmod 755 ./etc/init.d/*
+       rm -f ./etc/rc.d/S80nginx 2>/dev/null
    )
    echo "完成"
 
