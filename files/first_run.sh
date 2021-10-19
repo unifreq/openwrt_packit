@@ -161,10 +161,10 @@ echo "ok"
 
 # init AdguardHome
 echo "Init the Adguard config ... "
-if [ -f /etc/config/AdGuardHome ];then
+if [ -f "/etc/config/AdGuardHome" ];then
     mkdir -p "/mnt/${PT_PRE}4/AdGuardHome/data"
     rm -rf "/usr/bin/AdGuardHome"
-    ln -sf "/mnt/${PT_PRE}4/AdGuardHome /usr/bin/AdGuardHome"
+    ln -sf "/mnt/${PT_PRE}4/AdGuardHome" "/usr/bin/AdGuardHome"
 fi
 sync
 echo "done"
