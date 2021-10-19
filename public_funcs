@@ -179,6 +179,7 @@ function detach_loopdev() {
     cd ${TEMP_DIR}
     umount -f * 2>/dev/null
     losetup -D
+    cd ${WORK_DIR}
     rm -rf ${TEMP_DIR}
 }
 
@@ -1356,5 +1357,31 @@ function write_uboot_to_disk() {
             echo "完成"
         fi
     )
+    echo
+}
+
+# 对btrfs格式的 rootfs 创建 etc 快照
+function create_snapshot() {
+    local snapshot_name=$1
+    fstype=$(lsblk -o MOUNTPOINT,FSTYPE ${TGT_DEV} | grep "${TGT_ROOT}" | gawk '{print $2}')
+    if [ "$fstype" != "btrfs" ];then
+        return
+    fi
+    (
+        cd $TGT_ROOT
+        echo "创建初始快照: /etc -> /.snapshots/${snapshot_name}"
+        mkdir -p .snapshots && \
+        btrfs subvolume snapshot -r etc .snapshots/${snapshot_name}
+        echo "完成"
+        echo
+    )
+}
+
+# 清理环境
+function clean_work_env() {
+    echo -n "清理环境 ... "
+    detach_loopdev
+    sync
+    echo "完成"
     echo
 }

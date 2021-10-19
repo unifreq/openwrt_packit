@@ -160,20 +160,9 @@ copy_uboot_to_fs
 write_release_info
 write_banner
 config_first_run
-
-# 创建 /etc 初始快照
-echo "创建初始快照: /etc -> /.snapshots/etc-000"
-cd $TGT_ROOT && \
-mkdir -p .snapshots && \
-btrfs subvolume snapshot -r etc .snapshots/etc-000
-
+create_snapshot "etc-000"
 write_uboot_to_disk
-
-# clean temp_dir
-cd $TEMP_DIR
-umount -f $TGT_ROOT $TGT_BOOT
-( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
-sync
+clean_work_env
 mv $TGT_IMG $OUTPUT_DIR && sync
 echo "镜像已生成, 存放在 ${OUTPUT_DIR} 下面"
 echo "========================== end $0 ================================"
