@@ -139,28 +139,9 @@ echo
 
 echo "modify root ... "
 # modify root
+cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs
-
-cd $TGT_ROOT
-if [ -f etc/config/cpufreq ];then
-    sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
-fi
-
-mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
-mod_blacklist=$(cat ${KMOD_BLACKLIST})
-for mod in $mod_blacklist ;do
-	mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
-done
-[ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
-if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
-else
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
-fi
-echo "r8188eu" > ./etc/modules.d/rtl8188eu
-echo "sunxi_wdt" > ./etc/modules.d/watchdog
-
 adjust_docker_config
 adjust_openssl_config
 adjust_qbittorrent_config
@@ -174,6 +155,7 @@ create_fstab_config
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
+adjust_kernel_env
 
 if [ -f ${UBOOT_BIN} ];then
     mkdir -p $TGT_ROOT/lib/u-boot && cp -v ${UBOOT_BIN} $TGT_ROOT/lib/u-boot

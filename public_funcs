@@ -1160,16 +1160,130 @@ function config_first_run() {
          # First run, 第一次启动时自动创建新分区及格式化
          if [ -n "$FIRSTRUN_SCRIPT" ] && [ -f "$FIRSTRUN_SCRIPT" ];then
               cp -v "$FIRSTRUN_SCRIPT" ./etc/first_run.sh && \
-	          sed -e "s/MYSELF=\$0/MYSELF=\"\/etc\/first_run.sh\"/" -i ./etc/first_run.sh && \
+                  sed -e "s/MYSELF=\$0/MYSELF=\"\/etc\/first_run.sh\"/" -i ./etc/first_run.sh && \
                   chmod 755 ./etc/first_run.sh
               cp -v "./etc/rc.local" "./etc/rc.local.orig"
               echo -e "${SKIP_MB}\t${BOOT_MB}\t${ROOTFS_MB}" > ./etc/part_size
-	      sed -e "/exit/i\/etc/first_run.sh >/root/first_run.log 2>&1" -i etc/rc.local
+              sed -e "/exit/i\/etc/first_run.sh >/root/first_run.log 2>&1" -i etc/rc.local
               echo "完成"
           else
               echo "未发现相关依赖，跳过配置"
           fi
 
     )
+    echo
+}
+
+# 调整 内核 环境
+function adjust_kernel_env() {
+    echo "调整内核、硬件驱动等相关环境 ..."
+    echo "==============================================================================="
+    (
+        cd $TGT_ROOT
+        local ps="${PLATFORM}_${SOC}"
+        if [ -f etc/config/cpufreq ];then
+            echo "设置 schedutil 为默认调度器"
+            sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
+        fi
+
+        if [ -n "${KMOD_BLACKLIST}" ] && [ -f "${KMOD_BLACKLIST}" ];then
+            echo -n "禁用黑名单中的内核模块 ... "
+            [ -d ./etc/modules.d.remove ] || mkdir -p ./etc/modules.d.remove
+            local mod_blacklist=$(cat ${KMOD_BLACKLIST})
+            for mod in $mod_blacklist ;do
+                 mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
+            done
+            echo "完成"
+        fi    
+
+        case $ps in 
+            allwinner_h6|rockchip_rk3328) 
+                echo -n "当前机型无 broadcom 模块, 禁用brcmfmac 模块 ... "
+                mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
+                echo "完成"
+                ;;
+            amlogic_*) 
+                if [ $K510 -eq 1 ];then
+                    # 高版本内核下，如果ENABLE_WIFI_K510 = 0 则禁用wifi
+                    if [ $ENABLE_WIFI_K510 -eq 0 ];then
+                         echo "禁用了 brcmfmac 内置无线网卡驱动, 如需开启, 请设置 ENABLE_WIFI_K510=1 并重新打包"
+                         mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+                    else
+                         echo "brcmfmac" > ./etc/modules.d/brcmfmac
+                         echo "brcmutil" > ./etc/modules.d/brcmutil
+                         echo "已启用 brcmfmac 驱动，如果机内有 broadcom 模块的话，就可以开启wifi功能" 
+                    fi
+                else
+                    # 低版本内核下，如果ENABLE_WIFI_K504 = 0 则禁用wifi
+                    if [ $ENABLE_WIFI_K504 -eq 0 ];then
+                        echo "禁用了 brcmfmac 内置无线网卡驱动, 如需开启, 请设置 ENABLE_WIFI_K504=1 并重新打包"
+                        mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+                    else
+                        echo "brcmfmac" > ./etc/modules.d/brcmfmac
+                        echo "brcmutil" > ./etc/modules.d/brcmutil
+                        echo "已启用 brcmfmac 驱动，如果机内有 broadcom 模块的话，就可以开启wifi功能" 
+                    fi
+                fi
+                ;;
+            *)  echo "跳过"
+                ;;
+        esac 
+             
+        echo "启用 USB AX88179 网卡驱动 ... "
+        [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
+        echo "完成"
+
+        echo "启用 USB RTL8152/8153/8156 网卡驱动 ... "
+        [ -f ./etc/modules.d/usb-net-rtl8152 ] || echo "r8152" > ./etc/modules.d/usb-net-rtl8152
+        echo "完成"
+
+        echo "启用 USB Realtek RTL8188EU 无线网卡驱动 ... "
+        echo "r8188eu" > ./etc/modules.d/rtl8188eu
+        echo "完成, 是否可用请自行测试"
+
+        echo "启用 USB Ralink 无线网卡驱动  ... "
+        echo "rt2500usb" > ./etc/modules.d/rt2500-usb
+        echo "rt2800usb" > ./etc/modules.d/rt2800-usb
+        echo "rt2x00usb" > ./etc/modules.d/rt2x00-usb
+        echo "完成, 如果有 Ralink rt2xxx/rt3xxx/rt5xxx 系列USB无线网卡的话，插上基本能用"
+
+        echo "启用 USB Mediatek 无线网卡驱动  ... "
+        echo "mt7601u" > ./etc/modules.d/mt7601u
+        echo "mt7663u" > ./etc/modules.d/mt7663u
+        echo "mt76x0u" > ./etc/modules.d/mt76x0u
+        echo "mt76x2u" > ./etc/modules.d/mt76x2u
+        echo "完成, 如果有 Mediatek mt7601u/mt7610u/mt7612u/mt7663u 系列USB无线网卡的话，插上基本能用"
+
+        echo -n "启用看门狗驱动 ... "
+        case $PLATFORM in 
+            allwinner) echo "sunxi_wdt" > ./etc/modules.d/watchdog
+                       echo "完成"
+                       ;;
+             rockchip) echo "dw_wdt" > ./etc/modules.d/watchdog
+                       echo "完成"
+                       ;;
+              amlogic) echo meson_gxbb_wdt > ./etc/modules.d/watchdog
+                       echo "完成"
+                       ;;
+                    *) echo "跳过";;
+        esac 
+
+        if [ -n "${SND_MOD}" ] && [ -f ./etc/config/shairport-sync ] && [ -f ${SND_MOD} ];then
+            echo -n "启用声卡驱动 ... "
+            cp ${SND_MOD} ./etc/modules.d/
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ];then
+            echo -n "启用 GPU 驱动 ... "
+            echo "panfrost" > ./etc/modules.d/panfrost
+	    echo "完成"
+            echo -n "启用 PWM 驱动 ... "
+            echo "pwm_meson" > ./etc/modules.d/pwm_meson
+	    echo "完成"
+        fi
+    )
+    echo "==============================================================================="
+    echo "完成"
     echo
 }
