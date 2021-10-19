@@ -240,15 +240,17 @@ function create_partition() {
                ;;
           gpt) max_pt_cnt=128
                ;;
-         auto) local label=$(parted $device_name print 2>/dev/null | gawk '$NF=="msdos" || $NF=="gpt" || $NF=="unknown" {print $NF}')
+         auto) local label=$(parted $device_name print 2>/dev/null | gawk '$NF ~ /&msdos$/ || $NF ~ /^gpt$/ || $NF ~ /^unknown$/ {print $NF}')
                case $label in 
                    msdos) partition_label="msdos"
                           max_pt_cnt=4
                           cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
+                          [ "$cur_pt_cnt" == "" ] && cur_pt_cnt=0
                           ;;
                      gpt) partition_label="gpt"
                           max_pt_cnt=128
                           cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
+                          [ "$cur_pt_cnt" == "" ] && cur_pt_cnt=0
                           ;;
                        *) # 自动模式下，如果检测到空白磁盘，将会用msdos格式新建分区表
                           partition_label="msdos"
@@ -506,8 +508,8 @@ function extract_rootfs_files() {
        local ps="${PLATFORM}_${SOC}"
        case $ps in 
            amlogic_s905) # s905不支持硬件aes，所以必须删除 ss-rust 程序
-	                 [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
-	                 [ -f ./usr/bin/ssserver ] && rm -f ./usr/bin/ssserver
+                         [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
+                         [ -f ./usr/bin/ssserver ] && rm -f ./usr/bin/ssserver
                          ;;
        esac
    )
@@ -1148,4 +1150,31 @@ function use_xrayplug_replace_v2rayplug() {
             echo "不符合替换条件，跳过"
         fi
     )
+}
+
+# 配置 first run 程序
+function config_first_run() {
+    echo "创建 [初次使用] 应用环境 ... "
+    (
+         cd $TGT_ROOT
+         # First run, 第一次启动时自动创建新分区及格式化
+         if [ -n "$FIRSTRUN_SCRIPT" ] && [ -f "$FIRSTRUN_SCRIPT" ];then
+               cp -v "$FIRSTRUN_SCRIPT" ./usr/bin/mk_newpart.sh && chmod 755 ./usr/bin/mk_newpart.sh
+              mv "./etc/rc.local" "./etc/rc.local.orig"
+              cat > ./etc/part_size <<EOF
+${SKIP_MB}        ${BOOT_MB}        ${ROOTFS_MB}
+EOF
+              cat > "./etc/rc.local" <<EOF
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+/usr/bin/mk_newpart.sh 1>/dev/null 2>&1
+exit 0
+EOF
+              echo "完成"
+          else
+              echo "未发现相关依赖，跳过配置"
+          fi
+
+    )
+    echo
 }

@@ -109,6 +109,9 @@ OPENWRT_INSTALL="${PWD}/files/openwrt-install-amlogic"
 OPENWRT_UPDATE="${PWD}/files/openwrt-update-amlogic"
 OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
 OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
+
+# 20211019 add
+FIRSTRUN_SCRIPT="${PWD}/files/mk_newpart.sh"
 ###########################################################################
 
 check_depends
@@ -220,6 +223,7 @@ adjust_ntfs_config
 patch_admin_status_index_html
 write_release_info
 write_banner
+config_first_run
 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
