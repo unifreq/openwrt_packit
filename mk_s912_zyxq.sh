@@ -131,7 +131,6 @@ extract_rootfs_files
 extract_amlogic_boot_files
 
 echo "修改引导分区相关配置 ... "
-# modify boot
 cd $TGT_BOOT
 rm -f uEnv.ini
 cat > uEnv.txt <<EOF
@@ -144,11 +143,13 @@ FDT=/dtb/amlogic/meson-gxm-octopus-planet.dtb
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 
-echo "uEnv.txt --->"
+echo "uEnv.txt -->"
+echo "==============================================================================="
 cat uEnv.txt
+echo "==============================================================================="
+echo
 
 echo "修改根文件系统相关配置 ... "
-# modify root
 cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs

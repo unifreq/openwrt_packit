@@ -114,8 +114,7 @@ btrfs subvolume create $TGT_ROOT/etc
 extract_rootfs_files
 extract_allwinner_boot_files
 
-echo "modify boot ... "
-# modify boot
+echo "修改引导分区相关配置 ... "
 cd $TGT_BOOT
 [ -f $BOOT_CMD ] && cp -v $BOOT_CMD boot.cmd
 [ -f $BOOT_SCR ] && cp -v $BOOT_SCR boot.scr
@@ -131,14 +130,13 @@ FDT=/dtb/allwinner/sun50i-h6-vplus-cloud.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyS0,115200n8 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
-echo "uEnv.txt"
+echo "uEnv.txt -->"
 echo "======================================================================================"
 cat uEnv.txt
 echo "======================================================================================"
 echo
 
-echo "modify root ... "
-# modify root
+echo "修改根文件系统相关配置 ... "
 cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs

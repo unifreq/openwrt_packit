@@ -117,8 +117,7 @@ btrfs subvolume create $TGT_ROOT/etc
 extract_rootfs_files
 extract_rockchip_boot_files
 
-echo "modify boot ... "
-# modify boot
+echo "修改引导分区相关配置 ... "
 cd $TGT_BOOT
 [ -f $BOOT_CMD ] && cp $BOOT_CMD boot.cmd
 [ -f $BOOT_SCR ] && cp $BOOT_SCR boot.scr
@@ -133,9 +132,13 @@ extraargs=usbcore.autosuspend=-1
 extraboardargs=
 fdtfile=/dtb/rockchip/rk3328-beikeyun-1296mhz.dtb
 EOF
+echo "armbianEnv.txt -->"
+echo "==============================================================================="
+cat armbianEnv.txt
+echo "==============================================================================="
+echo
 
-echo "modify root ... "
-# modify root
+echo "修改根文件系统相关配置 ... "
 cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs

@@ -906,7 +906,6 @@ function copy_supplement_files() {
 
         [ -n "$CPUSTAT_SCRIPT" ] && [ -f $CPUSTAT_SCRIPT ] && cp -v $CPUSTAT_SCRIPT ./usr/bin/cpustat && chmod 755 ./usr/bin/cpustat  
         [ -n "$GETCPU_SCRIPT" ] && [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
-        [ -n "$SYSCTL_CUSTOM_CONF" ] && [ -f ${SYSCTL_CUSTOM_CONF} ] && cp -v ${SYSCTL_CUSTOM_CONF} ./etc/sysctl.d/
         [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
              sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
     )
@@ -1187,6 +1186,11 @@ function adjust_kernel_env() {
             sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
         fi
 
+        if [ -n "$SYSCTL_CUSTOM_CONF" ] && [ -f ${SYSCTL_CUSTOM_CONF} ];then
+            echo "启用自定义的内核优化参数 ... "
+            cp -v ${SYSCTL_CUSTOM_CONF} ./etc/sysctl.d/
+        fi
+
         if [ -n "${KMOD_BLACKLIST}" ] && [ -f "${KMOD_BLACKLIST}" ];then
             echo -n "禁用黑名单中的内核模块 ... "
             [ -d ./etc/modules.d.remove ] || mkdir -p ./etc/modules.d.remove
@@ -1199,7 +1203,7 @@ function adjust_kernel_env() {
 
         case $ps in 
             allwinner_h6|rockchip_rk3328) 
-                echo -n "当前机型无 broadcom 模块, 禁用brcmfmac 模块 ... "
+                echo -n "当前机型并未内置 broadcom 无线模块, 禁用 brcmfmac 驱动 ... "
                 mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
                 echo "完成"
                 ;;
@@ -1230,30 +1234,33 @@ function adjust_kernel_env() {
                 ;;
         esac 
              
-        echo "启用 USB AX88179 网卡驱动 ... "
+        echo -n "启用 USB AX88179 网卡驱动 ... "
         [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
         echo "完成"
 
-        echo "启用 USB RTL8152/8153/8156 网卡驱动 ... "
+        echo -n "启用 USB RTL8152/8153/8156 网卡驱动 ... "
         [ -f ./etc/modules.d/usb-net-rtl8152 ] || echo "r8152" > ./etc/modules.d/usb-net-rtl8152
         echo "完成"
 
-        echo "启用 USB Realtek RTL8188EU 无线网卡驱动 ... "
+        echo -n "启用 USB Realtek RTL8188EU 无线网卡驱动 ... "
         echo "r8188eu" > ./etc/modules.d/rtl8188eu
-        echo "完成, 是否可用请自行测试"
+        echo "完成"
+        echo "  *** 是否可用请自行测试"
 
-        echo "启用 USB Ralink 无线网卡驱动  ... "
+        echo -n "启用 USB Ralink 无线网卡驱动  ... "
         echo "rt2500usb" > ./etc/modules.d/rt2500-usb
         echo "rt2800usb" > ./etc/modules.d/rt2800-usb
         echo "rt2x00usb" > ./etc/modules.d/rt2x00-usb
-        echo "完成, 如果有 Ralink rt2xxx/rt3xxx/rt5xxx 系列USB无线网卡的话，插上基本能用"
+        echo "完成"
+        echo "  *** 如果有 Ralink rt2xxx/rt3xxx/rt5xxx 系列USB无线网卡的话，插上基本能用"
 
-        echo "启用 USB Mediatek 无线网卡驱动  ... "
+        echo -n "启用 USB Mediatek 无线网卡驱动  ... "
         echo "mt7601u" > ./etc/modules.d/mt7601u
         echo "mt7663u" > ./etc/modules.d/mt7663u
         echo "mt76x0u" > ./etc/modules.d/mt76x0u
         echo "mt76x2u" > ./etc/modules.d/mt76x2u
-        echo "完成, 如果有 Mediatek mt7601u/mt7610u/mt7612u/mt7663u 系列USB无线网卡的话，插上基本能用"
+        echo "完成"
+        echo "  *** 如果有 Mediatek mt7601u/mt7610u/mt7612u/mt7663u 系列USB无线网卡的话，插上基本能用"
 
         echo -n "启用看门狗驱动 ... "
         case $PLATFORM in 
