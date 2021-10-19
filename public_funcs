@@ -503,6 +503,13 @@ function extract_rootfs_files() {
        [ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
        chmod 755 ./etc/init.d/*
        rm -f ./etc/rc.d/S80nginx 2>/dev/null
+       local ps="${PLATFORM}_${SOC}"
+       case $psb in 
+           amlogic_s905) # s905不支持硬件aes，所以必须删除 ss-rust 程序
+	                 [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
+	                 [ -f ./usr/bin/ssserver ] && rm -f ./usr/bin/ssserver
+                         ;;
+       esac
    )
    echo "完成"
 

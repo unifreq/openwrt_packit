@@ -205,9 +205,6 @@ else
     fi
 fi
 
-# 默认禁用sfe
-[ -f ./etc/config/sfe ] && sed -e 's/option enabled '1'/option enabled '0'/' -i ./etc/config/sfe
-
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 # +版内核，优先启用v2驱动, +o内核则启用v1驱动
 if echo $KERNEL_VERSION | grep -E '*\+$' ;then

@@ -174,9 +174,6 @@ adjust_openclash_config
 use_xrayplug_replace_v2rayplug
 create_fstab_config
 
-# s905不支持硬件aes，所以必须删除 ss-rust 程序
-[ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
-
 cat > ./etc/modprobe.d/99-local.conf <<EOF
 blacklist snd_soc_meson_aiu_i2s
 alias brnf br_netfilter
@@ -204,9 +201,6 @@ else
         mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
     fi
 fi
-
-# 默认禁用sfe
-[ -f ./etc/config/sfe ] && sed -e 's/option enabled '1'/option enabled '0'/' -i ./etc/config/sfe
 
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 # +版内核，优先启用v2驱动, +o内核则启用v1驱动
