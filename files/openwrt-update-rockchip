@@ -288,7 +288,7 @@ if [ -x ./usr/sbin/balethirq.pl ];then
         sed -e "/exit/i\/usr/sbin/balethirq.pl" -i ./etc/rc.local
     fi
 fi
-rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
+rm -f "./etc/rc.local.orig" "./etc/first_run.sh" "./etc/part_size"
 rm -f ./etc/bench.log
 cat > ./etc/fstab <<EOF
 UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1

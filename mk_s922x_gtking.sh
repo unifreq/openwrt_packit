@@ -111,7 +111,7 @@ OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
 OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 
 # 20211019 add
-FIRSTRUN_SCRIPT="${PWD}/files/mk_newpart.sh"
+FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 ###########################################################################
 
 check_depends

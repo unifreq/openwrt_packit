@@ -40,7 +40,7 @@ GETCPU_SCRIPT="${PWD}/files/getcpu"
 KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/vplus/kmod_blacklist"
 
-FIRSTRUN_SCRIPT="${PWD}/files/mk_newpart.sh"
+FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 BOOT_CMD="${PWD}/files/vplus/boot/boot.cmd"
 BOOT_SCR="${PWD}/files/vplus/boot/boot.scr"
 

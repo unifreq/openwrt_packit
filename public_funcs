@@ -908,7 +908,6 @@ function copy_supplement_files() {
         [ -n "$SYSCTL_CUSTOM_CONF" ] && [ -f ${SYSCTL_CUSTOM_CONF} ] && cp -v ${SYSCTL_CUSTOM_CONF} ./etc/sysctl.d/
         [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
              sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
-        [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
     )
     echo "==============================================================================="
     echo "完成"
@@ -1119,6 +1118,7 @@ function adjust_docker_config() {
     echo "调整 docker server 配置 ... "
     (
         cd $TGT_ROOT
+        [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
         if [ -f ./etc/init.d/dockerd ];then
             echo "发现 dockerd 服务，正在调整 ... "
             [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && patch -p1 < $DOCKERD_PATCH
@@ -1159,17 +1159,12 @@ function config_first_run() {
          cd $TGT_ROOT
          # First run, 第一次启动时自动创建新分区及格式化
          if [ -n "$FIRSTRUN_SCRIPT" ] && [ -f "$FIRSTRUN_SCRIPT" ];then
-               cp -v "$FIRSTRUN_SCRIPT" ./usr/bin/mk_newpart.sh && chmod 755 ./usr/bin/mk_newpart.sh
-              mv "./etc/rc.local" "./etc/rc.local.orig"
-              cat > ./etc/part_size <<EOF
-${SKIP_MB}        ${BOOT_MB}        ${ROOTFS_MB}
-EOF
-              cat > "./etc/rc.local" <<EOF
-# Put your custom commands here that should be executed once
-# the system init finished. By default this file does nothing.
-/usr/bin/mk_newpart.sh 1>/dev/null 2>&1
-exit 0
-EOF
+              cp -v "$FIRSTRUN_SCRIPT" ./etc/first_run.sh && \
+	          sed -e "s/MYSELF=\$0/MYSELF=\"\/etc\/first_run.sh\"/" -i ./etc/first_run.sh && \
+                  chmod 755 ./etc/first_run.sh
+              cp -v "./etc/rc.local" "./etc/rc.local.orig"
+              echo -e "${SKIP_MB}\t${BOOT_MB}\t${ROOTFS_MB}" > ./etc/part_size
+	      sed -e "/exit/i\/etc/first_run.sh >/root/first_run.log 2>&1" -i etc/rc.local
               echo "完成"
           else
               echo "未发现相关依赖，跳过配置"

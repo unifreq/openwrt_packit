@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MYSELF=/usr/bin/mk_newpart.sh
+MYSELF=$0
 
 function destory_myself() {
     rm -f $MYSELF /etc/part_size /tmp/fdisk.script

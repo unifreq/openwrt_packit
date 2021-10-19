@@ -275,7 +275,7 @@ done
 
 SHFS="/mnt/${EMMC_NAME}p4"
 echo "Modify config files ... "
-rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
+rm -f "./etc/rc.local.orig" "./etc/first_run.sh" "./etc/part_size"
 rm -f ./etc/bench.log
 if [ -x ./usr/sbin/balethirq.pl ];then
     if grep "balethirq.pl" "./etc/rc.local";then
@@ -415,7 +415,7 @@ sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
 sync
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
-rm -f ./etc/part_size ./usr/bin/mk_newpart.sh
+rm -f ./etc/part_size ./etc/first_run.sh
 mv ./etc/rc.local ./etc/rc.local.orig
 cat > ./etc/rc.local <<EOF
 if [ ! -f /etc/rc.d/*dockerd ];then
