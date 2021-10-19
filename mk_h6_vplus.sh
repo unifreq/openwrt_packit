@@ -156,18 +156,7 @@ adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
 adjust_kernel_env
-
-if [ -f ${UBOOT_BIN} ];then
-    mkdir -p $TGT_ROOT/lib/u-boot && cp -v ${UBOOT_BIN} $TGT_ROOT/lib/u-boot
-    cp -v ${WRITE_UBOOT_SCRIPT} ${TGT_ROOT}/lib/u-boot
-    echo "写入 bootloader ..."
-    echo "dd if=${UBOOT_BIN} of=${TGT_DEV} bs=1024 seek=8"
-    dd if="${UBOOT_BIN}" of="${TGT_DEV}" bs=1024 seek=8
-    sync
-    echo "写入完毕"
-    echo
-fi
-
+copy_uboot_to_fs
 write_release_info
 write_banner
 config_first_run
@@ -177,6 +166,8 @@ echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
 mkdir -p .snapshots && \
 btrfs subvolume snapshot -r etc .snapshots/etc-000
+
+write_uboot_to_disk
 
 # clean temp_dir
 cd $TEMP_DIR

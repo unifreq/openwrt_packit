@@ -1277,13 +1277,84 @@ function adjust_kernel_env() {
         if [ "$PLATFORM" == "amlogic" ];then
             echo -n "启用 GPU 驱动 ... "
             echo "panfrost" > ./etc/modules.d/panfrost
-	    echo "完成"
+            echo "完成"
             echo -n "启用 PWM 驱动 ... "
             echo "pwm_meson" > ./etc/modules.d/pwm_meson
-	    echo "完成"
+            echo "完成"
         fi
     )
     echo "==============================================================================="
     echo "完成"
+    echo
+}
+
+# 复制 u-boot 到文件系统
+function copy_uboot_to_fs() {
+    (
+        cd $TGT_ROOT
+        if [ "$BOARD" == "vplus" ] && [ -n "${UBOOT_BIN}" ] && [ -f ${UBOOT_BIN} ];then
+            echo "检测到 vplus 机型，正在把 u-boot 相关文件写入到 /lib/u-boot目录中备用 ... "
+            mkdir -p ./lib/u-boot
+            cp -v ${UBOOT_BIN} ./lib/u-boot/
+            cp -v ${WRITE_UBOOT_SCRIPT} ./lib/u-boot/
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$FIP_HOME" ] && [ -d "${FIP_HOME}" ];then
+            echo "检测到 amlogic 平台，正在把主线 u-boot 相关文件写入到 /lib/u-boot 目录中备用 ... "
+            mkdir -p ./lib/u-boot
+            cp -v "${FIP_HOME}"/../*.sh lib/u-boot/
+            cp -v "${FIP_HOME}"/*.sd.bin lib/u-boot/
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$BTLD_BIN" ] && [ -f "${BTLD_BIN}" ];then
+            echo "检测到 amlogic 平台，正在把安卓 u-boot 相关文件写入到 /lib/u-boot 目录中备用 ... "
+            mkdir -p ./lib/u-boot
+            cp -v "$BTLD_BIN" lib/u-boot/
+            echo "完成"
+        fi
+    )
+    echo
+}
+
+# 写入 u-boot 到磁盘镜像
+function write_uboot_to_disk() {
+    (
+        if [ "$PLATFORM" == "allwinner" ] && [ -n "$UBOOT_BIN" ] && [ -f "$UBOOT_BIN" ];then
+            echo "写入 bootloader ..."
+
+            echo "dd if=${UBOOT_BIN} of=${TGT_DEV} conv=fsync,notrunc bs=1024 seek=8"
+
+            dd if="${UBOOT_BIN}" of="${TGT_DEV}" conv=fsync,notrunc bs=1024 seek=8
+
+            sync
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "rockchip" ] && [ -n "$BOOTLOADER_IMG" ] && [ -f "$BOOTLOADER_IMG" ];then
+            echo "写入 bootloader ..."
+            echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442"
+            echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1"
+
+            dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442
+            dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
+
+            sync
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$UBOOT_WITH_FIP" ] && [ -f "$UBOOT_WITH_FIP" ];then
+            echo "写入 bootloader ..."
+            echo "dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1"
+            echo "dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=1 count=444"
+
+            dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
+            dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=1 count=444
+
+            sync
+            echo "完成"
+        fi
+    )
     echo
 }

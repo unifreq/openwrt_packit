@@ -109,12 +109,6 @@ ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
-
-# write bootloader
-dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=1 count=442
-dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=512 skip=1 seek=1
-sync
-
 make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
@@ -159,6 +153,7 @@ adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
 adjust_kernel_env
+copy_uboot_to_fs
 write_release_info
 write_banner
 config_first_run
@@ -168,6 +163,8 @@ echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
 mkdir -p .snapshots && \
 btrfs subvolume snapshot -r etc .snapshots/etc-000
+
+write_uboot_to_disk
 
 # clean temp_dir
 cd $TEMP_DIR

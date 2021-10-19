@@ -157,13 +157,6 @@ echo "修改根文件系统相关配置 ... "
 cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs
-
-if [ -d "${FIP_HOME}" ];then
-    mkdir -p lib/u-boot
-    cp -v "${FIP_HOME}"/../*.sh lib/u-boot/
-    cp -v "${FIP_HOME}"/*.sd.bin lib/u-boot/
-fi
-
 adjust_docker_config
 adjust_openssl_config
 adjust_qbittorrent_config
@@ -180,6 +173,7 @@ patch_admin_status_index_html
 adjust_kernel_env
 write_release_info
 write_banner
+copy_uboot_to_fs
 config_first_run
 
 # 创建 /etc 初始快照
@@ -192,10 +186,7 @@ btrfs subvolume snapshot -r etc .snapshots/etc-000
 cd $TEMP_DIR
 umount -f $TGT_BOOT $TGT_ROOT 
 
-if [ -f ${UBOOT_WITH_FIP} ];then
-    dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
-    dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=1 count=444
-fi
+write_uboot_to_disk
 
 ( losetup -D && cd $WORK_DIR && rm -rf $TEMP_DIR && losetup -D)
 sync
