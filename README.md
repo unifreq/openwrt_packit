@@ -2,7 +2,7 @@
 
 一、制作材料：
 1. Flippy预编译好的 Arm64 内核 (在 https://t.me/openwrt_flippy  及 https://pan.baidu.com/s/19KNVcCQL57mvpiboFc-5rA 提取码：hk6x )
-2. 自己编译的 openwrt rootfs tar.gz 包： openwrt-armvirt-64-default-rootfs.tar.gz 
+2. 自己编译的 openwrt rootfs tar.gz 包： openwrt-armvirt-64-default-rootfs.tar.gz , openwrt的源码仓库首选 (https://github.com/coolsnowwolf/lede)  ，当然也可以采用其它第三方源，例如 (https://github.com/Lienol/openwrt) , 也可以采用 openwrt 官方源： (https://github.com/openwrt/openwrt)。
 
 二、环境准备
 1. 需要一台 linux 主机， 可以是 x86或arm64架构，可以是物理机或虚拟机（但不支持win10自带的linux环境），需要具备root权限， 并且具备以下基本命令（只列出命令名，不列出命令所在的包名，因不同linux发行版的软件包名、软件包安装命令各有不同，请自己查询)： 
