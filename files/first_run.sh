@@ -25,10 +25,10 @@ fi
 case $ROOT_PTNAME in 
        mmcblk?p[1-4]) DISK_NAME=$(echo $ROOT_PTNAME | awk '{print substr($1, 1, length($1)-2)}');;
     [hsv]d[a-z][1-4]) DISK_NAME=$(echo $ROOT_PTNAME | awk '{print substr($1, 1, length($1)-1)}');;
-                   *) echo "无法识别 $ROOT_PTNAME 的磁盘类型!"
-                      destory_myself
-                      exit 1
-                   ;;
+		   *) echo "无法识别 $ROOT_PTNAME 的磁盘类型!"
+		      destory_myself
+		      exit 1
+		   ;;
 esac
 
 CURRENT_PT_CNT=$(fdisk -l /dev/${DISK_NAME} | grep -A4 'Device' | grep -v 'Device' | wc -l)
@@ -78,11 +78,11 @@ echo "done"
 echo "fdisk starting ... "
 fdisk /dev/$DISK_NAME < /tmp/fdisk.script
 if [ $? -ne 0 ];then
-        echo "fdisk failed, restore the backup bootloader, and abort"
-        dd if=/tmp/partition.bak of=/dev/$DISK_NAME bs=512 count=1
-        sync
-        destory_myself
-        exit 1
+	echo "fdisk failed, restore the backup bootloader, and abort"
+	dd if=/tmp/partition.bak of=/dev/$DISK_NAME bs=512 count=1
+	sync
+	destory_myself
+	exit 1
 fi
 echo "fdisk done"
 echo
@@ -90,32 +90,39 @@ echo
 # mkfs
 case $DISK_NAME in 
    mmcblk*) PT_PRE=${DISK_NAME}p
-            LB_PRE="EMMC_"
-            ;;
-         *) PT_PRE=${DISK_NAME}
-            LB_PRE=""
-            ;;
+	    LB_PRE="EMMC_"
+	    ;;
+	 *) PT_PRE=${DISK_NAME}
+	    LB_PRE=""
+	    ;;
 esac
 echo "create rootfs2 filesystem ... "
+mkdir -p /mnt/${PT_PRE}3
 case $TARGET_ROOTFS2_FSTYPE in
-        xfs) mkfs.xfs   -f -L "${LB_PRE}ROOTFS2" "/dev/${PT_PRE}3";;
-      btrfs) mkfs.btrfs -f -L "${LB_PRE}ROOTFS2" "/dev/${PT_PRE}3";; 
-          *) mkfs.ext4  -F -L "${LB_PRE}ROOTFS2" "/dev/${PT_PRE}3";;
+	xfs) mkfs.xfs   -f -L "${LB_PRE}ROOTFS2" "/dev/${PT_PRE}3"
+	     mount -t xfs     "/dev/${PT_PRE}3" "/mnt/${PT_PRE}3"
+	     ;;
+      btrfs) mkfs.btrfs -f -L "${LB_PRE}ROOTFS2" "/dev/${PT_PRE}3" 
+	     mount -t btrfs   "/dev/${PT_PRE}3" "/mnt/${PT_PRE}3"
+	     ;; 
+	  *) mkfs.ext4  -F -L "${LB_PRE}ROOTFS2" "/dev/${PT_PRE}3"
+	     mount -t ext4    "/dev/${PT_PRE}3" "/mnt/${PT_PRE}3"
+	     ;;
 esac
 echo "done"
 
 echo "create shared filesystem ... "
 mkdir -p /mnt/${PT_PRE}4
 case $TARGET_SHARED_FSTYPE in
-        xfs) mkfs.xfs   -f -L "${LB_PRE}SHARED" "/dev/${PT_PRE}4"
-             mount -t xfs     "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
-             ;;
+	xfs) mkfs.xfs   -f -L "${LB_PRE}SHARED" "/dev/${PT_PRE}4"
+	     mount -t xfs     "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
+	     ;;
       btrfs) mkfs.btrfs -f -L "${LB_PRE}SHARED" "/dev/${PT_PRE}4"
-             mount -t btrfs   "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
-             ;; 
-          *) mkfs.ext4  -F -L "${LB_PRE}SHARED" "/dev/${PT_PRE}4"
-             mount -t ext4    "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
-             ;;
+	     mount -t btrfs   "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
+	     ;; 
+	  *) mkfs.ext4  -F -L "${LB_PRE}SHARED" "/dev/${PT_PRE}4"
+	     mount -t ext4    "/dev/${PT_PRE}4" "/mnt/${PT_PRE}4"
+	     ;;
 esac
 echo "done"
 
