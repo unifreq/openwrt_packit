@@ -16,8 +16,20 @@
 
    ./mk_xxx.sh  # xxx指代你想要生成的固件类别，例如： ./mk_s905d_n1.sh 表示生成 Phicomm N1所用的固件
 
-   生成好的固件是 .img 格式， 存放在 /opt/openwrt_packit/tmp目录中，下载刷机即可
-
+   生成好的固件是 .img 格式， 存放在 /opt/openwrt_packit/output 目录中，下载刷机即可
+   
+   提示:工作临时目录是 /opt/openwrt_packit/tmp, 为了提升IO性能，减少硬盘损耗，可以采用tmpfs文件系统挂载到该目录，最多会占用 1GB 内存， 挂载方法如下:
+   ```
+   # 开机自动挂载
+   echo "none /opt/openwrt_packit/tmp  tmpfs   defaults   0  0" >> /etc/fstab
+   mount /opt/openwrt_packit/tmp
+   ```
+    或者
+    ```
+    # 手动挂载
+    mount -t tmpfs  none /opt/openwrt_packit/tmp
+    ```
+   
    相关的在线升级脚本在 files/目录下
 
    相关的 openwrt 示例配置文件在 files/openwrt_config_demo/目录下
