@@ -78,7 +78,7 @@ CPUFREQ_INIT="${PWD}/files/s922x/cpufreq"
 
 # 20210302 modify
 FIP_HOME="${PWD}/files/meson_btld/with_fip/s922x"
-UBOOT_WITH_FIP="${FIP_HOME}/gtkingpro-u-boot.bin.sd.bin"
+UBOOT_WITH_FIP="${FIP_HOME}/odroid-n2-u-boot.bin.sd.bin"
 UBOOT_WITHOUT_FIP_HOME="${PWD}/files/meson_btld/without_fip"
 UBOOT_WITHOUT_FIP="u-boot-odroid-n2.bin"
 
