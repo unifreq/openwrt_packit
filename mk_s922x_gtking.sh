@@ -9,7 +9,7 @@ check_k510
 # 盒子型号识别参数 
 PLATFORM=amlogic
 SOC=s922x
-BOARD=odroid-n2
+BOARD=gtking
 
 SUBVER=$1
 
@@ -80,7 +80,7 @@ CPUFREQ_INIT="${PWD}/files/s922x/cpufreq"
 FIP_HOME="${PWD}/files/meson_btld/with_fip/s922x"
 UBOOT_WITH_FIP="${FIP_HOME}/gtkingpro-u-boot.bin.sd.bin"
 UBOOT_WITHOUT_FIP_HOME="${PWD}/files/meson_btld/without_fip"
-UBOOT_WITHOUT_FIP="u-boot-odroid-n2.bin"
+UBOOT_WITHOUT_FIP="u-boot-gtkingpro.bin"
 
 # 20210208 add
 WIRELESS_CONFIG="${PWD}/files/s922x/wireless"
