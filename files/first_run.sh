@@ -92,7 +92,7 @@ case $DISK_NAME in
    mmcblk*) PT_PRE=${DISK_NAME}p
             LB_PRE="EMMC_"
             ;;
-         *) PT_PRE=${DISK_NAME}
+         *) PT_PRE=${DISK_NAME}p
             LB_PRE=""
             ;;
 esac
