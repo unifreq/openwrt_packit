@@ -116,6 +116,9 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 
 # 20211019 add
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
+
+# 20211020 add
+BTLD_BIN="${PWD}/files/s905d/u-boot-2015-phicomm-n1.bin"
 ###########################################################################
 
 check_depends
