@@ -140,10 +140,10 @@ INITRD=/uInitrd
 # 下列 dtb，用到哪个就把哪个的#删除，其它的则加上 # 在行首
 
 # 用于 Hardkernel Odroid N2 (1896Mhz/1800Mhz)
-FDT=/dtb/amlogic/meson-g12b-odroid-n2.dtb
+#FDT=/dtb/amlogic/meson-g12b-odroid-n2.dtb
 
-# 用于 Belink GT-King Pro Rev A ( 1896Mhz/1800Mhz)
-#FDT=/dtb/amlogic/meson-g12b-gtking-pro-rev_a.dtb
+# 用于 Belink GT-King Pro (Rev A) ( 1896Mhz/1800Mhz)
+FDT=/dtb/amlogic/meson-g12b-gtking-pro-rev_a.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
