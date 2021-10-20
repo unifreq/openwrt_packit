@@ -8,8 +8,8 @@ check_k510
 
 # 盒子型号识别参数 
 PLATFORM=amlogic
-SOC=s912
-BOARD=zyxq
+SOC=s922x
+BOARD=odroid-n2
 
 SUBVER=$1
 
@@ -58,11 +58,11 @@ SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 COREMARK="${PWD}/files/coremark.sh"
 
 # 20200930 add
-SND_MOD="${PWD}/files/s912/snd-meson-gx"
-DAEMON_JSON="${PWD}/files/s912/daemon.json"
+SND_MOD="${PWD}/files/s922x/snd-meson-g12"
+DAEMON_JSON="${PWD}/files/s922x/daemon.json"
 
 # 20201006 add
-FORCE_REBOOT="${PWD}/files/s912/reboot"
+FORCE_REBOOT="${PWD}/files/s922x/reboot"
 # 20201017 add
 BAL_ETH_IRQ="${PWD}/files/balethirq.pl"
 # 20201026 add
@@ -73,17 +73,17 @@ SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201212 add
-BAL_CONFIG="${PWD}/files/s912/balance_irq"
-CPUFREQ_INIT="${PWD}/files/s912/cpufreq"
+BAL_CONFIG="${PWD}/files/s922x/balance_irq"
+CPUFREQ_INIT="${PWD}/files/s922x/cpufreq"
 
 # 20210302 modify
-FIP_HOME="${PWD}/files/meson_btld/with_fip/s912"
-UBOOT_WITH_FIP="${FIP_HOME}/zyxq-u-boot.bin.sd.bin"
+FIP_HOME="${PWD}/files/meson_btld/with_fip/s922x"
+UBOOT_WITH_FIP="${FIP_HOME}/gtkingpro-u-boot.bin.sd.bin"
 UBOOT_WITHOUT_FIP_HOME="${PWD}/files/meson_btld/without_fip"
-UBOOT_WITHOUT_FIP="u-boot-zyxq.bin"
+UBOOT_WITHOUT_FIP="u-boot-odroid-n2.bin"
 
 # 20210208 add
-WIRELESS_CONFIG="${PWD}/files/s912/wireless"
+WIRELESS_CONFIG="${PWD}/files/s922x/wireless"
 
 # 20210307 add
 SS_LIB="${PWD}/files/ss-glibc/lib-glibc.tar.xz"
@@ -137,8 +137,13 @@ cat > uEnv.txt <<EOF
 LINUX=/zImage
 INITRD=/uInitrd
 
-# 用于 章鱼星球
-FDT=/dtb/amlogic/meson-gxm-octopus-planet.dtb
+# 下列 dtb，用到哪个就把哪个的#删除，其它的则加上 # 在行首
+
+# 用于 Hardkernel Odroid N2 (1896Mhz/1800Mhz)
+FDT=/dtb/amlogic/meson-g12b-odroid-n2.dtb
+
+# 用于 Belink GT-King Pro Rev A ( 1896Mhz/1800Mhz)
+#FDT=/dtb/amlogic/meson-g12b-gtking-pro-rev_a.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
