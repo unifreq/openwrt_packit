@@ -139,21 +139,25 @@ INITRD=/uInitrd
 
 # 下列 dtb，用到哪个就把哪个的#删除，其它的则加上 # 在行首
 
-# S922X 标准版
+# GT-King S922X 标准版
 # 用于 Belink GT-King (1800Mhz/1908Mhz)
 #FDT=/dtb/amlogic/meson-g12b-gtking.dtb
 
-# S922X 超频版 
+# GT-King S922X 超频版 
 # 用于 Belink GT-King (1992Mhz/1992Mhz)
 #FDT=/dtb/amlogic/meson-g12b-gtking-oc.dtb
 
-# S922X-H 标准版 
-# 用于 Belink GT-King Pro (1800Mhz/2208Mhz)
+# GT-King Pro S922X-H 标准版 
+# 用于 Belink GT-King Pro (1800Mhz/1908Mhz)
 FDT=/dtb/amlogic/meson-g12b-gtking-pro.dtb
 
-# S922X-H 超频版
+# GT-King Pro S922X-H 标准版
+# 用于 Belink GT-King Pro (1800Mhz/2208Mhz)
+#FDT=/dtb/amlogic/meson-g12b-gtking-pro-h.dtb
+
+# GT-King Pro S922X-H 超频版
 # 用于 Belink GT-King Pro (2016Mhz/2208Mhz)
-FDT=/dtb/amlogic/meson-g12b-gtking-pro-oc.dtb
+#FDT=/dtb/amlogic/meson-g12b-gtking-pro-h-oc.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
