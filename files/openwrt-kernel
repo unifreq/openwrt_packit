@@ -49,8 +49,6 @@ elif [[ -f "/etc/flippy-openwrt-release" ]]; then
 else
     die "Unknown device: [ ${MYDEVICE_NAME} ], Not supported."
 fi
-echo -e "Current device: ${MYDEVICE_NAME} [${MYDTB_FILE}]"
-sleep 3
 
 # Find the partition where root is located
 ROOT_PTNAME=$(df / | tail -n1 | awk '{print $1}' | awk -F '/' '{print $3}')
@@ -73,6 +71,9 @@ case ${ROOT_PTNAME} in
                       exit 1
                       ;;
 esac
+
+echo -e "Current device: ${MYDEVICE_NAME} [ ${MYDTB_FILE} ], Use in [ ${EMMC_NAME} ]"
+sleep 3
 
 P4_PATH="/mnt/${EMMC_NAME}${PARTITION_NAME}4"
 
@@ -155,25 +156,8 @@ if [[ "${V510}" -lt "${K510}" && "${MYDTB_FILE}" == "amlogic" ]]; then
     if [ -f "/etc/flippy-openwrt-release" ]; then
         # U-BOOT adaptation
         source /etc/flippy-openwrt-release 2>/dev/null
-        SOC=${SOC}
-        [ -n "${SOC}" ] || die "Unknown SOC, unable to update."
-        case ${SOC} in
-            s905x3) UBOOT_OVERLOAD="u-boot-x96maxplus.bin"
-                    MAINLINE_UBOOT="x96maxplus-u-boot.bin.sd.bin" ;;
-            s905x2) UBOOT_OVERLOAD="u-boot-x96max.bin"
-                    MAINLINE_UBOOT="x96max-u-boot.bin.sd.bin" ;;
-            s905x)  UBOOT_OVERLOAD="u-boot-p212.bin"
-                    MAINLINE_UBOOT="" ;;
-            s905w)  UBOOT_OVERLOAD="u-boot-s905x-s912.bin"
-                    MAINLINE_UBOOT="" ;;
-            s905d)  UBOOT_OVERLOAD="u-boot-n1.bin"
-                    MAINLINE_UBOOT="" ;;
-            s912)   UBOOT_OVERLOAD="u-boot-zyxq.bin"
-                    MAINLINE_UBOOT="" ;;
-            s922x)  UBOOT_OVERLOAD="u-boot-gtkingpro.bin"
-                    MAINLINE_UBOOT="gtkingpro-u-boot.bin.sd.bin" ;;
-            *)      die "Unknown SOC, unable to update to kernel 5.10 and above." ;;
-        esac
+        UBOOT_OVERLOAD="${UBOOT_OVERLOAD}"
+        MAINLINE_UBOOT="${MAINLINE_UBOOT//\/lib\/u-boot\//}"
 
         # Check ${UBOOT_OVERLOAD}
         if [[ -n "${UBOOT_OVERLOAD}" ]]; then
