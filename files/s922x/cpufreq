@@ -19,7 +19,12 @@ start()
 	D=$(ls -d policy*)
 	for d in $D; do
 	    echo $governor > /sys/devices/system/cpu/cpufreq/${d}/scaling_governor
-  	    echo $minifreq > /sys/devices/system/cpu/cpufreq/${d}/scaling_min_freq
+	    echo $minifreq > /sys/devices/system/cpu/cpufreq/${d}/scaling_min_freq
+
+	    # 只调整小核的最高频率，让大核保持默认最高频率
+	    if [ ${d} != "policy0" ];then
+                maxfreq=$(cat scaling_available_frequencies| awk '{print $NF}')
+	    fi
 	    echo $maxfreq > /sys/devices/system/cpu/cpufreq/${d}/scaling_max_freq
         done
 }
