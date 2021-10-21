@@ -20,21 +20,19 @@
 打包好的固件在 ${{ env.PACKAGED_OUTPUTPATH }}/* ，可以上传至 Releases 等处，代码如下：
 
 ```yaml
-
-- name: Upload OpenWrt Firmware to Releases
-  uses: softprops/action-gh-release@v1
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+- name: Upload OpenWrt Firmware to Release
+  uses: ncipollo/release-action@v1
   with:
-    tag_name: openwrt_armvirt_${{ env.PACKAGED_OUTPUTDATE }}
-    files: ${{ env.PACKAGED_OUTPUTPATH }}/*
+    tag: openwrt_armvirt_v8_${{ env.PACKAGED_OUTPUTDATE }}
+    artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+    allowUpdates: true
+    token: ${{ secrets.GITHUB_TOKEN }}
     body: |
       This is OpenWrt firmware for Armvirt 64
       * Firmware information
       Default IP: 192.168.1.1
       Default username: root
       Default password: password
-
 ```
 
 ## 可选参数说明
@@ -47,7 +45,7 @@
 | KERNEL_REPO_URL        | [breakings/.../kernel](openwrt_flippy.sh#L23) | 设置内核下载地址，默认从 breakings 维护的 [kernel](https://github.com/breakings/OpenWrt/tree/main/opt/kernel) 库里下载 Flippy 的内核。 |
 | KERNEL_VERSION_NAME    | 5.14.12_5.4.153        | 设置内核版本，[kernel](https://github.com/breakings/OpenWrt/tree/main/opt/kernel) 库里收藏了众多 Flippy 的原版内核，可以查看并选择指定。可指定单个内核如 `5.4.147` ，可选择多个内核用`_`连接如 `5.10.66_5.4.147` ，内核名称以 kernel 目录中的文件夹名称为准。 |
 | KERNEL_AUTO_LATEST     | true                   | 设置是否自动采用同系列最新版本内核。当为 `true` 时，将自动在内核库中查找在 `KERNEL_VERSION_NAME` 中指定的内核如 5.4.147 的 5.4 同系列是否有更新的版本，如有更新版本时，将自动更换为最新版。设置为 `false` 时将编译指定版本内核。 |
-| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus` `beikeyun` `l1pro` `s905` `s905d` `s905x2` `s905x3` `s912` `s922x` |
+| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus` `beikeyun` `l1pro` `s905` `s905d` `s905x2` `s905x3` `s912` `s922x` `s922x-n2` `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`, `diy` 是自定义盒子。 |
 | GZIP_IMGS              | true                   | 设置打包完毕是否自动压缩为 .img.gz 文件 (压缩包上传下载更快) |
 | SELECT_PACKITPATH      | openwrt_packit         | 设置 `/opt` 下的打包目录名称                     |
 | SELECT_OUTPUTPATH      | output                 | 设置 `${SELECT_PACKITPATH}` 目录中固件输出的目录名称 |
@@ -59,7 +57,9 @@
 | SCRIPT_S905X2          | mk_s905x2_x96max.sh    | 设置打包 `s905x2 x96max` 的脚本文件名            |
 | SCRIPT_S905X3          | mk_s905x3_multi.sh     | 设置打包 `s905x3 multi` 的脚本文件名             |
 | SCRIPT_S912            | mk_s912_zyxq.sh        | 设置打包 `s912 zyxq` 的脚本文件名                |
-| SCRIPT_S022X           | mk_s922x_gtking.sh     | 设置打包 `s922x gtking` 的脚本文件名             |
+| SCRIPT_S922X           | mk_s922x_gtking.sh     | 设置打包 `s922x gtking` 的脚本文件名             |
+| SCRIPT_S922X_N2        | mk_s922x_odroid-n2.sh  | 设置打包 `s922x odroid-n2` 的脚本文件名          |
+| SCRIPT_DIY             | mk_diy.sh              | 设置打包 `diy` 自定义脚本文件名                  |
 | WHOAMI                 | flippy                 | 设置 `make.env` 中 `WHOAMI` 参数的值            |
 | OPENWRT_VER            | auto                   | 设置 `make.env` 中 `OPENWRT_VER` 参数的值。默认 `auto` 将自动继承文件中的赋值，设置为其他参数时将替换为自定义参数。 |
 | SW_FLOWOFFLOAD         | 1                      | 设置 `make.env` 中 `SW_FLOWOFFLOAD` 参数的值    |
