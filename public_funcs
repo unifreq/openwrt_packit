@@ -934,21 +934,41 @@ function extract_glibc_programs() {
 
 # 调整 openssh 配置
 function adjust_openssh_config() {
-    echo -n "调整 openssh 配置 ..."
+    echo "调整 openssh 配置 ..."
+    echo "==============================================================================="
     (
         cd $TGT_ROOT
         sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
         if [ -f "./etc/ssh/sshd_config" ];then
+            echo -n "配置 sshd_config, 允许 root 用户登录 ... "
             sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
             sed -e "s/#PermitRootLogin no/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
+	    echo "完成 "
+	    echo -n "配置 shadow, 刷新密码更新日期 ... "
             utc_secs=$(date +%s)
             days=$(( utc_secs / 86400 ))
             sed -e "s/:0:0:99999:7:::/:${days}:0:99999:7:::/" -i ./etc/shadow
+	    echo "完成"
+	    
+	    echo -n "添加防火墙规则，丢弃目标为 WAN 区域, 端口为 22/TCP 的报文 ... "
+	    cat >> ./etc/config/firewall <<EOF
+
+config rule
+        option name 'drop-wan-ssh'
+        option src '*'
+        option dest 'wan'
+        option dest_port '22'
+        option proto 'tcp'
+        option target 'DROP'
+
+EOF
             echo "完成"
         else
             echo "未发现 openssh 配置文件， 放弃调整"
         fi
     )
+    echo "==============================================================================="
+    echo
 }
 
 # 调整 samba server 配置
