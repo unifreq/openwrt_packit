@@ -59,6 +59,7 @@ case ${ROOT_PTNAME} in
                       ;;
 esac
 
+DOCKER_ROOT="/mnt/${EMMC_NAME}${PARTITION_NAME}4/docker/"
 cd /mnt/${EMMC_NAME}${PARTITION_NAME}4/
 mv -f /tmp/upload/* . 2>/dev/null && sync
 
@@ -360,6 +361,24 @@ for src in $COPY_SRC; do
     (cd ${P2} && tar cf - $src) | tar xf -
     sync
 done
+
+cat > ./etc/docker/daemon.json <<EOF
+{
+  "bip": "172.31.0.1/24",
+  "data-root": "${DOCKER_ROOT}",
+  "log-level": "warn",
+  "log-driver": "json-file",
+  "log-opts": {
+     "max-size": "10m",
+     "max-file": "5"
+   },
+  "registry-mirrors": [
+     "https://docker.mirrors.ustc.edu.cn",
+     "https://registry.cn-shanghai.aliyuncs.com",
+     "https://hub-mirror.c.163.com"
+   ]
+}
+EOF
 
 cat > ./etc/fstab <<EOF
 UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
