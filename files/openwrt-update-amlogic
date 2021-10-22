@@ -41,12 +41,18 @@ fi
 # Find the disk where the partition is located, only supports mmcblk?p? sd?? hd?? vd?? and other formats
 case ${ROOT_PTNAME} in
        mmcblk?p[1-4]) EMMC_NAME=$(echo ${ROOT_PTNAME} | awk '{print substr($1, 1, length($1)-2)}')
+	              if lsblk -l -o NAME | grep "${EMMC_NAME}boot0" >/dev/null;then
+                          ROOT_DISK_TYPE="EMMC"
+		      else
+			  ROOT_DISK_TYPE="SD"
+	              fi
                       PARTITION_NAME="p"
-                      LB_PRE="EMMC_"
+                      LB_PRE="${ROOT_DISK_TYPE}_"
                       ;;
     [hsv]d[a-z][1-4]) EMMC_NAME=$(echo ${ROOT_PTNAME} | awk '{print substr($1, 1, length($1)-1)}')
+	              ROOT_DISK_TYPE="USB"
                       PARTITION_NAME=""
-                      LB_PRE=""
+                      LB_PRE="${ROOT_DISK_TYPE}_"
                       ;;
                    *) echo "Unable to recognize the disk type of ${ROOT_PTNAME}!"
                       exit 1
@@ -598,7 +604,12 @@ else
     exit 1
 fi
 
-rm -f s905_autoscript* aml_autoscript*
+if [ ${ROOT_DISK_TYPE} == "EMMC" ];then
+    rm -f s905_autoscript* aml_autoscript*
+    mv -f boot-emmc.ini boot.ini
+    mv -f boot-emmc.cmd boot.cmd
+    mv -f boot-emmc.scr boot.scr
+fi
 
 if  [ ${K510} -eq 1 ]; then
     if [ -f "u-boot.ext" ]; then
@@ -611,9 +622,6 @@ if  [ ${K510} -eq 1 ]; then
     fi
 fi
 
-mv -f boot-emmc.ini boot.ini
-mv -f boot-emmc.cmd boot.cmd
-mv -f boot-emmc.scr boot.scr
 sync
 
 echo "Update boot parameters ... "
