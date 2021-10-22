@@ -108,7 +108,7 @@ else
 fi
 
 # Check the necessary dependencies
-DEPENDS="lsblk uuidgen grep awk btrfs mkfs.fat mkfs.btrfs perl md5sum"
+DEPENDS="lsblk uuidgen grep awk btrfs mkfs.fat mkfs.btrfs perl md5sum fatlabel"
 echo "Check the necessary dependencies..."
 for dep in ${DEPENDS};do
     WITCH=$(which ${dep})
@@ -362,23 +362,10 @@ for src in $COPY_SRC; do
     sync
 done
 
-cat > ./etc/docker/daemon.json <<EOF
-{
-  "bip": "172.31.0.1/24",
-  "data-root": "${DOCKER_ROOT}",
-  "log-level": "warn",
-  "log-driver": "json-file",
-  "log-opts": {
-     "max-size": "10m",
-     "max-file": "5"
-   },
-  "registry-mirrors": [
-     "https://docker.mirrors.ustc.edu.cn",
-     "https://registry.cn-shanghai.aliyuncs.com",
-     "https://hub-mirror.c.163.com"
-   ]
-}
-EOF
+# if not backup, then force rewrite the etc/docker/ directory
+if [ "${BR_FLAG}" -eq 0 ];then
+    cp -fv /etc/docker/* ./etc/docker/
+fi
 
 cat > ./etc/fstab <<EOF
 UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
@@ -573,6 +560,35 @@ btrfs subvolume snapshot -r etc .snapshots/etc-001
 
 cd ${WORK_DIR}
  
+echo -n "umount /boot ... "
+umount -f /boot
+if [ $? -ne 0 ];then
+    echo "failed! "
+    umount ${P1}
+    umount ${P2}
+    losetup -D
+    exit 1
+else
+    echo "ok"
+fi
+
+#echo "reformat ${BOOT_PATH} ..."
+#if mkfs.fat -n "${LB_PRE}BOOT" -F 32 ${BOOT_PATH} 2>/dev/null;then
+#    echo -n "mount /boot ..."
+#    mount -t vfat -o "errors=remount-ro" ${BOOT_PATH} /boot 
+#    if [ $? -eq 0 ];then
+#        echo "ok"
+#    else
+#        echo "mount failed! The system has been destroyed and must be refreshed!"
+#	exit 1
+#    fi
+#else
+#    echo "format failed! The system has been destroyed and must be refreshed!"
+#    exit 1
+#fi
+echo "Change the label of ${BOOT_PATH} ... "
+fatlabel ${BOOT_PATH} "${LB_PRE}BOOT"
+
 echo "Start copying data， from [ ${P1} ] to [ /boot ] ..."
 cd /boot
 echo "Delete the old boot file ..."
