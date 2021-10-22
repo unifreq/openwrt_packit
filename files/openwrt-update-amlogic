@@ -576,18 +576,18 @@ btrfs subvolume snapshot -r etc .snapshots/etc-001
 
 cd ${WORK_DIR}
  
-echo -n "umount /boot ... "
-umount -f /boot
-if [ $? -ne 0 ];then
-    echo "failed! "
-    umount ${P1}
-    umount ${P2}
-    losetup -D
-    exit 1
-else
-    echo "ok"
-fi
-
+#echo -n "umount /boot ... "
+#umount -f /boot
+#if [ $? -ne 0 ];then
+#    echo "failed! "
+#    umount ${P1}
+#    umount ${P2}
+#    losetup -D
+#    exit 1
+#else
+#    echo "ok"
+#fi
+#
 #echo "reformat ${BOOT_PATH} ..."
 #if mkfs.fat -n "${LB_PRE}BOOT" -F 32 ${BOOT_PATH} 2>/dev/null;then
 #    echo -n "mount /boot ..."
