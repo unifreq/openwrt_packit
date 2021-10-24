@@ -597,6 +597,12 @@ function extract_rootfs_files() {
    else 
         echo "完成"
    fi
+
+   if [ -n "$MODEL_DB" ] && [ -f "$MODEL_DB" ];then
+       echo "复制硬件机型数据库 ..."
+       cp -v "$MODEL_DB" ${TGT_ROOT}/etc/model_database.txt
+       echo "完成"
+   fi 
 }
 
 function extract_amlogic_boot_files() {

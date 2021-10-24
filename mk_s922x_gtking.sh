@@ -112,6 +112,9 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 
 # 20211019 add
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
+
+# 20211024 add
+MODEL_DB="${PWD}/files/amlogic_model_database.txt"
 ###########################################################################
 
 check_depends
