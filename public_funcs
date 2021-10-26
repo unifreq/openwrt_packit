@@ -179,6 +179,7 @@ function detach_loopdev() {
     cd ${TEMP_DIR}
     umount -f * 2>/dev/null
     losetup -D
+    cd ${WORK_DIR}
     rm -rf ${TEMP_DIR}
 }
 
@@ -217,49 +218,108 @@ function create_image() {
     echo
 }
 
-# 创建分区
+# 创建分区(允许在空白磁盘里新建分区，也允许在现有分区表中扩充分区)
 # 参数1： 块设备名
-# 参数2： 跳过 x MB
-# 参数3+参数4： 分区1大小MB 分区1类型
-# 参数5+参数6： 分区2大小MB 分区2类型
-# 参数7+参数8： 分区3大小MB 分区3类型
-# 参数9+参数10：分区4大小MB 分区4类型
+# 参数2： 分区表类型： msdos|gpt|auto  auto表示在现有的磁盘中添加新分区
+# 参数3+4+5： 分区1跳过MB 分区1大小MB 分区1类型
+# 参数6+7+8： 分区2跳过MB 分区2大小MB 分区2类型
+# 参数9+10+11： 分区3跳过MB 分区3大小MB 分区3类型
+# 参数12+13+14: 分区4跳过MB 分区4大小MB 分区4类型
+# ...
 function create_partition() {
     local device_name=$1
     check_block_dev $device_name
     shift
 
-    local skip_mb=$1
-    local start=$((skip_mb * 1024 * 1024))
+    local partition_label=$1
     shift
 
-    echo "对磁盘设备 [$device_name] 进行分区 ..."
-    parted -s ${device_name} mklabel msdos 2>/dev/null
-    if [ $? -ne 0 ];then
-        echo "分区失败!"
-        detach_loopdev
-        exit 1
-    fi
-    i=1
-    while [ $i -le 4 ]; do
-        local pt_size=$1
-        shift
-        local pt_type=$1
-        shift
-        
-        if [ "$pt_size" == "" ] || [ "$pt_type" == "" ];then
-            break
-        fi            
+    local max_pt_cnt
+    local cur_pt_cnt=0
+    case ${partition_label} in
+        msdos) max_pt_cnt=4
+               ;;
+          gpt) max_pt_cnt=128
+               ;;
+         auto) local label=$(parted $device_name print 2>/dev/null | gawk '$NF ~ /&msdos$/ || $NF ~ /^gpt$/ || $NF ~ /^unknown$/ {print $NF}')
+               case $label in 
+                   msdos) partition_label="msdos"
+                          max_pt_cnt=4
+                          cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
+                          [ "$cur_pt_cnt" == "" ] && cur_pt_cnt=0
+                          ;;
+                     gpt) partition_label="gpt"
+                          max_pt_cnt=128
+                          cur_pt_cnt=$(parted $device_name print | gawk '$1 ~ /^[0-9]+$/ {print $1}' | tail -n1)
+                          [ "$cur_pt_cnt" == "" ] && cur_pt_cnt=0
+                          ;;
+                       *) # 自动模式下，如果检测到空白磁盘，将会用msdos格式新建分区表
+                          partition_label="msdos"
+                          max_pt_cnt=4
+                          cur_pt_cnt=0
+                          ;;
+               esac
+               ;;
+            *) echo "未指定分区表类型, 必须为 gpt|msdos|auto"
+               exit 1
+               ;;
+    esac
 
-        local end=$(( pt_size * 1024 * 1024 +  start - 1 ))
-        echo -n "创建第 [$i] 个分区, 分区大小: [$pt_size] MB, 分区类型: [$pt_type] ... "
-        parted -s ${device_name} mkpart primary ${pt_type} ${start}b ${end}b 2>/dev/null
+    echo "对磁盘设备 [$device_name] 进行分区 ..."
+    if [ $cur_pt_cnt -eq 0 ];then
+        echo -n "创建新的分区表 ... "
+        parted -s ${device_name} mklabel ${partition_label} 2>/dev/null
         if [ $? -ne 0 ];then
             echo "失败!"
             detach_loopdev
             exit 1
         else
             echo "成功"
+        fi
+    fi
+
+    local start=0
+    if [ $cur_pt_cnt -gt 0 ];then
+        start=$(fdisk -l $device_name | tail -n1 | gawk '{ print ($3 + 1) / 512 * 1024 * 1024 }')
+    fi
+    i=$((cur_pt_cnt + 1))
+    while [ $i -le ${max_pt_cnt} ]; do
+        local skip_mb=$1
+        shift
+        local pt_size=$1
+        shift
+        local pt_type=$1
+        shift
+        
+        if [ "$skip_mb" == "" ] || [ "$pt_size" == "" ] || [ "$pt_type" == "" ];then
+            break
+        fi            
+
+        start=$(( skip_mb * 1024 * 1024 + start ))
+
+        local end
+        if [ "${pt_size}" == "-1" ] || [ "${pt_size}" == "100%" ];then
+            echo -n "创建第 [$i] 个分区, 分区大小: 所有剩余空间, 分区类型: [$pt_type] ... "
+            parted -s ${device_name} mkpart primary ${pt_type} ${start}b "100%" 2>/dev/null
+            if [ $? -ne 0 ];then
+                echo "失败!"
+                detach_loopdev
+                exit 1
+            else
+                echo "成功"
+                break
+            fi
+        else
+            end=$(( pt_size * 1024 * 1024 +  start - 1 ))
+            echo -n "创建第 [$i] 个分区, 分区大小: [$pt_size] MB, 分区类型: [$pt_type] ... "
+            parted -s ${device_name} mkpart primary ${pt_type} ${start}b ${end}b 2>/dev/null
+            if [ $? -ne 0 ];then
+                echo "失败!"
+                detach_loopdev
+                exit 1
+            else
+                echo "成功"
+            fi
         fi
 
         start=$(( end + 1 ))
@@ -427,7 +487,7 @@ function extract_rootfs_files() {
    (
        cd ${TGT_ROOT} && \
           tar --exclude="./lib/firmware/*" --exclude="./lib/modules/*" -xzf "$OPWRT_ROOTFS_GZ" && \
-          mkdir -p .reserved boot rom overlay proc sys run && \
+          mkdir -p .reserved boot rom overlay proc sys run ./etc/modprobe.d ./etc/modules.d.remove && \
           sync
    )
    if [ $? -ne 0 ];then
@@ -442,6 +502,17 @@ function extract_rootfs_files() {
        cd ${TGT_ROOT}
        rm -rf ./lib/firmware/* ./lib/modules/*
        rm -f ./etc/docker-init ./sbin/firstboot ./sbin/jffs2reset ./sbin/jffs2mark
+       # for collectd
+       [ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
+       chmod 755 ./etc/init.d/*
+       rm -f ./etc/rc.d/S80nginx 2>/dev/null
+       local ps="${PLATFORM}_${SOC}"
+       case $ps in 
+           amlogic_s905) # s905不支持硬件aes，所以必须删除 ss-rust 程序
+                         [ -f ./usr/bin/sslocal ] && rm -f ./usr/bin/sslocal
+                         [ -f ./usr/bin/ssserver ] && rm -f ./usr/bin/ssserver
+                         ;;
+       esac
    )
    echo "完成"
 
@@ -526,6 +597,12 @@ function extract_rootfs_files() {
    else 
         echo "完成"
    fi
+
+   if [ -n "$MODEL_DB" ] && [ -f "$MODEL_DB" ];then
+       echo "复制硬件机型数据库 ..."
+       cp -v "$MODEL_DB" ${TGT_ROOT}/etc/model_database.txt
+       echo "完成"
+   fi 
 }
 
 function extract_amlogic_boot_files() {
@@ -612,4 +689,732 @@ function extract_allwinner_boot_files() {
     else 
         echo "完成"
     fi
+}
+
+# 生成 openwrt 所需的 fstab 文件
+function create_fstab_config() {
+    echo "创建 fstab 配置文件 ... "
+    (
+        cd $TGT_ROOT
+        if [ ! -z "${BOOT_UUID}" ];then
+            cat > ./etc/fstab <<EOF
+UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+UUID=${BOOT_UUID} /boot ext4 noatime,errors=remount-ro 0 2
+#tmpfs /tmp tmpfs defaults,nosuid 0 0
+EOF
+        else 
+            cat > ./etc/fstab <<EOF
+UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
+#tmpfs /tmp tmpfs defaults,nosuid 0 0
+EOF
+        fi
+
+        cat > ./etc/config/fstab <<EOF
+config global
+        option anon_swap '0'
+        option auto_swap '0'
+        option anon_mount '1'
+        option auto_mount '1'
+        option delay_root '5'
+        option check_fs '0'
+
+config mount
+        option target '/overlay'
+        option enabled '1'
+        option enabled_fsck '1'
+        option uuid '${ROOTFS_UUID}'
+        option fstype 'btrfs'
+        option options 'compress=zstd'
+
+config mount
+        option target '/boot'
+        option enabled '1'
+        option enabled_fsck '1'
+EOF
+        if [ ! -z "${BOOT_UUID}" ];then
+            cat >> ./etc/config/fstab <<EOF
+        option uuid '${BOOT_UUID}'
+        option fstype 'ext4'
+
+EOF
+        else
+            cat >> ./etc/config/fstab <<EOF
+        option label '${BOOT_LABEL}'
+        option fstype 'vfat'
+
+EOF
+        fi
+    )
+    echo "当前 fstab 内容如下："
+    echo "==============================================="
+    cat $TGT_ROOT/etc/config/fstab
+    echo "==============================================="
+    echo
+}
+
+# 调整ntfs相关配置
+function adjust_ntfs_config() {
+    echo -n "调整 ntfs 配置 ... "
+    ( 
+        cd $TGT_ROOT/sbin
+        if [ -f mount.ntfs3 ];then
+            ln -sf mount.ntfs3 mount.ntfs
+            echo "发现 mount.ntfs3, 调整完成"
+        elif [ -f ../usr/bin/ntfs-3g ];then
+            ln -sf /usr/bin/ntfs-3g mount.ntfs
+            echo "发现 ntfs-3g, 调整完成"
+        else
+            echo "固件中未包含 ntfs 相关程序"
+        fi
+    )
+}
+
+# 调整 turboacc 相关配置
+function adjust_turboacc_config() {
+    echo -n "调整 turboacc 配置 ... "
+    ( 
+        cd $TGT_ROOT
+        if [ -f ./etc/config/turboacc ];then
+            sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+            sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
+            sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
+        else
+            cat > ./etc/config/turboacc <<EOF
+
+config turboacc 'config'
+        option sw_flow '${SW_FLOWOFFLOAD}'
+        option hw_flow '${HW_FLOWOFFLOAD}'
+        option sfe_flow '${SFE_FLOW}'
+        option bbr_cca '0'
+        option fullcone_nat '1'
+        option dns_caching '0'
+
+EOF
+        fi
+    )
+    echo "完成"
+}
+
+# CPU状态补丁
+function patch_admin_status_index_html() {
+    echo "打补丁：[状态页面相关信息补丁] ... "
+    (  
+        cd $TGT_ROOT
+        if [ ! -f usr/bin/perl ];then
+             echo "未发现 perl 实用程序, 放弃补丁!"
+        else 
+            if [ -f "$CPUSTAT_PATCH" ];then 
+                 patch -p1 < ${CPUSTAT_PATCH} 
+                 if [ $? -ne 0 ];then
+                     echo "补丁失败!"
+                 else
+                     if [ -f "${CPUSTAT_PATCH_02}" ] ;then
+                         patch -p1 < ${CPUSTAT_PATCH_02}
+                         if [ $? -ne 0 ];then
+                            echo "补丁失败!"
+                         fi
+                     fi
+                 fi
+            fi
+            echo "完成"
+        fi
+        echo
+    )
+}
+
+# 写入 release 信息
+function write_release_info() {
+    echo "写入 release 信息 ... "
+    (
+        cd $TGT_ROOT
+
+        # 写入版本信息
+        cat > ./etc/flippy-openwrt-release <<EOF
+PLATFORM=${PLATFORM}
+SOC=${SOC}
+BOARD=${BOARD}
+KERNEL_VERSION=${KERNEL_VERSION}
+K510=${K510}
+EOF
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$UBOOT_WITHOUT_FIP" ];then
+            cat >> ./etc/flippy-openwrt-release <<EOF
+UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
+EOF
+        fi
+    )
+    cat $TGT_ROOT/etc/flippy-openwrt-release
+    echo 
+}
+
+# 写入 banner 信息
+function write_banner() {
+    echo "写入 banner 信息 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f $BANNER ];then
+            cp -f $BANNER ./etc/banner
+            echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner
+            echo " Kernel ${KERNEL_VERSION}" >> etc/banner
+            TODAY=$(date +%Y-%m-%d)
+            echo " Packaged by ${WHOAMI} on ${TODAY}" >> etc/banner
+            echo " PLATFORM: ${PLATFORM}  SOC: ${SOC}  BOARD: ${BOARD}" >> etc/banner
+            echo >> etc/banner
+        fi
+    )
+    cat $TGT_ROOT/etc/banner
+    echo 
+}
+
+# 复制增补文件
+function copy_supplement_files() {
+    echo "复制增补的文件 ... "
+    echo "==============================================================================="
+    (
+        cd $TGT_ROOT
+        [ -n "$DAEMON_JSON" ] && [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp -v $DAEMON_JSON "./etc/docker/daemon.json"
+        [ -n "$COREMARK" ] && [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && \
+              cp -fv $COREMARK "./etc/coremark.sh" && chmod 755 "etc/coremark.sh" && \
+              rm -f ./etc/bench.log && \
+              echo "17 3 * * * /etc/coremark.sh" >> ./etc/crontabs/root
+
+        #[ -n "$TTYD" ] && [ -f $TTYD ] && cp -v $TTYD etc/init.d/
+
+        [ -n "$FLIPPY" ] && [ -f $FLIPPY ] && cp -v $FLIPPY ./usr/sbin/
+        [ -n "$OPENWRT_INSTALL" ] && [ -f ${OPENWRT_INSTALL} ] && cp -v ${OPENWRT_INSTALL} ./usr/sbin/ && \
+              (cd root && ln -s ../usr/sbin/openwrt-install-amlogic ./install-to-emmc.sh)
+        [ -n "$OPENWRT_KERNEL" ] && [ -f ${OPENWRT_KERNEL} ] && cp -v ${OPENWRT_KERNEL} ./usr/sbin/
+        [ -n "$OPENWRT_BACKUP" ] && [ -f ${OPENWRT_BACKUP} ] && cp -v ${OPENWRT_BACKUP} ./usr/sbin/ && (cd usr/sbin && ln -sfv openwrt-backup flippy)
+        [ -n "$OPENWRT_UPDATE" ] && [ -f ${OPENWRT_UPDATE} ] && cp -v ${OPENWRT_UPDATE} ./usr/sbin/
+
+        # 我家云, 风扇调速脚本
+        if [ "$PLATFORM" == "rockchip" ] && [ "$SOC" == "rk3328" ] && [ "$BOARD" == "l1pro" ] && [ -f "$PWM_FAN" ];then
+            cp -v $PWM_FAN ./usr/bin
+            echo "pwm_fan" > ./etc/modules.d/pwm_fan
+            sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
+        fi
+
+        [ -n "$BAL_ETH_IRQ" ] && [ -f $BAL_ETH_IRQ ] && cp -v $BAL_ETH_IRQ ./usr/sbin && chmod 755 ./usr/sbin/balethirq.pl && \
+              sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
+
+        [ -n "$BAL_CONFIG" ] && [ -f $BAL_CONFIG ] && cp -v $BAL_CONFIG etc/config/
+        [ -n "$CPUFREQ_INIT" ] && [ -f $CPUFREQ_INIT ] && cp -v $CPUFREQ_INIT etc/init.d/ && chmod 755 etc/init.d/cpufreq
+        [ -n "$WIRELESS_CONFIG" ] && [ -f $WIRELESS_CONFIG ] && cp -v $WIRELESS_CONFIG etc/config/
+        [ -n "$FIX_CPU_FREQ" ] && [ -f $FIX_CPU_FREQ ] && cp -v $FIX_CPU_FREQ ./usr/sbin && chmod 755 ./usr/sbin/fixcpufreq.pl
+        [ -n "$SYSFIXTIME_PATCH" ] && [ -f $SYSFIXTIME_PATCH ] && patch -p1 < $SYSFIXTIME_PATCH
+        [ -n "$FORCE_REBOOT" ] && [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/ 
+
+        [ -n "$GET_RANDOM_MAC" ] && [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} ./usr/bin/
+        [ -n "$MAC_SCRIPT1" ] && [ -f $MAC_SCRIPT1 ] && cp -v $MAC_SCRIPT1 ./usr/bin/
+        [ -n "$MAC_SCRIPT2" ] && [ -f $MAC_SCRIPT2 ] && cp -v $MAC_SCRIPT2 ./usr/bin/
+        [ -n "$MAC_SCRIPT3" ] && [ -f $MAC_SCRIPT3 ] && cp -v $MAC_SCRIPT3 ./usr/bin/
+
+        [ -n "$CPUSTAT_SCRIPT" ] && [ -f $CPUSTAT_SCRIPT ] && cp -v $CPUSTAT_SCRIPT ./usr/bin/cpustat && chmod 755 ./usr/bin/cpustat  
+        [ -n "$GETCPU_SCRIPT" ] && [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
+        [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
+             sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
+    )
+    echo "==============================================================================="
+    echo "完成"
+    echo
+}
+
+function extract_glibc_programs() {
+    echo -n "释放基于 glibc 的增补程序包 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f "$SS_LIB" ];then
+            ( cd ./lib && tar xJf "$SS_LIB" )
+            ( [ -n "$JQ" ] && [ -f "$JQ" ] && [ ! -f "./usr/bin/jq" ] && cp ${JQ} ./usr/bin/jq )
+            [ -n "$SS_BIN" ] && [ -f "$SS_BIN" ] && \
+                 (   cd ./usr/bin 
+                     mkdir -p ss-bin-musl && mv -f ss-server ss-redir ss-local ss-tunnel ss-bin-musl/ 2>/dev/null
+                     tar xJf "$SS_BIN"
+                 )
+        fi
+    )
+    echo "完成"
+    echo
+}
+
+# 调整 openssh 配置
+function adjust_openssh_config() {
+    echo "调整 openssh 配置 ..."
+    echo "==============================================================================="
+    (
+        cd $TGT_ROOT
+        sed -e 's/root::/root:$1$NA6OM0Li$99nh752vw4oe7A.gkm2xk1:/' -i ./etc/shadow
+        if [ -f "./etc/ssh/sshd_config" ];then
+            echo -n "配置 sshd_config, 允许 root 用户登录 ... "
+            sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
+            sed -e "s/#PermitRootLogin no/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
+	    echo "完成 "
+	    echo -n "配置 shadow, 刷新密码更新日期 ... "
+            utc_secs=$(date +%s)
+            days=$(( utc_secs / 86400 ))
+            sed -e "s/:0:0:99999:7:::/:${days}:0:99999:7:::/" -i ./etc/shadow
+	    echo "完成"
+	    
+	    echo -n "添加防火墙规则，丢弃目标为 WAN 区域, 端口为 22/TCP 的报文 ... "
+	    cat >> ./etc/config/firewall <<EOF
+
+config rule
+        option name 'drop-wan-ssh'
+        option src '*'
+        option dest 'wan'
+        option dest_port '22'
+        option proto 'tcp'
+        option target 'DROP'
+
+EOF
+            echo "完成"
+        else
+            echo "未发现 openssh 配置文件， 放弃调整"
+        fi
+    )
+    echo "==============================================================================="
+    echo
+}
+
+# 调整 samba server 配置
+function adjust_samba_config() {
+    echo "调整 samba server 配置 ..."
+    (
+         # for cifsd
+         if [ -f ./etc/init.d/cifsd ];then
+             echo -n "发现 cifsd, 禁用 samba4. "        
+             rm -f ./etc/rc.d/S98samba4
+         fi
+          # for smbd
+         if [ -f ./etc/init.d/smbd ];then
+             echo -n "发现 smbd, 禁用 samba4. "        
+             rm -f ./etc/rc.d/S98samba4
+         fi                
+         # for ksmbd
+         if [ -f ./etc/init.d/ksmbd ];then
+             echo -n "发现 ksmbd, 禁用 samba4. "        
+             rm -f ./etc/rc.d/S98samba4
+             sed -e 's/modprobe ksmbd/sleep 1 \&\& modprobe ksmbd/' -i ./etc/init.d/ksmbd
+         fi
+         # for samba4 enable smbv1 protocol
+         if [ -f ./etc/config/samba4 ];then
+             echo "发现 samba4, 将启用 smbv1 协议. "        
+             sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua
+             [ -f ${SMB4_PATCH} ] && patch -p1 < ${SMB4_PATCH}
+         fi
+    )
+    echo "完成"
+    echo
+}
+
+# 调整 nfs server 配置
+function adjust_nfs_config() {
+    local mount_point=$1
+    [ -z "$mount_point" ] && return
+    echo "调整 nfs server 配置 ... "
+    (
+        # for nfs server
+        if [ -f ./etc/init.d/nfsd ];then
+            echo -n "已发现 nfsd 服务, 将调整其初始配置文件 ... "
+            cat > ./etc/exports <<EOF
+# /etc/exports: the access control list for filesystems which may be exported
+#               to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+
+/mnt *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
+/mnt/${mount_point} *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
+EOF
+             cat > ./etc/config/nfs <<EOF
+config share
+        option clients '*'
+        option enabled '1'
+        option path '/mnt'
+        option options 'ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash'
+
+config share
+        option enabled '1'
+        option path '/mnt/${mount_point}'
+        option clients '*'
+        option options 'rw,fsid=1,sync,no_subtree_check,no_root_squash'
+EOF
+        fi
+
+    )
+    echo "完成, 初始 nfs 配置文件为："
+    echo "==============================================================================="
+    cat $TGT_ROOT/etc/config/nfs
+    echo "==============================================================================="
+    echo
+}
+
+# 调整 openclash 配置
+function adjust_openclash_config() {
+    echo -n "调整 openclash 配置 ... "
+    (
+        cd $TGT_ROOT
+        if [ -d ./etc/openclash/core ];then
+            mkdir -p ./usr/share/openclash/core && \
+            cd ./etc/openclash && \
+            mv core ../../usr/share/openclash/ && \
+            ln -s ../../usr/share/openclash/core .
+            echo "完成"
+        else
+            echo "未发现 openclash, 放弃调整"
+        fi
+    )
+}
+
+# 调整 getty 配置
+function adjust_getty_config() {
+    echo -n "调整 getty 配置 ..."
+    (
+        cd $TGT_ROOT
+        case $PLATFORM in
+            allwinner)   cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+ttyS0::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+             rockchip)   cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+tty1::askfirst:/usr/libexec/login.sh
+ttyS2::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+             amlogic)    cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+ttyAML0::askfirst:/usr/libexec/login.sh
+tty0::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+                   *)    echo "Platform: ${PLATFORM} 不受支持！放弃调整"
+                         ;;
+        esac
+    )
+}
+
+# qbittorrent 配置调整
+function adjust_qbittorrent_config() {
+    echo -n "调整 qbittorrent 配置 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f "./etc/config/qbittorrent" ];then
+            sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
+            echo "完成"
+        else
+            echo "未发现 qbittorrent 配置文件, 放弃调整"
+        fi
+    )
+}
+
+# openssl 配置调整
+function adjust_openssl_config() {
+    echo "调整 openssl 配置 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f $SSL_CNF_PATCH ];then
+             if patch -p1 < $SSL_CNF_PATCH;then
+                 echo "完成"
+             else
+                 echo "失败！请检查 $SSL_CNF_PATCH "
+             fi 
+        else
+            echo "未发现 openssl 配置文件，放弃调整"
+        fi
+    )
+    echo
+}
+
+# docker 配置调整
+function adjust_docker_config() {
+    echo "调整 docker server 配置 ... "
+    (
+        cd $TGT_ROOT
+        [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
+        if [ -f ./etc/init.d/dockerd ];then
+            echo "发现 dockerd 服务，正在调整 ... "
+            [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && patch -p1 < $DOCKERD_PATCH
+            if [ "$PLATFORM" == "amlogic" ];then
+                echo "在 Amlogic 平台上，U盘或TF卡启动默认关闭 dockerd 服务 ... "
+                rm -f ./etc/rc.d/S??dockerd
+            else
+                # 其它平台， 调整启动顺序到99
+                mv -f ./etc/rc.d/S??dockerd ./etc/rc.d/S99dockerd 2>/dev/null
+            fi
+            echo "完成"
+        else
+            echo "未发现 dockerd 服务，放弃调整"
+        fi
+        #sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
+    )
+    echo
+}
+
+# 用 xray-plugin 代替 v2ray-plugin
+function use_xrayplug_replace_v2rayplug() {
+    echo -n "用 xray-plugin 代替 v2ray-plugin ... "
+    (
+        cd $TGT_ROOT
+        if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
+            cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin
+            echo "完成"
+        else
+            echo "不符合替换条件，跳过"
+        fi
+    )
+}
+
+# 配置 first run 程序
+function config_first_run() {
+    echo "创建 [初次使用] 应用环境 ... "
+    (
+         cd $TGT_ROOT
+         # First run, 第一次启动时自动创建新分区及格式化
+         if [ -n "$FIRSTRUN_SCRIPT" ] && [ -f "$FIRSTRUN_SCRIPT" ];then
+              cp -v "$FIRSTRUN_SCRIPT" ./etc/first_run.sh && \
+                  sed -e "s/MYSELF=\$0/MYSELF=\"\/etc\/first_run.sh\"/" -i ./etc/first_run.sh && \
+                  chmod 755 ./etc/first_run.sh
+              cp -v "./etc/rc.local" "./etc/rc.local.orig"
+              echo -e "${SKIP_MB}\t${BOOT_MB}\t${ROOTFS_MB}" > ./etc/part_size
+              sed -e "/exit/i\/etc/first_run.sh >/root/first_run.log 2>&1" -i etc/rc.local
+              echo "完成"
+          else
+              echo "未发现相关依赖，跳过配置"
+          fi
+
+    )
+    echo
+}
+
+# 调整 内核 环境
+function adjust_kernel_env() {
+    echo "调整内核、硬件驱动等相关环境 ..."
+    echo "==============================================================================="
+    (
+        cd $TGT_ROOT
+        local ps="${PLATFORM}_${SOC}"
+        if [ -f etc/config/cpufreq ];then
+            echo "设置 schedutil 为默认调度器"
+            sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
+        fi
+
+        if [ -n "$SYSCTL_CUSTOM_CONF" ] && [ -f ${SYSCTL_CUSTOM_CONF} ];then
+            echo "启用自定义的内核优化参数 ... "
+            cp -v ${SYSCTL_CUSTOM_CONF} ./etc/sysctl.d/
+        fi
+
+        if [ -n "${KMOD_BLACKLIST}" ] && [ -f "${KMOD_BLACKLIST}" ];then
+            echo -n "禁用黑名单中的内核模块 ... "
+            [ -d ./etc/modules.d.remove ] || mkdir -p ./etc/modules.d.remove
+            local mod_blacklist=$(cat ${KMOD_BLACKLIST})
+            for mod in $mod_blacklist ;do
+                 mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
+            done
+            echo "完成"
+        fi    
+
+        case $ps in 
+            allwinner_h6|rockchip_rk3328) 
+                echo -n "当前机型并未内置 broadcom 无线模块, 禁用 brcmfmac 驱动 ... "
+                mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
+                echo "完成"
+                ;;
+            amlogic_*) 
+                if [ $K510 -eq 1 ];then
+                    # 高版本内核下，如果ENABLE_WIFI_K510 = 0 则禁用wifi
+                    if [ $ENABLE_WIFI_K510 -eq 0 ];then
+                         echo "禁用了 brcmfmac 内置无线网卡驱动, 如需开启, 请设置 ENABLE_WIFI_K510=1 并重新打包"
+                         mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+                    else
+                         echo "brcmfmac" > ./etc/modules.d/brcmfmac
+                         echo "brcmutil" > ./etc/modules.d/brcmutil
+                         echo "已启用 brcmfmac 驱动，如果机内有 broadcom 模块的话，就可以开启wifi功能" 
+                    fi
+                else
+                    # 低版本内核下，如果ENABLE_WIFI_K504 = 0 则禁用wifi
+                    if [ $ENABLE_WIFI_K504 -eq 0 ];then
+                        echo "禁用了 brcmfmac 内置无线网卡驱动, 如需开启, 请设置 ENABLE_WIFI_K504=1 并重新打包"
+                        mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
+                    else
+                        echo "brcmfmac" > ./etc/modules.d/brcmfmac
+                        echo "brcmutil" > ./etc/modules.d/brcmutil
+                        echo "已启用 brcmfmac 驱动，如果机内有 broadcom 模块的话，就可以开启wifi功能" 
+                    fi
+                fi
+                ;;
+            *)  echo "跳过"
+                ;;
+        esac 
+             
+        echo -n "启用 USB AX88179 网卡驱动 ... "
+        [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
+        echo "完成"
+
+        echo -n "启用 USB RTL8152/8153/8156 网卡驱动 ... "
+        [ -f ./etc/modules.d/usb-net-rtl8152 ] || echo "r8152" > ./etc/modules.d/usb-net-rtl8152
+        echo "完成"
+
+        echo -n "启用 USB Realtek RTL8188EU 无线网卡驱动 ... "
+        echo "r8188eu" > ./etc/modules.d/rtl8188eu
+        echo "完成"
+        echo "  *** 是否可用请自行测试"
+
+        echo -n "启用 USB Ralink 无线网卡驱动  ... "
+        echo "rt2500usb" > ./etc/modules.d/rt2500-usb
+        echo "rt2800usb" > ./etc/modules.d/rt2800-usb
+        echo "rt2x00usb" > ./etc/modules.d/rt2x00-usb
+        echo "完成"
+        echo "  *** 如果有 Ralink rt2xxx/rt3xxx/rt5xxx 系列USB无线网卡的话，插上基本能用"
+
+        echo -n "启用 USB Mediatek 无线网卡驱动  ... "
+        echo "mt7601u" > ./etc/modules.d/mt7601u
+        echo "mt7663u" > ./etc/modules.d/mt7663u
+        echo "mt76x0u" > ./etc/modules.d/mt76x0u
+        echo "mt76x2u" > ./etc/modules.d/mt76x2u
+        echo "完成"
+        echo "  *** 如果有 Mediatek mt7601u/mt7610u/mt7612u/mt7663u 系列USB无线网卡的话，插上基本能用"
+
+        echo -n "启用看门狗驱动 ... "
+        case $PLATFORM in 
+            allwinner) echo "sunxi_wdt" > ./etc/modules.d/watchdog
+                       echo "完成"
+                       ;;
+             rockchip) echo "dw_wdt" > ./etc/modules.d/watchdog
+                       echo "完成"
+                       ;;
+              amlogic) echo meson_gxbb_wdt > ./etc/modules.d/watchdog
+                       echo "完成"
+                       ;;
+                    *) echo "跳过";;
+        esac 
+
+        if [ -n "${SND_MOD}" ] && [ -f ./etc/config/shairport-sync ] && [ -f ${SND_MOD} ];then
+            echo -n "启用声卡驱动 ... "
+            cp ${SND_MOD} ./etc/modules.d/
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ];then
+            echo -n "启用 GPU 驱动 ... "
+            echo "panfrost" > ./etc/modules.d/panfrost
+            echo "完成"
+            echo -n "启用 PWM 驱动 ... "
+            echo "pwm_meson" > ./etc/modules.d/pwm_meson
+            echo "完成"
+        fi
+    )
+    echo "==============================================================================="
+    echo "完成"
+    echo
+}
+
+# 复制 u-boot 到文件系统
+function copy_uboot_to_fs() {
+    (
+        cd $TGT_ROOT
+        if [ "$BOARD" == "vplus" ] && [ -n "${UBOOT_BIN}" ] && [ -f ${UBOOT_BIN} ];then
+            echo "检测到 vplus 机型，正在把 u-boot 相关文件写入到 /lib/u-boot目录中备用 ... "
+            mkdir -p ./lib/u-boot
+            cp -v ${UBOOT_BIN} ./lib/u-boot/
+            cp -v ${WRITE_UBOOT_SCRIPT} ./lib/u-boot/
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$FIP_HOME" ] && [ -d "${FIP_HOME}" ];then
+            echo "检测到 amlogic 平台，正在把主线 u-boot 相关文件写入到 /lib/u-boot 目录中备用 ... "
+            mkdir -p ./lib/u-boot
+            cp -v "${FIP_HOME}"/../*.sh lib/u-boot/
+            cp -v "${FIP_HOME}"/*.sd.bin lib/u-boot/
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$BTLD_BIN" ] && [ -f "${BTLD_BIN}" ];then
+            echo "检测到 amlogic 平台，正在把安卓 u-boot 相关文件写入到 /lib/u-boot 目录中备用 ... "
+            mkdir -p ./lib/u-boot
+            cp -v "$BTLD_BIN" lib/u-boot/
+            echo "完成"
+        fi
+    )
+    echo
+}
+
+# 写入 u-boot 到磁盘镜像
+function write_uboot_to_disk() {
+    (
+        if [ "$PLATFORM" == "allwinner" ] && [ -n "$UBOOT_BIN" ] && [ -f "$UBOOT_BIN" ];then
+            echo "写入 bootloader ..."
+
+            echo "dd if=${UBOOT_BIN} of=${TGT_DEV} conv=fsync,notrunc bs=1024 seek=8"
+
+            dd if="${UBOOT_BIN}" of="${TGT_DEV}" conv=fsync,notrunc bs=1024 seek=8
+
+            sync
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "rockchip" ] && [ -n "$BOOTLOADER_IMG" ] && [ -f "$BOOTLOADER_IMG" ];then
+            echo "写入 bootloader ..."
+            echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442"
+            echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1"
+
+            dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442
+            dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
+
+            sync
+            echo "完成"
+        fi
+
+        if [ "$PLATFORM" == "amlogic" ] && [ -n "$UBOOT_WITH_FIP" ] && [ -f "$UBOOT_WITH_FIP" ];then
+            echo "写入 bootloader ..."
+            echo "dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1"
+            echo "dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=1 count=444"
+
+            dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
+            dd if=${UBOOT_WITH_FIP}  of=${TGT_DEV} conv=fsync,notrunc bs=1 count=444
+
+            sync
+            echo "完成"
+        fi
+    )
+    echo
+}
+
+# 对btrfs格式的 rootfs 创建 etc 快照
+function create_snapshot() {
+    local snapshot_name=$1
+    fstype=$(lsblk -o MOUNTPOINT,FSTYPE ${TGT_DEV} | grep "${TGT_ROOT}" | gawk '{print $2}')
+    if [ "$fstype" != "btrfs" ];then
+        return
+    fi
+    (
+        cd $TGT_ROOT
+        echo "创建初始快照: /etc -> /.snapshots/${snapshot_name}"
+        mkdir -p .snapshots && \
+        btrfs subvolume snapshot -r etc .snapshots/${snapshot_name}
+        echo "完成"
+        echo
+    )
+}
+
+# 清理环境
+function clean_work_env() {
+    echo -n "清理环境 ... "
+    detach_loopdev
+    sync
+    echo "完成"
+    echo
 }

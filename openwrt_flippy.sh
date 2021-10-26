@@ -16,7 +16,7 @@ fi
 
 # Set the default value
 MAKE_PATH=${PWD}
-PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x")
+PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "diy")
 SELECT_ARMBIANKERNEL=("5.14.12" "5.10.73" "5.4.153")
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
@@ -42,7 +42,9 @@ SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
 SCRIPT_S905X3_FILE="mk_s905x3_multi.sh"
 SCRIPT_S912_FILE="mk_s912_zyxq.sh"
-SCRIPT_S022X_FILE="mk_s922x_gtking.sh"
+SCRIPT_S922X_FILE="mk_s922x_gtking.sh"
+SCRIPT_S922X_N2_FILE="mk_s922x_odroid-n2.sh"
+SCRIPT_DIY_FILE="mk_diy.sh"
 
 # Set make.env related parameters
 WHOAMI_VALUE="flippy"
@@ -89,7 +91,9 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${SCRIPT_S905X2}" ]] || SCRIPT_S905X2="${SCRIPT_S905X2_FILE}"
 [[ -n "${SCRIPT_S905X3}" ]] || SCRIPT_S905X3="${SCRIPT_S905X3_FILE}"
 [[ -n "${SCRIPT_S912}" ]] || SCRIPT_S912="${SCRIPT_S912_FILE}"
-[[ -n "${SCRIPT_S022X}" ]] || SCRIPT_S022X="${SCRIPT_S022X_FILE}"
+[[ -n "${SCRIPT_S922X}" ]] || SCRIPT_S922X="${SCRIPT_S922X_FILE}"
+[[ -n "${SCRIPT_S922X_N2}" ]] || SCRIPT_S922X_N2="${SCRIPT_S922X_N2_FILE}"
+[[ -n "${SCRIPT_DIY}" ]] || SCRIPT_DIY="${SCRIPT_DIY_FILE}"
 
 # Specify make.env variable
 [[ -n "${WHOAMI}" ]] || WHOAMI="${WHOAMI_VALUE}"
@@ -285,7 +289,9 @@ sync
                 s905x2)      sudo ./${SCRIPT_S905X2} ;;
                 s905x3)      sudo ./${SCRIPT_S905X3} ;;
                 s912)        sudo ./${SCRIPT_S912} ;;
-                s922x)       sudo ./${SCRIPT_S022X} ;;
+                s922x)       sudo ./${SCRIPT_S922X} ;;
+                s922x-n2)    sudo ./${SCRIPT_S922X_N2} ;;
+                diy)         sudo ./${SCRIPT_DIY} ;;
                 *)           ${WARNING} "Have no this SoC. Skipped."
                              continue ;;
             esac

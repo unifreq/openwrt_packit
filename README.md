@@ -2,7 +2,7 @@
 
 一、制作材料：
 1. Flippy预编译好的 Arm64 内核 (在 https://t.me/openwrt_flippy  及 https://pan.baidu.com/s/19KNVcCQL57mvpiboFc-5rA 提取码：hk6x )
-2. 自己编译的 openwrt rootfs tar.gz 包： openwrt-armvirt-64-default-rootfs.tar.gz 
+2. 自己编译的 openwrt rootfs tar.gz 包： openwrt-armvirt-64-default-rootfs.tar.gz , openwrt的源码仓库首选 (https://github.com/coolsnowwolf/lede)  ，当然也可以采用其它第三方源，例如 (https://github.com/Lienol/openwrt) , 也可以采用 openwrt 官方源： (https://github.com/openwrt/openwrt)。
 
 二、环境准备
 1. 需要一台 linux 主机， 可以是 x86或arm64架构，可以是物理机或虚拟机（但不支持win10自带的linux环境），需要具备root权限， 并且具备以下基本命令（只列出命令名，不列出命令所在的包名，因不同linux发行版的软件包名、软件包安装命令各有不同，请自己查询)： 
@@ -16,8 +16,20 @@
 
    ./mk_xxx.sh  # xxx指代你想要生成的固件类别，例如： ./mk_s905d_n1.sh 表示生成 Phicomm N1所用的固件
 
-   生成好的固件是 .img 格式， 存放在 /opt/openwrt_packit/tmp目录中，下载刷机即可
-
+   生成好的固件是 .img 格式， 存放在 /opt/openwrt_packit/output 目录中，下载刷机即可
+   
+   提示:工作临时目录是 /opt/openwrt_packit/tmp, 为了提升IO性能，减少硬盘损耗，可以采用tmpfs文件系统挂载到该目录，最多会占用 1GB 内存， 挂载方法如下:
+   ```
+   # 开机自动挂载
+   echo "none /opt/openwrt_packit/tmp  tmpfs   defaults   0  0" >> /etc/fstab
+   mount /opt/openwrt_packit/tmp
+   ```
+    或者
+    ```
+    # 手动挂载
+    mount -t tmpfs  none /opt/openwrt_packit/tmp
+    ```
+   
    相关的在线升级脚本在 files/目录下
 
    相关的 openwrt 示例配置文件在 files/openwrt_config_demo/目录下
