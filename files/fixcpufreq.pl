@@ -3,72 +3,74 @@
 use strict;
 use File::Basename;
 
-our $config_name;
-our $config_file;
-our $init_file;
+my $uci_config_name;
 if(-f "/etc/config/amlogic") {
-	$config_name="amlogic";
-	$config_file = "/etc/config/amlogic";
-	$init_file = "/etc/init.d/amlogic";
+	$uci_config_name="amlogic";
 } elsif(-f "/etc/config/cpufreq") {
-	$config_name="cpufreq";
-	$config_file = "/etc/config/cpufreq";
-	$init_file = "/etc/init.d/cpufreq";
+	$uci_config_name="cpufreq";
 } else {
 	print "Can not found amlogic or cpufreq config file!\n";
 	exit(0);
 }
 
 my @policy_ids;
-my @policy_names;
-my @policy_paths = </sys/devices/system/cpu/cpufreq/policy?>;
-if(@policy_paths) {
-	foreach my $policy (@policy_paths) {
-		push @policy_names, basename($policy);
-		push @policy_ids, substr($policy, -1);
+my @policy_homes = </sys/devices/system/cpu/cpufreq/policy?>;
+if(@policy_homes) {
+	foreach my $policy_home (@policy_homes) {
+		push @policy_ids, substr($policy_home, -1);
 	}
 } else {
 	print "Can not found any policy!\n";
 	exit 0;
 }
 
+our $need_commit = 0;
 for(my $i=0; $i <= $#policy_ids; $i++) {
-	&fix_config_file($policy_ids[$i], $policy_names[$i], $policy_paths[$i]);
+	&fix_invalid_value($uci_config_name, $policy_ids[$i], $policy_homes[$i]);
+
 }
+
+if($need_commit > 0) {
+	&uci_commit($uci_config_name);
+}
+
 exit 0;
 
 ################################# function ####################################
-sub fix_config_file {
-	my($id, $name, $path) = @_;
-	if($config_name eq "cpufreq") {
-		$id = "";
+sub fix_invalid_value {
+	my($uci_config, $policy_id, $policy_home) = @_;
+	if($uci_config eq "cpufreq") {
+		$policy_id = "";
 	}
 
-	my %gove_hash = &get_gove_hash($path);
-	my @freqs = &get_freq_list($path);
+	my %gove_hash = &get_gove_hash($policy_home);
+	my @freqs = &get_freq_list($policy_home);
 	my %freq_hash = &get_freq_hash(@freqs);
 	my $min_freq = &get_min_freq(@freqs);
 	my $max_freq = &get_max_freq(@freqs);
 
-	# 如果未设置 governor, 或该 gove 不存在， 则修败默认值为 schedutil
-	my $config_gove = &uci_get_by_type($config_name, "settings", "governor" . ${id}, "NA");
+	# 如果未设置 governor, 或该 goveernor 不存在， 则修败默认值为 schedutil
+	my $config_gove = &uci_get_by_type($uci_config, "settings", "governor" . $policy_id, "NA");
 	if( ($config_gove eq "NA") ||
 	    ($gove_hash{$config_gove} != 1)) {
-		&uci_set_by_type($config_name, "settings", "governor" . ${id}, "schedutil");
+		&uci_set_by_type($uci_config, "settings", "governor" . $policy_id, "schedutil");
+		$need_commit++;
 	}
 
-	# 如果出现不合法的 minfreq, 则修改为实际的 min_freq
-	my $config_min_freq = &uci_get_by_type($config_name, "settings", "minifreq" . ${id}, "0");
+	# 如果出现不存在的 minfreq, 则修改为实际的 min_freq
+	my $config_min_freq = &uci_get_by_type($uci_config, "settings", "minfreq" . $policy_id, "0");
 	if($freq_hash{$config_min_freq} != 1) {
-		&uci_set_by_type($config_name, "settings", "minifreq" . ${id}, $min_freq);
+		&uci_set_by_type($uci_config, "settings", "minfreq" . $policy_id, $min_freq);
+		$need_commit++;
 	}
 
-	# 如果出现不合法的 maxfreq
+	# 如果出现不存在的 maxfreq
 	# 或 maxfreq < minfreq, 则修改为实际的 max_freq
-	my $config_max_freq = &uci_get_by_type($config_name, "settings", "maxfreq" . ${id}, "0");
+	my $config_max_freq = &uci_get_by_type($uci_config, "settings", "maxfreq" . $policy_id, "0");
 	if( ( $freq_hash{$config_max_freq} != 1) || 
             ( $config_max_freq < $config_min_freq)) {
-		&uci_set_by_type($config_name, "settings", "maxfreq" . ${id}, $max_freq);
+		&uci_set_by_type($uci_config, "settings", "maxfreq" . $policy_id, $max_freq);
+		$need_commit++;
 	}
 }
 
@@ -107,7 +109,7 @@ sub get_max_freq {
 sub get_gove_hash {
 	my $policy_home = shift;
 	my %ret_hash;
-        open my $fh, "<", "$policy_home/scaling_available_governors" or die;
+        open my $fh, "<", "${policy_home}/scaling_available_governors" or die;
 	$_ = <$fh>;
 	chomp;
 	my @gov_ary = split /\s+/;
@@ -124,7 +126,7 @@ sub get_gove_hash {
 sub uci_get_by_type {
 	my($config,$section,$option,$default) = @_;
 	my $ret;
-        $ret=`uci get ${config}.\@${section}[0].${option} 2>/dev/null`;
+        $ret=`uci get ${config}.\@${section}\[0\].${option} 2>/dev/null`;
 	# 消除回车换行
 	$ret =~ s/[\n\r]//g;
 	if($ret eq '') {
@@ -137,6 +139,12 @@ sub uci_get_by_type {
 sub uci_set_by_type {
 	my($config,$section,$option,$value) = @_;
 	my $ret;
-	system("uci set ${config}.\@${section}\[0\].${option}=${value} && uci commit ${config}");
+	system("uci set ${config}.\@${section}\[0\].${option}=${value}");
+	return;
+}
+
+sub uci_commit {
+	my $config = shift;
+	system("uci commit ${config}");
 	return;
 }
