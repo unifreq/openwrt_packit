@@ -39,9 +39,6 @@ exit 0;
 ################################# function ####################################
 sub fix_invalid_value {
 	my($uci_config, $policy_id, $policy_home) = @_;
-	if($uci_config eq "cpufreq") {
-		$policy_id = "";
-	}
 
 	my %gove_hash = &get_gove_hash($policy_home);
 	my @freqs = &get_freq_list($policy_home);
@@ -49,27 +46,45 @@ sub fix_invalid_value {
 	my $min_freq = &get_min_freq(@freqs);
 	my $max_freq = &get_max_freq(@freqs);
 
+	my $uci_section = "settings";
+	my $uci_option;
+	if($uci_config eq "cpufreq" ) {
+       	    $uci_option = "governor";
+	} else {
+       	    $uci_option = "governor" . $policy_id;
+	}
 	# 如果未设置 governor, 或该 goveernor 不存在， 则修败默认值为 schedutil
-	my $config_gove = &uci_get_by_type($uci_config, "settings", "governor" . $policy_id, "NA");
+	my $config_gove = &uci_get_by_type($uci_config, $uci_section, $uci_option, "NA");
 	if( ($config_gove eq "NA") ||
 	    ($gove_hash{$config_gove} != 1)) {
-		&uci_set_by_type($uci_config, "settings", "governor" . $policy_id, "schedutil");
+		&uci_set_by_type($uci_config, $uci_section, $uci_option, "schedutil");
 		$need_commit++;
 	}
 
 	# 如果出现不存在的 minfreq, 则修改为实际的 min_freq
-	my $config_min_freq = &uci_get_by_type($uci_config, "settings", "minfreq" . $policy_id, "0");
+	if($uci_config eq "cpufreq" ) {
+		# "minifreq" is a spelling error that has always existed in the upstream source code
+		$uci_option = "minifreq"; 
+	} else {
+		$uci_option = "minfreq" . $policy_id;
+	}
+	my $config_min_freq = &uci_get_by_type($uci_config, $uci_section, $uci_option, "0");
 	if($freq_hash{$config_min_freq} != 1) {
-		&uci_set_by_type($uci_config, "settings", "minfreq" . $policy_id, $min_freq);
+		&uci_set_by_type($uci_config, $uci_section, $uci_option, $min_freq);
 		$need_commit++;
 	}
 
 	# 如果出现不存在的 maxfreq
 	# 或 maxfreq < minfreq, 则修改为实际的 max_freq
-	my $config_max_freq = &uci_get_by_type($uci_config, "settings", "maxfreq" . $policy_id, "0");
+	if($uci_config eq "cpufreq" ) {
+		$uci_option = "maxfreq";
+	} else {
+		$uci_option = "maxfreq" . $policy_id;
+	}
+	my $config_max_freq = &uci_get_by_type($uci_config, $uci_section, $uci_option, "0");
 	if( ( $freq_hash{$config_max_freq} != 1) || 
             ( $config_max_freq < $config_min_freq)) {
-		&uci_set_by_type($uci_config, "settings", "maxfreq" . $policy_id, $max_freq);
+		&uci_set_by_type($uci_config, $uci_section, $uci_option, $max_freq);
 		$need_commit++;
 	}
 }
