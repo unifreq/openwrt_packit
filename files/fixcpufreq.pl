@@ -1,132 +1,142 @@
 #!/usr/bin/perl
 
 use strict;
-use File::Copy qw(move);
+use File::Basename;
 
-my $policy_home="/sys/devices/system/cpu/cpufreq/policy0";
-my $ondemand_home="/sys/devices/system/cpu/cpufreq/ondemand";
+our $config_name;
+our $config_file;
+our $init_file;
+if(-f "/etc/config/amlogic") {
+	$config_name="amlogic";
+	$config_file = "/etc/config/amlogic";
+	$init_file = "/etc/init.d/amlogic";
+} elsif(-f "/etc/config/cpufreq") {
+	$config_name="cpufreq";
+	$config_file = "/etc/config/cpufreq";
+	$init_file = "/etc/init.d/cpufreq";
+} else {
+	print "Can not found amlogic or cpufreq config file!\n";
+	exit(0);
+}
 
-our %freqs;
-our %goves;
-our $min_freq;
-our $max_freq;
-
-&get_freq_list;
-&get_governor_list;
-&fix_init_script;
-&fix_config_file;
-exit(0);
-
-############### subs ##################
-sub get_freq_list {
-	my $fh;
-	my @ret_ary;
-	open $fh, "<", "$policy_home/scaling_available_frequencies" or die;
-	while(<$fh>) {
-	    chomp;
-	    my @freq_ary = split;
-	    $min_freq = $freq_ary[0];
-	    $max_freq = $freq_ary[-1];
-	    foreach my $freq (@freq_ary) {
-	        if($freq =~ m/\d+/) {
-	            $freqs{$freq} = 1;
-                }
-            }
+my @policy_ids;
+my @policy_names;
+my @policy_paths = </sys/devices/system/cpu/cpufreq/policy?>;
+if(@policy_paths) {
+	foreach my $policy (@policy_paths) {
+		push @policy_names, basename($policy);
+		push @policy_ids, substr($policy, -1);
 	}
-	close $fh;
+} else {
+	print "Can not found any policy!\n";
+	exit 0;
 }
 
-sub get_governor_list {
-	my $fh;
-	open $fh, "<", "$policy_home/scaling_available_governors" or die;
-	while(<$fh>) {
-	    chomp;
-	    my @gov_ary = split;
-	    foreach my $gov (@gov_ary) {
-	        if($gov =~ m/[a-z]+/) {
-	            $goves{$gov} = 1;
-                }
-            }
-	}
-	close $fh;
+for(my $i=0; $i <= $#policy_ids; $i++) {
+	&fix_config_file($policy_ids[$i], $policy_names[$i], $policy_paths[$i]);
 }
+exit 0;
 
-sub fix_init_script {
-	my $script = "/etc/init.d/cpufreq";
-	my $tempfile = "/tmp/cpufreq.temp";
-	my $fh_temp;
-	my $chg_flag=0;
-	open $fh_temp, ">", $tempfile or die; 
-	if(-f $script && -x $script) {
-	    my $fh;
-	    open $fh, "<", $script or die;
-	    while(<$fh>) {
-		chomp;
-		if(m/\(uci_get_by_type settings governor (\w+)\)/) {
-			if (not exists $goves{$1}) {
-				$_ =~ s/$1/ondemand/;
-				$chg_flag = 1;
-			}
-		} elsif(m/\(uci_get_by_type settings minifreq (\d+)\)/) {
-			if (not exists $freqs{$1}) {
-				$_ =~ s/$1/$min_freq/;
-				$chg_flag = 1;
-			}
-		} elsif(m/\(uci_get_by_type settings maxfreq (\d+)\)/) {
-			if ( (not exists $freqs{$1}) or ($1 < $max_freq) ) {
-				$_ =~ s/$1/$max_freq/;
-				$chg_flag = 1;
-			}
-		}
-		print $fh_temp "$_\n";
-	    }
-	    close $fh;
-	} 
-	close $fh_temp;
-	if($chg_flag == 1) {
-		print "file $script will be change!\n";
-		move $tempfile, $script or die;
-		chmod 0755, $script;
-	} 
-	unlink($tempfile);
-}
-
+################################# function ####################################
 sub fix_config_file {
-	my $config_file = "/etc/config/cpufreq";
-	my $tempfile = "/tmp/cpufreq.conf.temp";
-	my $fh_temp;
-	my $chg_flag=0;
-	open $fh_temp, ">", $tempfile or die; 
-	if(-f $config_file) {
-	    my $fh;
-	    open $fh, "<", $config_file or die;
-	    while(<$fh>) {
-		chomp;
-		if(m/option governor '(\w+).*'/) {
-			if (not exists $goves{$1}) {
-				$_ =~ s/$1/ondemand/;
-				$chg_flag = 1;
-			}
-		} elsif(m/option minifreq '(\d+)'/) {
-			if (not exists $freqs{$1}) {
-				$_ =~ s/$1/$min_freq/;
-				$chg_flag = 1;
-			}
-		} elsif(m/option maxfreq '(\d+)'/) {
-			if ( (not exists $freqs{$1}) ) {
-				$_ =~ s/$1/$max_freq/;
-				$chg_flag = 1;
-			}
-		}
-		print $fh_temp "$_\n";
-	    }
-	    close $fh;
-	} 
-	close $fh_temp;
-	if($chg_flag == 1) {
-		print "file $config_file will be change!\n";
-		move $tempfile, $config_file or die;
-		chmod 0644, $config_file;
-	} 
-	unlink($tempfile);
+	my($id, $name, $path) = @_;
+	if($config_name eq "cpufreq") {
+		$id = "";
+	}
+
+	my %gove_hash = &get_gove_hash($path);
+	my @freqs = &get_freq_list($path);
+	my %freq_hash = &get_freq_hash(@freqs);
+	my $min_freq = &get_min_freq(@freqs);
+	my $max_freq = &get_max_freq(@freqs);
+
+	# 如果未设置 governor, 或该 gove 不存在， 则修败默认值为 schedutil
+	my $config_gove = &uci_get_by_type($config_name, "settings", "governor" . ${id}, "NA");
+	if( ($config_gove eq "NA") ||
+	    ($gove_hash{$config_gove} != 1)) {
+		&uci_set_by_type($config_name, "settings", "governor" . ${id}, "schedutil");
+	}
+
+	# 如果出现不合法的 minfreq, 则修改为实际的 min_freq
+	my $config_min_freq = &uci_get_by_type($config_name, "settings", "minifreq" . ${id}, "0");
+	if($freq_hash{$config_min_freq} != 1) {
+		&uci_set_by_type($config_name, "settings", "minifreq" . ${id}, $min_freq);
+	}
+
+	# 如果出现不合法的 maxfreq
+	# 或 maxfreq < minfreq, 则修改为实际的 max_freq
+	my $config_max_freq = &uci_get_by_type($config_name, "settings", "maxfreq" . ${id}, "0");
+	if( ( $freq_hash{$config_max_freq} != 1) || 
+            ( $config_max_freq < $config_min_freq)) {
+		&uci_set_by_type($config_name, "settings", "maxfreq" . ${id}, $max_freq);
+	}
+}
+
+sub get_freq_list {
+	my $policy_home = shift;
+        my @ret_ary;
+        open my $fh, "<", "${policy_home}/scaling_available_frequencies" or die;
+	$_ = <$fh>;
+	chomp;
+	@ret_ary = split /\s+/;
+	close($fh);
+	return @ret_ary;
+}
+
+sub get_freq_hash {
+	my @freq_ary = @_;
+	my %ret_hash;
+        foreach my $freq (@freq_ary) {
+            if($freq =~ m/\d+/) {
+                $ret_hash{$freq} = 1;
+            }
+        }
+	return %ret_hash;
+}
+
+sub get_min_freq {
+	my @freq_ary = @_;
+	return (sort {$a<=>$b} @freq_ary)[0];
+}
+
+sub get_max_freq {
+	my @freq_ary = @_;
+	return (sort {$a<=>$b} @freq_ary)[-1];
+}
+
+sub get_gove_hash {
+	my $policy_home = shift;
+	my %ret_hash;
+        open my $fh, "<", "$policy_home/scaling_available_governors" or die;
+	$_ = <$fh>;
+	chomp;
+	my @gov_ary = split /\s+/;
+	foreach my $gov (@gov_ary) {
+		#print "gov: $gov\n";
+		if($gov =~ m/\w+/) {
+			$ret_hash{$gov} = 1;
+            	}
+        }
+        close($fh);
+	return %ret_hash;
+}
+
+sub uci_get_by_type {
+	my($config,$section,$option,$default) = @_;
+	my $ret;
+        $ret=`uci get ${config}.\@${section}[0].${option} 2>/dev/null`;
+	# 消除回车换行
+	$ret =~ s/[\n\r]//g;
+	if($ret eq '') {
+		return $default;
+	} else {
+		return $ret;
+	}
+}
+
+sub uci_set_by_type {
+	my($config,$section,$option,$value) = @_;
+	my $ret;
+	system("uci set ${config}.\@${section}\[0\].${option}=${value} && uci commit ${config}");
+	return;
 }
