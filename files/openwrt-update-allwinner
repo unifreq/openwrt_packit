@@ -337,6 +337,9 @@ EOF
         fi
     fi
 )
+
+# move /etc/config/balance_irq to /etc/balance_irq
+[ -f  "./etc/config/balance_irq" ] && mv ./etc/config/balance_irq  ./etc/
 sync
 
 echo "create the first etc snapshot -> .snapshots/etc-000"
@@ -440,6 +443,9 @@ exec /etc/rc.local
 exit
 EOF
 chmod 755 ./etc/rc.local*
+
+# move /etc/config/balance_irq to /etc/balance_irq
+[ -f  "./etc/config/balance_irq" ] && mv ./etc/config/balance_irq  ./etc/
 
 echo "create the second etc snapshot -> .snapshots/etc-001"
 btrfs subvolume snapshot -r etc .snapshots/etc-001
