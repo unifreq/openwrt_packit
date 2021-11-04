@@ -14,6 +14,9 @@ if [[ -z "${OPENWRT_ARMVIRT}" ]]; then
    exit 1
 fi
 
+# Install the compressed package
+sudo apt-get update && sudo apt-get install -y p7zip p7zip-full zip unzip gzip xz-utils
+
 # Set the default value
 MAKE_PATH=${PWD}
 PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "diy")
@@ -27,7 +30,7 @@ KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel
 KERNEL_VERSION_NAME_VALUE="5.14.12_5.4.153"
 KERNEL_AUTO_LATEST_VALUE="true"
 PACKAGE_SOC_VALUE="s905d_s905x3_beikeyun"
-GZIP_IMGS_VALUE="true"
+GZIP_IMGS_VALUE="auto"
 # Set the working directory under /opt
 SELECT_PACKITPATH_VALUE="openwrt_packit"
 SELECT_OUTPUTPATH_VALUE="output"
@@ -77,7 +80,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${PACKAGE_SOC}" ]] || PACKAGE_SOC="${PACKAGE_SOC_VALUE}"
 [[ -n "${KERNEL_VERSION_NAME}" ]] || KERNEL_VERSION_NAME="${KERNEL_VERSION_NAME_VALUE}"
 [[ -n "${KERNEL_AUTO_LATEST}" ]] || KERNEL_AUTO_LATEST="${KERNEL_AUTO_LATEST_VALUE}"
-[[ -n "${GZIP_IMGS}" ]] || GZIP_IMGS=${GZIP_IMGS_VALUE}
+[[ -n "${GZIP_IMGS}" ]] || GZIP_IMGS="${GZIP_IMGS_VALUE}"
 [[ -n "${SELECT_PACKITPATH}" ]] || SELECT_PACKITPATH="${SELECT_PACKITPATH_VALUE}"
 [[ -n "${SELECT_OUTPUTPATH}" ]] || SELECT_OUTPUTPATH="${SELECT_OUTPUTPATH_VALUE}"
 [[ -n "${SAVE_OPENWRT_ARMVIRT}" ]] || SAVE_OPENWRT_ARMVIRT="${SAVE_OPENWRT_ARMVIRT_VALUE}"
@@ -298,10 +301,15 @@ sync
             echo -e "${SUCCESS} (${k}.${i}) Package openwrt completed."
             sync
             
-            if  [[ "${GZIP_IMGS_VALUE}" == "true" ]]; then
-                echo -e "${STEPS} gzip the openwrt*.img files in the ${SELECT_OUTPUTPATH} folder. \n"
-                cd ${SELECT_OUTPUTPATH} && gzip *.img && sync
-            fi
+            echo -e "${STEPS} Compress the .img file in the [ ${SELECT_OUTPUTPATH} ] directory. \n"
+            cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
+                case "${GZIP_IMGS}" in
+                    gz | .gz)       gzip *.img ;;
+                    xz | .xz)       xz -z *.img ;;
+                    zip | .zip)     ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; sync; rm -f %' ;;
+                    7z | .7z | *)   ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; sync; rm -f %' ;;
+                esac
+                sync
             
             let i++
         }
@@ -321,7 +329,6 @@ if  [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
         cp -f ../openwrt-armvirt-64-default-rootfs.tar.gz . && sync
     fi
     
-    echo -e "${STEPS} Output environment variables."
     echo "PACKAGED_OUTPUTPATH=${PWD}" >> $GITHUB_ENV
     echo "PACKAGED_OUTPUTDATE=$(date +"%Y.%m.%d.%H%M")" >> $GITHUB_ENV
     echo "PACKAGED_STATUS=success" >> $GITHUB_ENV
