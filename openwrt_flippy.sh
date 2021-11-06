@@ -304,11 +304,11 @@ sync
             echo -e "${STEPS} Compress the .img file in the [ ${SELECT_OUTPUTPATH} ] directory. \n"
             cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
                 case "${GZIP_IMGS}" in
-                    gz | .gz)       pigz -9 *.img ;;
-                    xz | .xz)       xz -z *.img ;;
-                    zst | .zst)     zstd --rm *.img ;;
+                    7z | .7z)       ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; sync; rm -f %' ;;
                     zip | .zip)     ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; sync; rm -f %' ;;
-                    7z | .7z | *)   ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; sync; rm -f %' ;;
+                    zst | .zst)     zstd --rm *.img ;;
+                    xz | .xz)       xz -z *.img ;;
+                    gz | .gz | *)   pigz -9 *.img ;;
                 esac
                 sync
             
