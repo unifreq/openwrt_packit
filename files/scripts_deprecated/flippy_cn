@@ -8,6 +8,7 @@ BACKUP_FILE="${BACKUP_DIR}/openwrt_config.tar.gz"
 BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/adblocklist/ \
 ./etc/amule/ \
+./etc/balance_irq \
 ./etc/china_ssr.txt \
 ./etc/cifs/cifsdpwd.db \
 ./etc/smbd/smbdpwd.db \
@@ -26,6 +27,7 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/dnsmasq.d/ \
 ./etc/dnsmasq.oversea/ \
 ./etc/dnsmasq.ssr/ \
+./etc/docker/daemon.json \
 ./etc/docker/key.json \
 ./etc/dropbear/ \
 ./etc/easy-rsa/ \
@@ -40,6 +42,7 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/ipsec.secrets \
 ./etc/ipsec.user \
 ./etc/ipset/ \
+./etc/mosdns/config.yaml \
 ./etc/mwan3.user \
 ./etc/nginx/nginx.conf \
 ./etc/ocserv/ \

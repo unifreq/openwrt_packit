@@ -19,36 +19,42 @@ our $rpscpu_exclude_eth1_core=1;
 exit(0);
 
 ############################## sub functions #########################
-# 读取 /etc/config/balance_irq 配置文件
+# 读取 /etc/balance_irq 或 /etc/config/balance_irq 配置文件
 sub read_config {
     my $cpu_count = &get_cpu_count();
     my $fh;
-    my $config_file = "/etc/config/balance_irq";
-    if( -f $config_file) {
-            open $fh, "<", $config_file or die $!;
-            while(<$fh>) {
-                chomp;
-                my($name, $value) = split;
-                my @cpus = split(',', $value);
-		# ARMV8 当前最多CPU核数是8核
-                my $min_cpu = 9;
+    my $config_file;
+    if(-f "/etc/balance_irq") {
+        $config_file = "/etc/balance_irq";
+    } elsif(-f "/etc/config/balance_irq") {
+        $config_file = "/etc/config/balance_irq";
+    } else {
+	exit(0);
+    }
 
-                foreach my $cpu (@cpus) {
-                    if($cpu > $cpu_count) {
-                        $cpu = $cpu_count;        
-                    } elsif($cpu < 1) {
-                        $cpu = 1;
-                    }
-                    if($min_cpu > $cpu) {
-                        $min_cpu = $cpu;
-                    }
-                }
+    open $fh, "<", $config_file or die $!;
+    while(<$fh>) {
+        chomp;
+        my($name, $value) = split;
+        my @cpus = split(',', $value);
+        # ARMV8 当前最多CPU核数是8核
+        my $min_cpu = 9;
 
-                $cpu_map{$name} = \@cpus;
-                $min_cpu_map{$name} = $min_cpu;
-        }        
-            close $fh;
-    } 
+        foreach my $cpu (@cpus) {
+            if($cpu > $cpu_count) {
+                $cpu = $cpu_count;        
+            } elsif($cpu < 1) {
+                $cpu = 1;
+            }
+            if($min_cpu > $cpu) {
+                $min_cpu = $cpu;
+            }
+        } # foreach
+
+        $cpu_map{$name} = \@cpus;
+        $min_cpu_map{$name} = $min_cpu;
+    } # while 
+    close $fh;
 }
 
 # 计算cpu核数

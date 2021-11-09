@@ -342,6 +342,8 @@ EOF
         fi
     fi
 )
+# move /etc/config/balance_irq to /etc/balance_irq
+[ -f  "./etc/config/balance_irq" ] && mv ./etc/config/balance_irq  ./etc/
 sync
 
 echo "create the first etc snapshot -> .snapshots/etc-000"
@@ -420,6 +422,10 @@ sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
         fi
     fi
 )
+
+# move /etc/config/balance_irq to /etc/balance_irq
+[ -f  "./etc/config/balance_irq" ] && mv ./etc/config/balance_irq  ./etc/
+
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 sync
 echo "create the second etc snapshot -> .snapshots/etc-001"
