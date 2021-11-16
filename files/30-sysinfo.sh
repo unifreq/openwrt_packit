@@ -135,9 +135,13 @@ swap_usage=$( (awk '/Swap/ { printf("%3.0f", $3/$2*100) }' <<<${swap_info} 2>/de
 swap_total=$(awk '{print $(2)}' <<<${swap_info})
 
 if grep -q "ipq40xx" "/etc/openwrt_release"; then
-	cpu_temp="$(sensors | grep -Eo '\+[0-9]+.+C' | sed ':a;N;$!ba;s/\n/ /g;s/+//g')"
+    cpu_temp="$(sensors | grep -Eo '\+[0-9]+.+C' | sed ':a;N;$!ba;s/\n/ /g;s/+//g')"
+elif [ -f "/sys/class/thermal/thermal_zone0/temp" ]; then
+    cpu_temp="$(awk '{ printf("%.1f °C", $0 / 1000) }' /sys/class/thermal/thermal_zone0/temp)"
+elif [ -f "/sys/class/hwmon/hwmon0/temp1_input" ]; then
+    cpu_temp="$(awk '{ printf("%.1f °C", $0 / 1000) }' /sys/class/hwmon/hwmon0/temp1_input)"
 else
-	cpu_temp="$(awk '{ printf("%.1f °C", $0 / 1000) }' /sys/class/thermal/thermal_zone0/temp)"
+    cpu_temp="50.0 °C"
 fi
 cpu_tempx=`echo $cpu_temp | sed 's/°C//g'`
 
