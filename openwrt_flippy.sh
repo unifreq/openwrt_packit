@@ -276,7 +276,7 @@ sync
             echo -e "${STEPS} (${k}.${i}) Start packaging OpenWrt, Kernel is [ ${KERNEL_VAR} ], SoC is [ ${PACKAGE_VAR} ]"
 
             now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//')
-            if  [[ "${now_remaining_space}" -le "2" ]]; then
+            if [[ `echo "${now_remaining_space} < 2 " | bc` -eq 1 ]]; then
                 echo -e "${WARNING} If the remaining space is less than 2G, exit this packaging. \n"
                 break 2
             else
