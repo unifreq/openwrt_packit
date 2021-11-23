@@ -282,7 +282,8 @@ sync
                 echo -e "${WARNING} If the remaining space is less than ${min_threshold_mb}MB, exit this packaging. \n"
                 break 2
             else
-                echo -e "${INFO} Remaining space is ${now_remaining_space_mb}MB. \n"
+                now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}')
+                echo -e "${INFO} Remaining space is ${now_remaining_space}B. \n"
             fi
 
             case "${PACKAGE_VAR}" in
