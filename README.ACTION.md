@@ -74,7 +74,7 @@
 
 | 参数                            | 默认值                  | 说明                       |
 |--------------------------------|-------------------------|---------------------------|
-| ${{ env.PACKAGED_OUTPUTPATH }} | /opt/openwrt_packit/tmp | 打包后的固件所在文件夹的路径  |
+| ${{ env.PACKAGED_OUTPUTPATH }} | /opt/openwrt_packit/output | 打包后的固件所在文件夹的路径  |
 | ${{ env.PACKAGED_OUTPUTDATE }} | 2021.08.25.1058         | 打包日期                    |
 | ${{ env.PACKAGED_STATUS }}     | success / failure       | 打包状态。成功 / 失败        |
 
