@@ -1147,7 +1147,7 @@ function adjust_docker_config() {
         [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
         if [ -f ./etc/init.d/dockerd ];then
             echo "发现 dockerd 服务，正在调整 ... "
-            [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && patch -p1 < $DOCKERD_PATCH
+            [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && [ ! -f ./etc/init.d/dockerman ] && patch -p1 < $DOCKERD_PATCH
             if [ "$PLATFORM" == "amlogic" ];then
                 echo "在 Amlogic 平台上，U盘或TF卡启动默认关闭 dockerd 服务 ... "
                 rm -f ./etc/rc.d/S??dockerd
