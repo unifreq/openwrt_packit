@@ -914,6 +914,12 @@ function copy_supplement_files() {
         [ -n "$GETCPU_SCRIPT" ] && [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
         [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
              sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
+
+        [ -f ./etc/sysupgrade.conf ] && \
+             cat >> ./etc/sysupgrade.conf <<EOF
+/root/.ssh/
+EOF
+
     )
     echo "==============================================================================="
     echo "完成"
