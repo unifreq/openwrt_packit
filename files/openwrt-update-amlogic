@@ -490,10 +490,14 @@ sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 
 # Fix the problem of repeatedly adding sshd entries after each upgrade of dropbear
 sed -e "/sshd:x:/d" -i ./etc/shadow
-if [ $(grep "sshd:x:22:22" ./etc/passwd | wc -l) -eq 0 ]; then
-    echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >>./etc/passwd
-    echo "sshd:x:22:sshd" >>./etc/group
-    echo "sshd:x:${ddd}:0:99999:7:::" >>./etc/shadow
+if ! grep "sshd:x:22:sshd" ./etc/group >/dev/null;then
+     echo "sshd:x:22:sshd" >> ./etc/group
+fi
+if ! grep "sshd:x:22:22:sshd:" ./etc/passwd >/dev/null;then
+     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
+fi
+if ! grep "sshd:x:" ./etc/shadow >/dev/null;then
+     echo "sshd:x:${ddd}:0:99999:7:::" >> ./etc/shadow
 fi
 
 if [ "${BR_FLAG}" -eq "1" ]; then

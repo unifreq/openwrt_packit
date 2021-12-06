@@ -411,10 +411,14 @@ sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 sed -e "/amule:x:/d" -i ./etc/shadow
 # 修复dropbear每次升级后重复添加sshd条目的问题
 sed -e "/sshd:x:/d" -i ./etc/shadow
-if [ $(grep "sshd:x:22:22" ./etc/passwd | wc -l) -eq 0 ]; then
-    echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >>./etc/passwd
-    echo "sshd:x:22:sshd" >>./etc/group
-    echo "sshd:x:${ddd}:0:99999:7:::" >>./etc/shadow
+if ! grep "sshd:x:22:sshd" ./etc/group >/dev/null;then
+     echo "sshd:x:22:sshd" >> ./etc/group
+fi
+if ! grep "sshd:x:22:22:sshd:" ./etc/passwd >/dev/null;then
+     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
+fi
+if ! grep "sshd:x:" ./etc/shadow >/dev/null;then
+     echo "sshd:x:${ddd}:0:99999:7:::" >> ./etc/shadow
 fi
 
 if [ $BR_FLAG -eq 1 ]; then

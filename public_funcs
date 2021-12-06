@@ -955,6 +955,17 @@ function adjust_openssh_config() {
             days=$(( utc_secs / 86400 ))
             sed -e "s/:0:0:99999:7:::/:${days}:0:99999:7:::/" -i ./etc/shadow
 	    echo "完成"
+            echo -n "检查sshd用户和组 ... "
+	    if ! grep "sshd:x:22:sshd" ./etc/group >/dev/null;then
+                 echo "sshd_x:22:sshd" >> ./etc/group
+            fi
+	    if ! grep "sshd:x:22:22:sshd:" ./etc/passwd >/dev/null;then
+                 echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
+            fi
+	    if ! grep "sshd:x:" ./etc/shadow >/dev/null;then
+                 echo "sshd:x:0:0:99999:7:::" >> ./etc/shadow
+            fi
+	    echo "完成"
 	    
 	    echo -n "添加防火墙规则，丢弃目标为 WAN 区域, 端口为 22/TCP 的报文 ... "
 	    cat >> ./etc/config/firewall <<EOF
