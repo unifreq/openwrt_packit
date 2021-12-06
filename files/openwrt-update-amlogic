@@ -488,6 +488,8 @@ EOF
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 
+# Fix the problem of repeatedly adding amule entries after each upgrade
+sed -e "/amule:x:/d" -i ./etc/shadow
 # Fix the problem of repeatedly adding sshd entries after each upgrade of dropbear
 sed -e "/sshd:x:/d" -i ./etc/shadow
 if ! grep "sshd:x:22:sshd" ./etc/group >/dev/null;then
