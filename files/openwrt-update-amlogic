@@ -487,7 +487,9 @@ EOF
 
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
-
+sss=$(date +%s)
+ddd=$((sss / 86400))
+sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
 # Fix the problem of repeatedly adding amule entries after each upgrade
 sed -e "/amule:x:/d" -i ./etc/shadow
 # Fix the problem of repeatedly adding sshd entries after each upgrade of dropbear
