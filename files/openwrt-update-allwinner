@@ -393,6 +393,9 @@ if [ $BR_FLAG -eq 1 ]; then
     # 还原 fstab
     cp -f .snapshots/etc-000/fstab ./etc/fstab
     cp -f .snapshots/etc-000/config/fstab ./etc/config/fstab
+    # 还原 luci
+    cp -f .snapshots/etc-000/config/luci ./etc/config/luci
+
     sync
     echo "done"
     echo
@@ -440,6 +443,7 @@ sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
     fi
 )
 sync
+
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 rm -f ./etc/part_size ./etc/first_run.sh
