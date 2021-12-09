@@ -1171,6 +1171,7 @@ function adjust_docker_config() {
 
 config globals 'globals'
         option alt_config_file '/etc/docker/daemon.json' 
+	option auto_start '1'
 EOF
             fi
 

@@ -240,6 +240,7 @@ if [ -f ${P2}/etc/init.d/dockerman ] && [ -f ${P2}/etc/config/dockerd ];then
     if [ $flg -eq 1 ];then
         uci set dockerd.globals='globals'
         uci set dockerd.globals.alt_config_file='/etc/docker/daemon.json'
+        uci set dockerd.globals.auto_start='1'
         uci commit
     fi
 fi
