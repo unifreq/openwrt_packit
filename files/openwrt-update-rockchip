@@ -390,6 +390,8 @@ if [ $BR_FLAG -eq 1 ]; then
     cp -f .snapshots/etc-000/config/fstab ./etc/config/fstab
     # 还原 luci
     cp -f .snapshots/etc-000/config/luci ./etc/config/luci
+    # 还原/etc/config/rpcd
+    cp -f .snapshots/etc-000/config/rpcd ./etc/config/rpcd
 
     sync
     echo "done"
