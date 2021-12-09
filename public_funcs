@@ -1165,6 +1165,15 @@ function adjust_docker_config() {
         if [ -f ./etc/init.d/dockerd ];then
             echo "发现 dockerd 服务，正在调整 ... "
             [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && [ ! -f ./etc/init.d/dockerman ] && patch -p1 < $DOCKERD_PATCH
+
+            if [ -f "./etc/init.d/dockerman" ] ;then
+                cat >> ./etc/config/dockerd <<EOF
+
+config globals 'globals'
+        option alt_config_file '/etc/docker/daemon.json' 
+EOF
+            fi
+
             if [ "$PLATFORM" == "amlogic" ];then
                 echo "在 Amlogic 平台上，U盘或TF卡启动默认关闭 dockerd 服务 ... "
                 rm -f ./etc/rc.d/S??dockerd
