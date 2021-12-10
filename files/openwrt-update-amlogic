@@ -592,18 +592,22 @@ if [ -x ./usr/sbin/balethirq.pl ]; then
         sed -e "/exit/i\/usr/sbin/balethirq.pl" -i ./etc/rc.local
     fi
 fi
-mv ./etc/rc.local ./etc/rc.local.orig
 
-cat >./etc/rc.local <<EOF
-if [ ! -f /etc/rc.d/*dockerd ]; then
+mv ./etc/rc.local ./etc/rc.local.orig
+cat > "./etc/rc.local" <<EOF
+if ! ls /etc/rc.d/S??dockerd >/dev/null 2>&1;then
     /etc/init.d/dockerd enable
     /etc/init.d/dockerd start
 fi
+if ! ls /etc/rc.d/S??dockerman >/dev/null 2>&1 && [ -f /etc/init.d/dockerman ];then
+    /etc/init.d/dockerman enable
+    /etc/init.d/dockerman start
+fi
 mv /etc/rc.local.orig /etc/rc.local
+chmod 755 /etc/rc.local
 exec /etc/rc.local
 exit
 EOF
-
 chmod 755 ./etc/rc.local*
 
 #Mainline U-BOOT detection

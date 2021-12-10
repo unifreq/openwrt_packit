@@ -505,13 +505,18 @@ eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 rm -f ./etc/part_size ./etc/first_run.sh
 mv ./etc/rc.local ./etc/rc.local.orig
-cat >./etc/rc.local <<EOF
-if [ ! -f /etc/rc.d/*dockerd ];then
+cat > "./etc/rc.local" <<EOF
+if ! ls /etc/rc.d/S??dockerd >/dev/null 2>&1;then
     /etc/init.d/dockerd enable
     /etc/init.d/dockerd start
 fi
+if ! ls /etc/rc.d/S??dockerman >/dev/null 2>&1 && [ -f /etc/init.d/dockerman ];then
+    /etc/init.d/dockerman enable
+    /etc/init.d/dockerman start
+fi
 opkg remove --force-removal-of-dependent-packages shairport-sync-openssl
 mv /etc/rc.local.orig /etc/rc.local
+chmod 755 /etc/rc.local
 exec /etc/rc.local
 exit
 EOF

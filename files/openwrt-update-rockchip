@@ -363,7 +363,7 @@ if [ -x ./usr/sbin/balethirq.pl ]; then
         sed -e "/exit/i\/usr/sbin/balethirq.pl" -i ./etc/rc.local
     fi
 fi
-rm -f "./etc/rc.local.orig" "./etc/first_run.sh" "./etc/part_size"
+
 rm -f ./etc/bench.log
 cat >./etc/fstab <<EOF
 UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
@@ -498,8 +498,28 @@ sed -e "s/option hw_flow '1'/option hw_flow '0'/" -i ./etc/config/turboacc
 # move /etc/config/balance_irq to /etc/balance_irq
 [ -f "./etc/config/balance_irq" ] && mv ./etc/config/balance_irq ./etc/
 
+rm -f "./etc/rc.local.orig" "./etc/first_run.sh" "./etc/part_size"
+
 eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 sync
+
+mv ./etc/rc.local ./etc/rc.local.orig
+cat > "./etc/rc.local" <<EOF
+if ! ls /etc/rc.d/S??dockerd >/dev/null 2>&1;then
+    /etc/init.d/dockerd enable
+    /etc/init.d/dockerd start
+fi
+if ! ls /etc/rc.d/S??dockerman >/dev/null 2>&1 && [ -f /etc/init.d/dockerman ];then
+    /etc/init.d/dockerman enable
+    /etc/init.d/dockerman start
+fi
+mv /etc/rc.local.orig /etc/rc.local
+chmod 755 /etc/rc.local
+exec /etc/rc.local
+exit
+EOF
+chmod 755 ./etc/rc.local*
+
 echo "create the second etc snapshot -> .snapshots/etc-001"
 btrfs subvolume snapshot -r etc .snapshots/etc-001
 
