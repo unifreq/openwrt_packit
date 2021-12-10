@@ -142,6 +142,7 @@ cat > /etc/docker/daemon.json <<EOF
      "max-size": "10m",
      "max-file": "5"
    },
+  "iptables": true;
   "registry-mirrors": [
      "https://docker.mirrors.ustc.edu.cn",
      "https://registry.cn-shanghai.aliyuncs.com",
