@@ -79,7 +79,12 @@ cat files/luci-admin-status-index-html.patch | (cd "$TMPDIR/" && patch -p1) && \
 	cat files/luci-admin-status-index-html-02.patch | (cd "$TMPDIR/" && patch -p1)
 
 cat files/docker/init.d_turboacc.patch | (cd "$TMPDIR/" && patch -p1 )
-cat files/docker/cbi_turboacc.patch | (cd "$TMPDIR/" && patch -p1 )
+if ! cat files/docker/cbi_turboacc_new.patch | (cd "$TMPDIR/" && patch -p1 );then
+    cat files/docker/cbi_turboacc.patch | (cd "$TMPDIR/" && patch -p1 )
+    ( find "$TMPDIR" -name '*.rej' -exec rm {} \; 
+      find "$TMPDIR" -name '*.orig' -exec rm {} \;
+    )
+fi
 sed -e "s/hw_flow '1'/hw_flow '0'/" -i $TMPDIR/etc/config/turboacc
 sed -e "s/sfe_flow '1'/sfe_flow '0'/" -i $TMPDIR/etc/config/turboacc
 
