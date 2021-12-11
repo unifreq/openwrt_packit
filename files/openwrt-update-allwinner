@@ -214,7 +214,8 @@ else
 fi
 
 echo -n "mount ${LOOP_DEV}p2 -> ${P2} ... "
-mount -t btrfs -o ro,compress=zstd ${LOOP_DEV}p2 ${P2}
+ZSTD_LEVEL=6
+mount -t btrfs -o ro,compress=zstd:${ZSTD_LEVEL} ${LOOP_DEV}p2 ${P2}
 if [ $? -ne 0 ]; then
     echo "mount failed"
     umount -f ${P1}
@@ -302,7 +303,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "mount ${NEW_ROOT_PATH} to ${NEW_ROOT_MP}"
-mount -t btrfs -o compress=zstd ${NEW_ROOT_PATH} ${NEW_ROOT_MP}
+mount -t btrfs -o compress=zstd:${ZSTD_LEVEL} ${NEW_ROOT_PATH} ${NEW_ROOT_MP}
 if [ $? -ne 0 ]; then
     echo "mount ${NEW_ROOT_PATH} to ${NEW_ROOT_MP} failed!"
     umount -f ${P1}
@@ -361,7 +362,7 @@ if [ -x ./usr/sbin/balethirq.pl ]; then
     fi
 fi
 cat >./etc/fstab <<EOF
-UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
+UUID=${NEW_ROOT_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 LABEL=${LB_PRE}BOOT /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
@@ -381,7 +382,7 @@ config mount
         option enabled '1'
         option enabled_fsck '1'
         option fstype 'btrfs'
-        option options 'compress=zstd'
+        option options 'compress=zstd:${ZSTD_LEVEL}'
 
 config mount
         option target '/boot'
@@ -554,7 +555,7 @@ INITRD=/uInitrd
 FDT=/dtb/allwinner/sun50i-h6-vplus-cloud.dtb
 #FDT=/dtb/allwinner/sun50i-h6-vplus-cloud-2ghz.dtb
 
-APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyS0,115200n8 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
+APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyS0,115200n8 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 
 sync

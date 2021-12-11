@@ -111,7 +111,7 @@ create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
 make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
-mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
+mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd:${ZSTD_LEVEL}"
 echo "创建 /etc 子卷 ..."
 btrfs subvolume create $TGT_ROOT/etc
 extract_rootfs_files
@@ -127,7 +127,7 @@ verbosity=7
 overlay_prefix=rockchip
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
-rootflags=compress=zstd
+rootflags=compress=zstd:${ZSTD_LEVEL}
 extraargs=usbcore.autosuspend=-1
 extraboardargs=
 fdtfile=/dtb/rockchip/rk3328-beikeyun-1296mhz.dtb

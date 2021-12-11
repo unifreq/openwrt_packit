@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# the default zstd compress level is 3
+export ZSTD_LEVEL=6
+
 get_random_mac ()
 {
     # MAC地址第一段可在 02 06 0A 0E 中任选一个
@@ -698,13 +701,13 @@ function create_fstab_config() {
         cd $TGT_ROOT
         if [ ! -z "${BOOT_UUID}" ];then
             cat > ./etc/fstab <<EOF
-UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+UUID=${ROOTFS_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 UUID=${BOOT_UUID} /boot ext4 noatime,errors=remount-ro 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
         else 
             cat > ./etc/fstab <<EOF
-UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+UUID=${ROOTFS_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
@@ -725,7 +728,7 @@ config mount
         option enabled_fsck '1'
         option uuid '${ROOTFS_UUID}'
         option fstype 'btrfs'
-        option options 'compress=zstd'
+        option options 'compress=zstd:${ZSTD_LEVEL}'
 
 config mount
         option target '/boot'
