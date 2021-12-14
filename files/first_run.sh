@@ -129,6 +129,25 @@ echo "done"
 # 新分区建立成功后, 允许在非EMMC设备上也启用docker
 # init dockerd
 echo "Init the dockerd configs ... "
+
+if [ -f /etc/init.d/dockerman ];then
+    echo -n "stop dockerman ... "
+    /etc/init.d/dockerman stop
+    echo "ok"
+
+    echo -n "disable dockerman ... "
+    /etc/init.d/dockerman disable
+    echo "ok"
+fi
+
+echo -n "stop dockerd ... "
+/etc/init.d/dockerd stop
+echo "ok"
+
+echo -n "disable dockerd ... "
+/etc/init.d/dockerd disable
+echo "ok"
+
 mkdir -p "/mnt/${PT_PRE}4/docker"
 rm -rf "/opt/docker"
 ln -sf "/mnt/${PT_PRE}4/docker/" "/opt/docker"
@@ -142,6 +161,7 @@ cat > /etc/docker/daemon.json <<EOF
      "max-size": "10m",
      "max-file": "5"
    },
+  "iptables": true;
   "registry-mirrors": [
      "https://docker.mirrors.ustc.edu.cn",
      "https://registry.cn-shanghai.aliyuncs.com",
@@ -150,21 +170,66 @@ cat > /etc/docker/daemon.json <<EOF
 }
 EOF
 echo "done"
-echo -n "stop dockerd ... "
-/etc/init.d/dockerd stop
-echo "ok"
 
-echo -n "disable dockerd ... "
-/etc/init.d/dockerd disable
+echo -n "enable dockerd ... "
+/etc/init.d/dockerd enable
 echo "ok"
 
 echo -n "starting dockerd ... "
 /etc/init.d/dockerd start
 echo "ok"
 
-echo -n "enable dockerd ... "
-/etc/init.d/dockerd enable
-echo "ok"
+if [ -f /etc/init.d/dockerman ];then
+     if [ -f "/etc/docker/daemon.json" ] && [ -x "/usr/bin/jq" ];then
+        data_root=$(jq -r '."data-root"' /etc/docker/daemon.json)
+
+        bip=$(jq -r '."bip"' /etc/docker/daemon.json)
+        [ "$bip" == "null" ] && bip="172.31.0.1/24"
+
+        log_level=$(jq -r '."log-level"' /etc/docker/daemon.json)
+        [ "$log_level" == "null" ] && log_level="warn"
+
+        _iptables=$(jq -r '."iptables"' /etc/docker/daemon.json)
+        [ "$_iptables" == "null" ] && _iptables="true"
+
+        registry_mirrors=$(jq -r '."registry-mirrors"[]' /etc/docker/daemon.json 2>/dev/null)
+    fi
+
+    if [ "$data_root" == "" ];then
+         data_root="/opt/docker/" # the default data root
+    fi
+
+    if ! uci get dockerd.globals >/dev/null 2>&1;then
+        uci set dockerd.globals='globals'
+        uci commit
+    fi
+
+    # delete alter config , use inner config
+    if uci get dockerd.globals.alt_config_file >/dev/null 2>&1;then
+        uci delete dockerd.globals.alt_config_file
+        uci commit
+    fi
+
+    uci set dockerd.globals.data_root=$data_root
+    [ "$bip" != "" ] && uci set dockerd.globals.bip=$bip
+    [ "$log_level" != "" ] && uci set dockerd.globals.log_level=$log_level
+    [ "$_iptables" != "" ] && uci set dockerd.globals.iptables=$_iptables
+    if [ "$registry_mirrors" != "" ];then
+        for reg in $registry_mirrors;do
+            uci add_list dockerd.globals.registry_mirrors=$reg
+        done
+    fi
+    uci set dockerd.globals.auto_start='1'
+    uci commit
+
+    echo -n "enable dockerman ... "
+    /etc/init.d/dockerman enable
+    echo "ok"
+
+    echo -n "starting dockerman ... "
+    /etc/init.d/dockerman start
+    echo "ok"
+fi
 
 # init AdguardHome
 echo "Init the Adguard config ... "

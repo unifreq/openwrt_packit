@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# the default zstd compress level is 3
+export ZSTD_LEVEL=6
+
 get_random_mac ()
 {
     # MAC地址第一段可在 02 06 0A 0E 中任选一个
@@ -698,13 +701,13 @@ function create_fstab_config() {
         cd $TGT_ROOT
         if [ ! -z "${BOOT_UUID}" ];then
             cat > ./etc/fstab <<EOF
-UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+UUID=${ROOTFS_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 UUID=${BOOT_UUID} /boot ext4 noatime,errors=remount-ro 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
         else 
             cat > ./etc/fstab <<EOF
-UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
+UUID=${ROOTFS_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
@@ -725,7 +728,7 @@ config mount
         option enabled_fsck '1'
         option uuid '${ROOTFS_UUID}'
         option fstype 'btrfs'
-        option options 'compress=zstd'
+        option options 'compress=zstd:${ZSTD_LEVEL}'
 
 config mount
         option target '/boot'
@@ -914,6 +917,12 @@ function copy_supplement_files() {
         [ -n "$GETCPU_SCRIPT" ] && [ -f $GETCPU_SCRIPT ] && cp -v $GETCPU_SCRIPT ./bin/
         [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
              sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
+
+        [ -f ./etc/sysupgrade.conf ] && \
+             cat >> ./etc/sysupgrade.conf <<EOF
+/root/.ssh/
+EOF
+
     )
     echo "==============================================================================="
     echo "完成"
@@ -954,6 +963,17 @@ function adjust_openssh_config() {
             utc_secs=$(date +%s)
             days=$(( utc_secs / 86400 ))
             sed -e "s/:0:0:99999:7:::/:${days}:0:99999:7:::/" -i ./etc/shadow
+	    echo "完成"
+            echo -n "检查sshd用户和组 ... "
+	    if ! grep "sshd:x:22:sshd" ./etc/group >/dev/null;then
+                 echo "sshd_x:22:sshd" >> ./etc/group
+            fi
+	    if ! grep "sshd:x:22:22:sshd:" ./etc/passwd >/dev/null;then
+                 echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
+            fi
+	    if ! grep "sshd:x:" ./etc/shadow >/dev/null;then
+                 echo "sshd:x:0:0:99999:7:::" >> ./etc/shadow
+            fi
 	    echo "完成"
 	    
 	    echo -n "添加防火墙规则，丢弃目标为 WAN 区域, 端口为 22/TCP 的报文 ... "
@@ -1147,19 +1167,25 @@ function adjust_docker_config() {
         [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
         if [ -f ./etc/init.d/dockerd ];then
             echo "发现 dockerd 服务，正在调整 ... "
-            [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && patch -p1 < $DOCKERD_PATCH
-            if [ "$PLATFORM" == "amlogic" ];then
-                echo "在 Amlogic 平台上，U盘或TF卡启动默认关闭 dockerd 服务 ... "
-                rm -f ./etc/rc.d/S??dockerd
-            else
-                # 其它平台， 调整启动顺序到99
-                mv -f ./etc/rc.d/S??dockerd ./etc/rc.d/S99dockerd 2>/dev/null
+            [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && [ ! -f ./etc/init.d/dockerman ] && patch -p1 < $DOCKERD_PATCH
+
+            if [ -f "./etc/init.d/dockerman" ] ;then
+                cat >> ./etc/config/dockerd <<EOF
+
+config globals 'globals'
+        option alt_config_file '/etc/docker/daemon.json' 
+	option auto_start '1'
+EOF
+                sed -e '/uci -q set dockerd.globals.auto_start="0"/d' -i ./etc/uci-defaults/luci-app-dockerman 
             fi
+
+	    # 由first_run.sh负责重新开启dockerd服务
+            echo "默认关闭 dockerd 服务 ... "
+            rm -f ./etc/rc.d/S??dockerd ./etc/rc.d/S??dockerman
             echo "完成"
         else
             echo "未发现 dockerd 服务，放弃调整"
         fi
-        #sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
     )
     echo
 }

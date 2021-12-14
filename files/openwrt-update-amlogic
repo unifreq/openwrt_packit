@@ -242,12 +242,68 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Mount [ ${LOOP_DEV}p2 ] -> [ ${P2} ] ... "
-mount -t btrfs -o ro,compress=zstd ${LOOP_DEV}p2 ${P2}
+ZSTD_LEVEL=6
+mount -t btrfs -o ro,compress=zstd:${ZSTD_LEVEL} ${LOOP_DEV}p2 ${P2}
 if [ $? -ne 0 ]; then
     echo "Mount p2 [ ${LOOP_DEV}p2 ] failed!"
     umount -f ${P1}
     losetup -D
     exit 1
+fi
+
+# Prepare the dockerman config file
+if [ -f ${P2}/etc/init.d/dockerman ] && [ -f ${P2}/etc/config/dockerd ];then
+
+    flg=0
+    # get current docker data root
+    data_root=$(uci get dockerd.globals.data_root 2>/dev/null)
+    if [ "$data_root" == "" ];then
+         flg=1
+	 # get current config from /etc/docker/daemon.json
+         if [ -f "/etc/docker/daemon.json" ] && [ -x "/usr/bin/jq" ];then
+	     data_root=$(jq -r '."data-root"' /etc/docker/daemon.json)
+
+	     bip=$(jq -r '."bip"' /etc/docker/daemon.json)
+	     [ "$bip" == "null" ] && bip="172.31.0.1/24"
+
+	     log_level=$(jq -r '."log-level"' /etc/docker/daemon.json)
+	     [ "$log_level" == "null" ] && log_level="warn"
+
+	     _iptables=$(jq -r '."iptables"' /etc/docker/daemon.json)
+	     [ "$_iptables" == "null" ] && _iptables="true"
+
+	     registry_mirrors=$(jq -r '."registry-mirrors"[]' /etc/docker/daemon.json 2>/dev/null)
+         fi
+    fi
+
+    if [ "$data_root" == "" ];then
+         data_root="/opt/docker/" # the default data root
+    fi
+
+    if ! uci get dockerd.globals >/dev/null 2>&1;then
+        uci set dockerd.globals='globals'
+        uci commit
+    fi
+
+    # delete alter config , use inner config
+    if uci get dockerd.globals.alt_config_file >/dev/null 2>&1;then
+        uci delete dockerd.globals.alt_config_file
+        uci commit
+    fi
+
+    if [ $flg -eq 1 ];then
+	uci set dockerd.globals.data_root=$data_root
+	[ "$bip" != "" ] && uci set dockerd.globals.bip=$bip
+	[ "$log_level" != "" ] && uci set dockerd.globals.log_level=$log_level
+	[ "$_iptables" != "" ] && uci set dockerd.globals.iptables=$_iptables
+	if [ "$registry_mirrors" != "" ];then
+            for reg in $registry_mirrors;do
+                uci add_list dockerd.globals.registry_mirrors=$reg
+	    done
+        fi
+        uci set dockerd.globals.auto_start='1'
+        uci commit
+    fi
 fi
 
 #update version prompt
@@ -330,7 +386,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Mount [ ${NEW_ROOT_PATH} ] -> [ ${NEW_ROOT_MP} ]"
-mount -t btrfs -o compress=zstd ${NEW_ROOT_PATH} ${NEW_ROOT_MP}
+mount -t btrfs -o compress=zstd:${ZSTD_LEVEL} ${NEW_ROOT_PATH} ${NEW_ROOT_MP}
 if [ $? -ne 0 ]; then
     echo "Mount [ ${NEW_ROOT_PATH} ] -> [ ${NEW_ROOT_MP} ] failed!"
     umount -f ${P1}
@@ -382,6 +438,7 @@ if [ "${BR_FLAG}" -eq 0 ]; then
      "max-size": "10m",
      "max-file": "5"
    },
+  "iptables": true,
   "registry-mirrors": [
      "https://docker.mirrors.ustc.edu.cn",
      "https://registry.cn-shanghai.aliyuncs.com",
@@ -392,7 +449,7 @@ EOF
 fi
 
 cat >./etc/fstab <<EOF
-UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
+UUID=${NEW_ROOT_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 LABEL=${LB_PRE}BOOT /boot vfat defaults 0 2
 #tmpfs /tmp tmpfs defaults,nosuid 0 0
 EOF
@@ -412,7 +469,7 @@ config  mount
         option enabled '1'
         option enabled_fsck '1'
         option fstype 'btrfs'
-        option options 'compress=zstd'
+        option options 'compress=zstd:${ZSTD_LEVEL}'
 
 config  mount
         option target '/boot'
@@ -473,6 +530,11 @@ if [[ "${BR_FLAG}" -eq "1" && -n "${BACKUP_LIST}" ]]; then
     # Restore fstab
     cp -f .snapshots/etc-000/fstab ./etc/fstab
     cp -f .snapshots/etc-000/config/fstab ./etc/config/fstab
+    # 还原 luci
+    cp -f .snapshots/etc-000/config/luci ./etc/config/luci
+    # 还原/etc/config/rpcd
+    cp -f .snapshots/etc-000/config/rpcd ./etc/config/rpcd
+
     sync
     echo "Restore configuration information complete."
 fi
@@ -487,13 +549,21 @@ EOF
 
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
-
+sss=$(date +%s)
+ddd=$((sss / 86400))
+sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
+# Fix the problem of repeatedly adding amule entries after each upgrade
+sed -e "/amule:x:/d" -i ./etc/shadow
 # Fix the problem of repeatedly adding sshd entries after each upgrade of dropbear
 sed -e "/sshd:x:/d" -i ./etc/shadow
-if [ $(grep "sshd:x:22:22" ./etc/passwd | wc -l) -eq 0 ]; then
-    echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >>./etc/passwd
-    echo "sshd:x:22:sshd" >>./etc/group
-    echo "sshd:x:${ddd}:0:99999:7:::" >>./etc/shadow
+if ! grep "sshd:x:22:sshd" ./etc/group >/dev/null;then
+     echo "sshd:x:22:sshd" >> ./etc/group
+fi
+if ! grep "sshd:x:22:22:sshd:" ./etc/passwd >/dev/null;then
+     echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
+fi
+if ! grep "sshd:x:" ./etc/shadow >/dev/null;then
+     echo "sshd:x:${ddd}:0:99999:7:::" >> ./etc/shadow
 fi
 
 if [ "${BR_FLAG}" -eq "1" ]; then
@@ -523,18 +593,22 @@ if [ -x ./usr/sbin/balethirq.pl ]; then
         sed -e "/exit/i\/usr/sbin/balethirq.pl" -i ./etc/rc.local
     fi
 fi
-mv ./etc/rc.local ./etc/rc.local.orig
 
-cat >./etc/rc.local <<EOF
-if [ ! -f /etc/rc.d/*dockerd ]; then
+mv ./etc/rc.local ./etc/rc.local.orig
+cat > "./etc/rc.local" <<EOF
+if ! ls /etc/rc.d/S??dockerd >/dev/null 2>&1;then
     /etc/init.d/dockerd enable
     /etc/init.d/dockerd start
 fi
+if ! ls /etc/rc.d/S??dockerman >/dev/null 2>&1 && [ -f /etc/init.d/dockerman ];then
+    /etc/init.d/dockerman enable
+    /etc/init.d/dockerman start
+fi
 mv /etc/rc.local.orig /etc/rc.local
+chmod 755 /etc/rc.local
 exec /etc/rc.local
 exit
 EOF
-
 chmod 755 ./etc/rc.local*
 
 #Mainline U-BOOT detection
@@ -695,14 +769,14 @@ if [ -f /tmp/uEnv.txt ]; then
     lines=$((lines - 1))
     head -n $lines /tmp/uEnv.txt >uEnv.txt
     cat >>uEnv.txt <<EOF
-APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
+APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 else
     cat >uEnv.txt <<EOF
 LINUX=/zImage
 INITRD=/uInitrd
 FDT=${CUR_FDTFILE}
-APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
+APPEND=root=UUID=${NEW_ROOT_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 fi
 sync

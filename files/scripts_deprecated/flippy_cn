@@ -1,7 +1,8 @@
 #!/bin/bash
 # flippy's openwrt tools
 
-VERSION="v1.1"
+VERSION="v1.2"
+ZSTD_LEVEL=6
 SNAPSHOT_PRESTR=".snapshots/"
 BACKUP_DIR="/.reserved"
 BACKUP_FILE="${BACKUP_DIR}/openwrt_config.tar.gz"
@@ -57,6 +58,7 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/ssh/*key*  \
 ./etc/ssl/private/  \
 ./etc/ssrplus/ \
+./etc/sysupgrade.conf \
 ./etc/transmission/ \
 ./etc/uhttpd.crt \
 ./etc/uhttpd.key \
@@ -378,7 +380,7 @@ config mount
 EOF
 
     if [ "${ROOT_FSTYPE}" == "btrfs" ];then
-        echo "	option options 'compress=zstd'" >> /etc/config/fstab
+        echo "	option options 'compress=zstd:${ZSTD_LEVEL}'" >> /etc/config/fstab
     fi
 
     cat >> /etc/config/fstab <<EOF
