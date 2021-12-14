@@ -115,6 +115,8 @@ FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 
 # 20211024 add
 MODEL_DB="${PWD}/files/amlogic_model_database.txt"
+# 20211214 add
+P7ZIP="${PWD}/files/7z"
 ###########################################################################
 
 check_depends

@@ -923,6 +923,10 @@ function copy_supplement_files() {
 /root/.ssh/
 EOF
 
+        if [ -n "${P7ZIP}" ] && [ -f "$P7ZIP" ];then
+             rm -rf ./usr/lib/opkg/info/p7zip* ./usr/lib/p7zip ./usr/bin/7z
+	     cp -v "${P7ZIP}" ./usr/bin/7z && chmod 755 ./usr/bin/7z
+        fi
     )
     echo "==============================================================================="
     echo "完成"

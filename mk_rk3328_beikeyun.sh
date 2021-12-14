@@ -99,6 +99,8 @@ FORCE_REBOOT="${PWD}/files/rk3328/reboot"
 OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
 OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 OPENWRT_UPDATE="${PWD}/files/openwrt-update-rockchip"
+# 20211214 add
+P7ZIP="${PWD}/files/7z"
 ####################################################################
 
 check_depends
