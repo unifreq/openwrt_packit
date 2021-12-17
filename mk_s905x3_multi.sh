@@ -118,6 +118,8 @@ FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 MODEL_DB="${PWD}/files/amlogic_model_database.txt"
 # 20211214 add
 P7ZIP="${PWD}/files/7z"
+# 20211217 add
+DDBR="${PWD}/files/openwrt-ddbr"
 ###########################################################################
 
 check_depends

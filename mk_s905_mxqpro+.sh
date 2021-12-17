@@ -114,6 +114,8 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 # 20211214 add
 P7ZIP="${PWD}/files/7z"
+# 20211217 add
+DDBR="${PWD}/files/openwrt-ddbr"
 ###########################################################################
 
 check_depends
