@@ -1026,6 +1026,8 @@ function adjust_samba_config() {
          if [ -f ./etc/config/samba4 ];then
              echo "发现 samba4, 将启用 smbv1 协议. "        
              sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua
+	     sed -e 's/services/nas/g' -i ./usr/share/luci/menu.d/luci-app-samba4.json
+
              [ -f ${SMB4_PATCH} ] && patch -p1 < ${SMB4_PATCH}
          fi
     )
