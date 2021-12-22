@@ -1197,6 +1197,19 @@ EOF
     echo
 }
 
+# mosdns 配置调整
+function adjust_mosdns_config() {
+    (
+    	if [ -f ./etc/config/mosdns ];then
+            echo -n "发现mosdns配置，正在调整 ... "
+	    sed -e "s/option enabled '1'/option enabled '0'" -i ./etc/config/mosdns
+	    sed -e "s/option redirect '1'/option redirect '0'" -i ./etc/config/mosdns
+	    sed -e "s/option autoconf '1'/option autoconf '0'" -i ./etc/config/mosdns
+	    echo "完成"
+        fi
+    )
+}
+
 # 用 xray-plugin 代替 v2ray-plugin
 function use_xrayplug_replace_v2rayplug() {
     echo -n "用 xray-plugin 代替 v2ray-plugin ... "
