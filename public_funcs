@@ -1202,24 +1202,29 @@ function adjust_mosdns_config() {
     (
     	if [ -f ./etc/config/mosdns ];then
             echo -n "发现mosdns配置，正在调整 ... "
-	    sed -e "s/option enabled '1'/option enabled '0'" -i ./etc/config/mosdns
-	    sed -e "s/option redirect '1'/option redirect '0'" -i ./etc/config/mosdns
-	    sed -e "s/option autoconf '1'/option autoconf '0'" -i ./etc/config/mosdns
+	    sed -e "s/option enabled '1'/option enabled '0'/" -i ./etc/config/mosdns
+	    sed -e "s/option redirect '1'/option redirect '0'/" -i ./etc/config/mosdns
+	    sed -e "s/option autoconf '1'/option autoconf '0'/" -i ./etc/config/mosdns
 	    echo "完成"
         fi
     )
 }
 
-# 用 xray-plugin 代替 v2ray-plugin
+# 用 xray 代替 v2ray
 function use_xrayplug_replace_v2rayplug() {
-    echo -n "用 xray-plugin 代替 v2ray-plugin ... "
     (
         cd $TGT_ROOT
-        if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
+        if [ -f usr/bin/xray ];then
+            echo -n "用 xray 代替 v2ray ... "
+            cd usr/bin && rm -f v2ray && ln -s xray v2ray
+            echo "完成"
+        fi
+
+        cd $TGT_ROOT
+        if [ -f usr/bin/xray-plugin ];then
+            echo -n "用 xray-plugin 代替 v2ray-plugin ... "
             cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin
             echo "完成"
-        else
-            echo "不符合替换条件，跳过"
         fi
     )
 }
