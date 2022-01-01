@@ -762,6 +762,11 @@ function adjust_ntfs_config() {
     ( 
         cd $TGT_ROOT/sbin
         if [ -f mount.ntfs3 ];then
+            cat > mount.ntfs3 <<EOF
+#!/bin/sh
+mount -t ntfs3 -o iocharset=utf8,force "\$@"
+EOF
+            chmod 755 mount.ntfs3
             ln -sf mount.ntfs3 mount.ntfs
             echo "发现 mount.ntfs3, 调整完成"
         elif [ -f ../usr/bin/ntfs-3g ];then
