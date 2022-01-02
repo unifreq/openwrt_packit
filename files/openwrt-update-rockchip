@@ -19,15 +19,27 @@ AUTO_MAINLINE_UBOOT=${2}
 BACKUP_RESTORE_CONFIG=${3}
 
 # Current device model
+if [ -f /boot/armbianEnv.txt ];then
+    source /boot/armbianEnv.txt 2>/dev/null
+    CURRENT_FDTFILE=$(basename $fdtfile)
+fi
 MYDEVICE_NAME=$(cat /proc/device-tree/model | tr -d '\000')
 if [[ -z "${MYDEVICE_NAME}" ]]; then
     echo "The device name is empty and cannot be recognized."
     exit 1
 elif [[ "$(echo ${MYDEVICE_NAME} | grep "Chainedbox L1 Pro")" != "" ]]; then
-    MYDTB_FTDFILE="rk3328-l1pro-1296mhz.dtb"
+    if [ -n "$CURRENT_FDTFILE" ];then
+        MYDTB_FDTFILE="$CURRENT_FDTFILE"
+    else
+        MYDTB_FDTFILE="rk3328-l1pro-1296mhz.dtb"
+    fi
     SOC="l1pro"
 elif [[ "$(echo ${MYDEVICE_NAME} | grep "BeikeYun")" != "" ]]; then
-    MYDTB_FTDFILE="rk3328-beikeyun-1296mhz.dtb"
+    if [ -n "$CURRENT_FDTFILE" ];then
+        MYDTB_FDTFILE="$CURRENT_FDTFILE"
+    else
+        MYDTB_FDTFILE="rk3328-beikeyun-1296mhz.dtb"
+    fi
     SOC="beikeyun"
 else
     echo "Unknown device: [ ${MYDEVICE_NAME} ], Not supported."
@@ -551,7 +563,7 @@ rootfstype=btrfs
 rootflags=compress=zstd:${ZSTD_LEVEL}
 extraargs=usbcore.autosuspend=-1
 extraboardargs=
-fdtfile=/dtb/rockchip/${MYDTB_FTDFILE}
+fdtfile=/dtb/rockchip/${MYDTB_FDTFILE}
 EOF
 sync
 echo "done"
