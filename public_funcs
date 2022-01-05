@@ -762,6 +762,11 @@ function adjust_ntfs_config() {
     ( 
         cd $TGT_ROOT/sbin
         if [ -f mount.ntfs3 ];then
+            cat > mount.ntfs3 <<EOF
+#!/bin/sh
+mount -t ntfs3 -o iocharset=utf8,force "\$@"
+EOF
+            chmod 755 mount.ntfs3
             ln -sf mount.ntfs3 mount.ntfs
             echo "发现 mount.ntfs3, 调整完成"
         elif [ -f ../usr/bin/ntfs-3g ];then
@@ -890,6 +895,7 @@ function copy_supplement_files() {
         [ -n "$OPENWRT_KERNEL" ] && [ -f ${OPENWRT_KERNEL} ] && cp -v ${OPENWRT_KERNEL} ./usr/sbin/
         [ -n "$OPENWRT_BACKUP" ] && [ -f ${OPENWRT_BACKUP} ] && cp -v ${OPENWRT_BACKUP} ./usr/sbin/ && (cd usr/sbin && ln -sfv openwrt-backup flippy)
         [ -n "$OPENWRT_UPDATE" ] && [ -f ${OPENWRT_UPDATE} ] && cp -v ${OPENWRT_UPDATE} ./usr/sbin/
+	[ -n "${DDBR}" ] && [ -f "${DDBR}" ] && cp -v ${DDBR} ./usr/sbin/
 
         # 我家云, 风扇调速脚本
         if [ "$PLATFORM" == "rockchip" ] && [ "$SOC" == "rk3328" ] && [ "$BOARD" == "l1pro" ] && [ -f "$PWM_FAN" ];then
@@ -923,6 +929,10 @@ function copy_supplement_files() {
 /root/.ssh/
 EOF
 
+        if [ -n "${P7ZIP}" ] && [ -f "$P7ZIP" ];then
+             rm -rf ./usr/lib/opkg/info/p7zip* ./usr/lib/p7zip ./usr/bin/7z
+	     cp -v "${P7ZIP}" ./usr/bin/7z && chmod 755 ./usr/bin/7z
+        fi
     )
     echo "==============================================================================="
     echo "完成"
@@ -1021,6 +1031,8 @@ function adjust_samba_config() {
          if [ -f ./etc/config/samba4 ];then
              echo "发现 samba4, 将启用 smbv1 协议. "        
              sed -e 's/services/nas/g' -i ./usr/lib/lua/luci/controller/samba4.lua
+	     sed -e 's/services/nas/g' -i ./usr/share/luci/menu.d/luci-app-samba4.json
+
              [ -f ${SMB4_PATCH} ] && patch -p1 < ${SMB4_PATCH}
          fi
     )
@@ -1190,16 +1202,34 @@ EOF
     echo
 }
 
-# 用 xray-plugin 代替 v2ray-plugin
+# mosdns 配置调整
+function adjust_mosdns_config() {
+    (
+    	if [ -f ./etc/config/mosdns ];then
+            echo -n "发现mosdns配置，正在调整 ... "
+	    sed -e "s/option enabled '1'/option enabled '0'/" -i ./etc/config/mosdns
+	    sed -e "s/option redirect '1'/option redirect '0'/" -i ./etc/config/mosdns
+	    sed -e "s/option autoconf '1'/option autoconf '0'/" -i ./etc/config/mosdns
+	    echo "完成"
+        fi
+    )
+}
+
+# 用 xray 代替 v2ray
 function use_xrayplug_replace_v2rayplug() {
-    echo -n "用 xray-plugin 代替 v2ray-plugin ... "
     (
         cd $TGT_ROOT
-        if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
+        if [ -f usr/bin/xray ];then
+            echo -n "用 xray 代替 v2ray ... "
+            cd usr/bin && rm -f v2ray && ln -s xray v2ray
+            echo "完成"
+        fi
+
+        cd $TGT_ROOT
+        if [ -f usr/bin/xray-plugin ];then
+            echo -n "用 xray-plugin 代替 v2ray-plugin ... "
             cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin
             echo "完成"
-        else
-            echo "不符合替换条件，跳过"
         fi
     )
 }

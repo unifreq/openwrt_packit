@@ -103,8 +103,18 @@ sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i "${TMPDIR}/etc/shadow" && \
 sed -e "s/root::/root:\$1\$0yUsq67p\$RC5cEtaQpM6KHQfhUSIAl\.:/" -i "${TMPDIR}/etc/shadow"
 
 (cd "$TMPDIR" && tar cf ../openwrt-armvirt-64-default-rootfs-patched.tar .) && \
-rm -f DockerImg-OpenwrtArm64-${TAG}.gz && \
-docker build -t ${IMG_NAME}:${TAG} . && \
-rm -f  openwrt-armvirt-64-default-rootfs-patched.tar && \
-rm -rf "$TMPDIR" && \
-docker save ${IMG_NAME}:${TAG} | pigz -9 > $OUTDIR/docker-img-openwrt-aarch64-${TAG}.gz
+if [ `uname -i` == "aarch64" ];then
+    # native platform build
+    rm -f DockerImg-OpenwrtArm64-${TAG}.gz && \
+    docker build -t ${IMG_NAME}:${TAG} . && \
+    rm -f  openwrt-armvirt-64-default-rootfs-patched.tar && \
+    rm -rf "$TMPDIR" && \
+    docker save ${IMG_NAME}:${TAG} | pigz -9 > $OUTDIR/docker-img-openwrt-aarch64-${TAG}.gz
+else
+    # cross platform build
+    rm -f DockerImg-OpenwrtArm64-${TAG}.gz && \
+    DOCKER_BUILDKIT=1 docker build --platform=linux/arm64 -t ${IMG_NAME}:${TAG} . && \
+    rm -f  openwrt-armvirt-64-default-rootfs-patched.tar && \
+    rm -rf "$TMPDIR" && \
+    docker save ${IMG_NAME}:${TAG} | pigz -9 > $OUTDIR/docker-img-openwrt-aarch64-${TAG}.gz
+fi
