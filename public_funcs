@@ -761,7 +761,7 @@ function adjust_ntfs_config() {
     echo -n "调整 ntfs 配置 ... "
     ( 
         cd $TGT_ROOT/sbin
-        if ls ./usr/lib/opkg/info/ntfs3* >/dev/null 2>&1;then
+        if ls ../usr/lib/opkg/info/ntfs3* >/dev/null 2>&1;then
             rm -f mount.ntfs* 
             cat > mount.ntfs <<EOF
 #!/bin/sh
@@ -795,7 +795,7 @@ fi
 EOF
             chmod 755 mount.ntfs
             echo "发现 ntfs3, 调整完成"
-        elif ls ./usr/lib/opkg/info/ntfs-3g* >/dev/null 2>&1;then
+        elif ls ../usr/lib/opkg/info/ntfs-3g* >/dev/null 2>&1;then
             ln -sf /usr/bin/ntfs-3g mount.ntfs
             echo "发现 ntfs-3g, 调整完成"
         else
