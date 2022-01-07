@@ -762,12 +762,12 @@ function adjust_ntfs_config() {
     ( 
         cd $TGT_ROOT/sbin
         if ls ./usr/lib/opkg/info/ntfs3* >/dev/null 2>&1;then
-            cat > mount.ntfs3 <<EOF
+            rm -f mount.ntfs* 
+            cat > mount.ntfs <<EOF
 #!/bin/sh
 mount -t ntfs3 -o iocharset=utf8,force "\$@"
 EOF
-            chmod 755 mount.ntfs3
-            ln -sf mount.ntfs3 mount.ntfs
+            chmod 755 mount.ntfs
             echo "发现 ntfs3, 调整完成"
         elif ls ./usr/lib/opkg/info/ntfs-3g* >/dev/null 2>&1;then
             ln -sf /usr/bin/ntfs-3g mount.ntfs
