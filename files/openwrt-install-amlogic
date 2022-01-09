@@ -595,6 +595,12 @@ while [ $i -le $max_try ]; do
    ]
 }
 EOF
+        # change data_root value in /etc/config/dockerd
+	if [ -f ./etc/init.d/dockerman ] && [ -f ./etc/config/dockerd ];then
+             tmp_dockerd=$(mktemp)
+             perl -npe "s/option data_root '.+'/option data_root '\/mnt\/${EMMC_NAME}p4\/docker\/'/" ./etc/config/dockerd > ${tmp_dockerd} && mv ${tmp_dockerd} ./etc/config/dockerd
+	     unset tmp_dockerd
+        fi
         rm -rf opt/docker && ln -sf /mnt/${EMMC_NAME}p4/docker/ opt/docker >/dev/null
         rm -rf usr/bin/AdGuardHome && ln -sf /mnt/${EMMC_NAME}p4/AdGuardHome usr/bin/ >/dev/null
 
