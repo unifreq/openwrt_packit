@@ -1241,18 +1241,18 @@ function adjust_mosdns_config() {
     )
 }
 
-# 用 xray 代替 v2ray
+# 用 xray 代替 v2ray (如果v2ray不存在)
 function use_xrayplug_replace_v2rayplug() {
     (
         cd $TGT_ROOT
-        if [ -f usr/bin/xray ];then
+        if [ -f usr/bin/xray ] && [ ! -f usr/bin/v2ray ];then
             echo -n "用 xray 代替 v2ray ... "
             cd usr/bin && rm -f v2ray && ln -s xray v2ray
             echo "完成"
         fi
 
         cd $TGT_ROOT
-        if [ -f usr/bin/xray-plugin ];then
+        if [ -f usr/bin/xray-plugin ] && [ ! -f usr/bin/v2ray-plugin ];then
             echo -n "用 xray-plugin 代替 v2ray-plugin ... "
             cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin
             echo "完成"
