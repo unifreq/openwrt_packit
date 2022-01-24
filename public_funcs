@@ -761,19 +761,45 @@ function adjust_ntfs_config() {
     echo -n "调整 ntfs 配置 ... "
     ( 
         cd $TGT_ROOT/sbin
-        if [ -f mount.ntfs3 ];then
-            cat > mount.ntfs3 <<EOF
+        if ls ../usr/lib/opkg/info/ntfs3* >/dev/null 2>&1;then
+            rm -f mount.ntfs* 
+            cat > mount.ntfs <<EOF
 #!/bin/sh
-mount -t ntfs3 -o iocharset=utf8,force "\$@"
+
+function check_k515() {
+    # 判断内核版本是否 >= 5.15
+    K_VER=\$(uname -r | cut -d '.' -f1)
+    K_MAJ=\$(uname -r | cut -d '.' -f2)
+
+    if [ \$K_VER -eq 5 ];then
+        if [ \$K_MAJ -ge 15 ];then
+            K515=1
+        else
+            K515=0
+        fi
+    elif [ \$K_VER -gt 5 ];then
+        K515=1
+    else
+        K515=0
+    fi
+    export K515
+}
+
+check_k515
+if [ \$K515 -eq 1 ];then
+    mount -t ntfs3 -o iocharset=utf8,force "\$@"
+else
+    mount -t ntfs3 -o nls=utf8,force "\$@"
+fi
+
 EOF
-            chmod 755 mount.ntfs3
-            ln -sf mount.ntfs3 mount.ntfs
-            echo "发现 mount.ntfs3, 调整完成"
-        elif [ -f ../usr/bin/ntfs-3g ];then
+            chmod 755 mount.ntfs
+            echo "发现 ntfs3, 调整完成"
+        elif ls ../usr/lib/opkg/info/ntfs-3g* >/dev/null 2>&1;then
             ln -sf /usr/bin/ntfs-3g mount.ntfs
             echo "发现 ntfs-3g, 调整完成"
         else
-            echo "固件中未包含 ntfs 相关程序"
+            echo "完成"
         fi
     )
 }
@@ -1215,18 +1241,18 @@ function adjust_mosdns_config() {
     )
 }
 
-# 用 xray 代替 v2ray
+# 用 xray 代替 v2ray (如果v2ray不存在)
 function use_xrayplug_replace_v2rayplug() {
     (
         cd $TGT_ROOT
-        if [ -f usr/bin/xray ];then
+        if [ -f usr/bin/xray ] && [ ! -f usr/bin/v2ray ];then
             echo -n "用 xray 代替 v2ray ... "
             cd usr/bin && rm -f v2ray && ln -s xray v2ray
             echo "完成"
         fi
 
         cd $TGT_ROOT
-        if [ -f usr/bin/xray-plugin ];then
+        if [ -f usr/bin/xray-plugin ] && [ ! -f usr/bin/v2ray-plugin ];then
             echo -n "用 xray-plugin 代替 v2ray-plugin ... "
             cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin
             echo "完成"

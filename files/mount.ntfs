@@ -1,0 +1,27 @@
+#!/bin/bash
+
+function check_k515() {
+    # 判断内核版本是否 >= 5.15
+    K_VER=$(uname -r | cut -d '.' -f1)
+    K_MAJ=$(uname -r | cut -d '.' -f2)
+
+    if [ $K_VER -eq 5 ];then
+        if [ $K_MAJ -ge 15 ];then
+            K515=1
+        else
+            K515=0
+        fi
+    elif [ $K_VER -gt 5 ];then
+        K515=1
+    else
+        K515=0
+    fi
+    export K515
+}
+
+check_k515
+if [ $K515 -eq 1 ];then
+    mount -t ntfs3 -o iocharset=utf8,force $@
+else
+    mount -t ntfs3 -o nls=utf8,force $@
+fi
