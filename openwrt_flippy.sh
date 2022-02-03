@@ -7,11 +7,11 @@
 #=====================================================================================
 
 if [[ -z "${OPENWRT_ARMVIRT}" ]]; then
-   echo "The [ OPENWRT_ARMVIRT ] variable must be specified."
-   echo "You can use ${GITHUB_WORKSPACE} relative path: [ openwrt/bin/targets/*/*/*.tar.gz ]"
-   echo "Absolute path can be used: [ https://github.com/.../releases/download/.../openwrt-armvirt-64-default-rootfs.tar.gz ]"
-   echo "You can run this Actions again after setting."
-   exit 1
+    echo "The [ OPENWRT_ARMVIRT ] variable must be specified."
+    echo "You can use ${GITHUB_WORKSPACE} relative path: [ openwrt/bin/targets/*/*/*.tar.gz ]"
+    echo "Absolute path can be used: [ https://github.com/.../releases/download/.../openwrt-armvirt-64-default-rootfs.tar.gz ]"
+    echo "You can run this Actions again after setting."
+    exit 1
 fi
 
 # Install the compressed package
@@ -20,14 +20,14 @@ sudo apt-get update && sudo apt-get install -y p7zip p7zip-full zip unzip gzip x
 # Set the default value
 MAKE_PATH=${PWD}
 PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "diy")
-SELECT_ARMBIANKERNEL=("5.14.12" "5.10.73" "5.4.153")
+SELECT_ARMBIANKERNEL=("5.10.80" "5.4.160")
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
 KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
 # KERNEL_REPO_URL_VALUE URL supported format:
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/trunk/opt/kernel"
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
-KERNEL_VERSION_NAME_VALUE="5.14.12_5.4.153"
+KERNEL_VERSION_NAME_VALUE="5.10.80_5.4.160"
 KERNEL_AUTO_LATEST_VALUE="true"
 PACKAGE_SOC_VALUE="all"
 GZIP_IMGS_VALUE="auto"
@@ -59,11 +59,11 @@ ENABLE_WIFI_K504_VALUE="1"
 ENABLE_WIFI_K510_VALUE="0"
 
 # Set font color
-blue_font_prefix="\033[34m"
-purple_font_prefix="\033[35m"
-green_font_prefix="\033[32m"
-yellow_font_prefix="\033[33m"
-red_font_prefix="\033[31m"
+blue_font_prefix="\033[94m"
+purple_font_prefix="\033[95m"
+green_font_prefix="\033[92m"
+yellow_font_prefix="\033[93m"
+red_font_prefix="\033[91m"
 font_color_suffix="\033[0m"
 INFO="[${blue_font_prefix}INFO${font_color_suffix}]"
 STEPS="[${purple_font_prefix}STEPS${font_color_suffix}]"
@@ -121,11 +121,11 @@ sync
 
 # Load openwrt-armvirt-64-default-rootfs.tar.gz
 if [[ ${OPENWRT_ARMVIRT} == http* ]]; then
-   echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
-   wget ${OPENWRT_ARMVIRT} -q -P ${SELECT_PACKITPATH}
+    echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
+    wget ${OPENWRT_ARMVIRT} -q -P ${SELECT_PACKITPATH}
 else
-   echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
-   cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}
+    echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
+    cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}
 fi
 sync
 
@@ -133,15 +133,14 @@ sync
 armvirt_rootfs_size=$(ls -l ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz 2>/dev/null | awk '{print $5}')
 echo -e "${INFO} armvirt_rootfs_size: [ ${armvirt_rootfs_size} ]"
 if [[ "${armvirt_rootfs_size}" -ge "10000000" ]]; then
-   echo -e "${INFO} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz loaded successfully."
+    echo -e "${INFO} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz loaded successfully."
 else
-   echo -e "${ERROR} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz failed to load."
-   exit 1
+    echo -e "${ERROR} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz failed to load."
+    exit 1
 fi
 
 # Load all selected kernels
-[ -d kernel ] || sudo mkdir kernel
-if  [[ -n "${KERNEL_VERSION_NAME}" ]]; then
+if [[ -n "${KERNEL_VERSION_NAME}" ]]; then
     unset SELECT_ARMBIANKERNEL
     oldIFS=$IFS
     IFS=_
@@ -175,7 +174,7 @@ if [[ -n "${KERNEL_AUTO_LATEST}" && "${KERNEL_AUTO_LATEST}" == "true" ]]; then
         MAIN_LINE_S=$(echo "${KERNEL_VAR}" | cut -d '.' -f3)
         MAIN_LINE="${MAIN_LINE_M}.${MAIN_LINE_V}"
         # Check the version on the server (e.g LATEST_VERSION="124")
-        LATEST_VERSION=$(curl -s "${SERVER_KERNEL_URL}" | grep "name" | grep -oE "${MAIN_LINE}.[0-9]+"  | sed -e "s/${MAIN_LINE}.//g" | sort -n | sed -n '$p')
+        LATEST_VERSION=$(curl -s "${SERVER_KERNEL_URL}" | grep "name" | grep -oE "${MAIN_LINE}.[0-9]+" | sed -e "s/${MAIN_LINE}.//g" | sort -n | sed -n '$p')
         if [[ "$?" -eq "0" && ! -z "${LATEST_VERSION}" ]]; then
             TMP_ARR_KERNELS[${i}]="${MAIN_LINE}.${LATEST_VERSION}"
         else
@@ -192,17 +191,24 @@ fi
 
 echo -e "${INFO} Package OpenWrt Kernel List: [ ${SELECT_ARMBIANKERNEL[*]} ]"
 
+kernel_path="kernel"
+[ -d "${kernel_path}" ] || sudo mkdir -p ${kernel_path}
+
 i=1
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
-    echo -e "${INFO} (${i}) ${KERNEL_VAR} Kernel loading from [ ${KERNEL_REPO_URL}/${KERNEL_VAR} ]"
-    svn checkout ${KERNEL_REPO_URL}/${KERNEL_VAR} kernel
-    pushd kernel && sudo rm -rf .svn && popd >/dev/null
+    if [ ! -d "${kernel_path}/${KERNEL_VAR}" ]; then
+        echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${KERNEL_REPO_URL}/${KERNEL_VAR} ]"
+        svn export ${KERNEL_REPO_URL}/${KERNEL_VAR} ${kernel_path} --force
+    else
+        echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel is in the local directory."
+    fi
+
     let i++
 done
 sync
 
 # Confirm package object
-if  [[ -n "${PACKAGE_SOC}" && "${PACKAGE_SOC}" != "all" ]]; then
+if [[ -n "${PACKAGE_SOC}" && "${PACKAGE_SOC}" != "all" ]]; then
     unset PACKAGE_OPENWRT
     oldIFS=$IFS
     IFS=_
@@ -239,12 +245,12 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
         SFE_FLOW=0
     fi
 
-    boot_kernel_file=$( ls kernel/boot-${KERNEL_VAR}* 2>/dev/null | head -n 1 )
+    boot_kernel_file=$(ls kernel/boot-${KERNEL_VAR}* 2>/dev/null | head -n 1)
     boot_kernel_file=${boot_kernel_file##*/}
     boot_kernel_file=${boot_kernel_file//boot-/}
     boot_kernel_file=${boot_kernel_file//.tar.gz/}
     echo -e "${INFO} (${k}) KERNEL_VERSION: ${boot_kernel_file}"
-    
+
     cd ${SELECT_PACKITPATH}
 
     if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER}" == "auto" ]]; then
@@ -253,7 +259,7 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     fi
 
     rm -f make.env 2>/dev/null && sync
-    cat > make.env <<EOF
+    cat >make.env <<EOF
 WHOAMI="${WHOAMI}"
 OPENWRT_VER="${OPENWRT_VER}"
 KERNEL_VERSION="${boot_kernel_file}"
@@ -264,57 +270,54 @@ SFE_FLOW="${SFE_FLOW}"
 ENABLE_WIFI_K504="${ENABLE_WIFI_K504}"
 ENABLE_WIFI_K510="${ENABLE_WIFI_K510}"
 EOF
-sync
+    sync
 
     echo -e "${INFO} make.env file info:"
     cat make.env
-    
+
     i=1
     for PACKAGE_VAR in ${PACKAGE_OPENWRT[*]}; do
         {
             cd /opt/${SELECT_PACKITPATH}
             echo -e "${STEPS} (${k}.${i}) Start packaging OpenWrt, Kernel is [ ${KERNEL_VAR} ], SoC is [ ${PACKAGE_VAR} ]"
 
-            now_remaining_space_kb=$(df -T ${PWD} | grep '/dev/' | awk '{print $5}')
-	    now_remaining_space_mb=$((now_remaining_space_kb / 1024))
-	    min_threshold_mb=2000
-            if  [[ ${now_remaining_space_mb} -le $min_threshold_mb ]]; then
-                echo -e "${WARNING} If the remaining space is less than ${min_threshold_mb}MB, exit this packaging. \n"
+            now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//' | awk -F "." '{print $1}')
+            if [[ "${now_remaining_space}" -le "2" ]]; then
+                echo -e "${WARNING} If the remaining space is less than 2G, exit this packaging. \n"
                 break 2
             else
-                now_remaining_space=$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}')
-                echo -e "${INFO} Remaining space is ${now_remaining_space}B. \n"
+                echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
             fi
 
             case "${PACKAGE_VAR}" in
-                vplus)       sudo ./${SCRIPT_VPLUS} ;;
-                beikeyun)    sudo ./${SCRIPT_BEIKEYUN} ;;
-                l1pro)       sudo ./${SCRIPT_L1PRO} ;;
-                s905)        sudo ./${SCRIPT_S905} ;;
-                s905d)       sudo ./${SCRIPT_S905D} ;;
-                s905x2)      sudo ./${SCRIPT_S905X2} ;;
-                s905x3)      sudo ./${SCRIPT_S905X3} ;;
-                s912)        sudo ./${SCRIPT_S912} ;;
-                s922x)       sudo ./${SCRIPT_S922X} ;;
-                s922x-n2)    sudo ./${SCRIPT_S922X_N2} ;;
-                diy)         sudo ./${SCRIPT_DIY} ;;
+                vplus)       [ -f "${SCRIPT_VPLUS}" ] && sudo ./${SCRIPT_VPLUS} ;;
+                beikeyun)    [ -f "${SCRIPT_BEIKEYUN}" ] && sudo ./${SCRIPT_BEIKEYUN} ;;
+                l1pro)       [ -f "${SCRIPT_L1PRO}" ] && sudo ./${SCRIPT_L1PRO} ;;
+                s905)        [ -f "${SCRIPT_S905}" ] && sudo ./${SCRIPT_S905} ;;
+                s905d)       [ -f "${SCRIPT_S905D}" ] && sudo ./${SCRIPT_S905D} ;;
+                s905x2)      [ -f "${SCRIPT_S905X2}" ] && sudo ./${SCRIPT_S905X2} ;;
+                s905x3)      [ -f "${SCRIPT_S905X3}" ] && sudo ./${SCRIPT_S905X3} ;;
+                s912)        [ -f "${SCRIPT_S912}" ] && sudo ./${SCRIPT_S912} ;;
+                s922x)       [ -f "${SCRIPT_S922X}" ] && sudo ./${SCRIPT_S922X} ;;
+                s922x-n2)    [ -f "${SCRIPT_S922X_N2}" ] && sudo ./${SCRIPT_S922X_N2} ;;
+                diy)         [ -f "${SCRIPT_DIY}" ] && sudo ./${SCRIPT_DIY} ;;
                 *)           ${WARNING} "Have no this SoC. Skipped."
                              continue ;;
             esac
             echo -e "${SUCCESS} (${k}.${i}) Package openwrt completed."
             sync
-            
+
             echo -e "${STEPS} Compress the .img file in the [ ${SELECT_OUTPUTPATH} ] directory. \n"
             cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
-                case "${GZIP_IMGS}" in
-                    7z | .7z)       ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; sync; rm -f %' ;;
-                    zip | .zip)     ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; sync; rm -f %' ;;
-                    zst | .zst)     zstd --rm *.img ;;
-                    xz | .xz)       xz -z *.img ;;
-                    gz | .gz | *)   pigz -9 *.img ;;
-                esac
-                sync
-            
+            case "${GZIP_IMGS}" in
+                7z | .7z)       ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; sync; rm -f %' ;;
+                zip | .zip)     ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; sync; rm -f %' ;;
+                zst | .zst)     zstd --rm *.img ;;
+                xz | .xz)       xz -z *.img ;;
+                gz | .gz | *)   pigz -9 *.img ;;
+            esac
+            sync
+
             let i++
         }
     done
@@ -324,18 +327,18 @@ done
 echo -e "${SUCCESS} All packaged completed. \n"
 
 echo -e "${STEPS} Output environment variables."
-if  [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
+if [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
 
     cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
 
-    if  [[ "${SAVE_OPENWRT_ARMVIRT}" == "true" ]]; then
+    if [[ "${SAVE_OPENWRT_ARMVIRT}" == "true" ]]; then
         echo -e "${STEPS} copy openwrt-armvirt-64-default-rootfs.tar.gz files into ${SELECT_OUTPUTPATH} folder."
         cp -f ../openwrt-armvirt-64-default-rootfs.tar.gz . && sync
     fi
-    
-    echo "PACKAGED_OUTPUTPATH=${PWD}" >> $GITHUB_ENV
-    echo "PACKAGED_OUTPUTDATE=$(date +"%Y.%m.%d.%H%M")" >> $GITHUB_ENV
-    echo "PACKAGED_STATUS=success" >> $GITHUB_ENV
+
+    echo "PACKAGED_OUTPUTPATH=${PWD}" >>$GITHUB_ENV
+    echo "PACKAGED_OUTPUTDATE=$(date +"%Y.%m.%d.%H%M")" >>$GITHUB_ENV
+    echo "PACKAGED_STATUS=success" >>$GITHUB_ENV
     echo -e "PACKAGED_OUTPUTPATH: ${PWD}"
     echo -e "PACKAGED_OUTPUTDATE: $(date +"%Y.%m.%d.%H%M")"
     echo -e "PACKAGED_STATUS: success"
@@ -343,10 +346,9 @@ if  [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
     echo -e "$(ls /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} 2>/dev/null) \n"
 else
     echo -e "${ERROR} Packaging failed. \n"
-    echo "PACKAGED_STATUS=failure" >> $GITHUB_ENV
+    echo "PACKAGED_STATUS=failure" >>$GITHUB_ENV
 fi
 
 # Server space usage and packaged files
 echo -e "${INFO} Server space usage after compilation:\n$(df -hT ${PWD}) \n"
 echo -e "${STEPS} The packaging process has been completed. \n"
-
