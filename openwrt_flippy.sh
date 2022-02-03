@@ -29,7 +29,7 @@ KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
 KERNEL_VERSION_NAME_VALUE="5.14.12_5.4.153"
 KERNEL_AUTO_LATEST_VALUE="true"
-PACKAGE_SOC_VALUE="s905d_s905x3_beikeyun"
+PACKAGE_SOC_VALUE="all"
 GZIP_IMGS_VALUE="auto"
 # Set the working directory under /opt
 SELECT_PACKITPATH_VALUE="openwrt_packit"
