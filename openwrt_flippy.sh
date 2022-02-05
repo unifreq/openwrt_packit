@@ -196,7 +196,7 @@ kernel_path="kernel"
 
 i=1
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
-    if [ ! -d "${kernel_path}/${KERNEL_VAR}" ]; then
+    if [[ "$(ls ${kernel_path}/*${KERNEL_VAR}*.tar.gz -l 2>/dev/null | grep "^-" | wc -l)" -lt "3" ]]; then
         echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${KERNEL_REPO_URL}/${KERNEL_VAR} ]"
         svn export ${KERNEL_REPO_URL}/${KERNEL_VAR} ${kernel_path} --force
     else
