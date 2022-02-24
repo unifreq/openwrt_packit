@@ -65,7 +65,7 @@ FIX_CPU_FREQ="${PWD}/files/fixcpufreq.pl"
 SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 
 # 20201128 add
-SSL_CNF_PATCH="${PWD}/files/vplus/openssl_engine.patch"
+SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201212 add
 BAL_CONFIG="${PWD}/files/vplus/balance_irq"
