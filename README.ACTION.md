@@ -66,7 +66,7 @@
 | SFE_FLOW               | 1                      | 设置 `make.env` 中 `SFE_FLOW` 参数的值    |
 | HW_FLOWOFFLOAD         | 0                      | 设置 `make.env` 中 `HW_FLOWOFFLOAD` 参数的值    |
 | ENABLE_WIFI_K504       | 1                      | 设置 `make.env` 中 `ENABLE_WIFI_K504` 参数的值  |
-| ENABLE_WIFI_K510       | 0                      | 设置 `make.env` 中 `ENABLE_WIFI_K510` 参数的值  |
+| ENABLE_WIFI_K510       | 1                      | 设置 `make.env` 中 `ENABLE_WIFI_K510` 参数的值  |
 
 ## 输出参数说明
 
