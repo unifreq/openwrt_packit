@@ -1184,16 +1184,71 @@ function adjust_openssl_config() {
     echo "调整 openssl 配置 ... "
     (
         cd $TGT_ROOT
-        if [ -f $SSL_CNF_PATCH ];then
-             if patch -p1 < $SSL_CNF_PATCH;then
-                 echo "完成"
-             else
-                 echo "失败！请检查 $SSL_CNF_PATCH "
-             fi 
-        else
-            echo "未发现 openssl 配置文件，放弃调整"
+        #if [ -f $SSL_CNF_PATCH ];then
+             #if patch -p1 < $SSL_CNF_PATCH;then
+                 #echo "完成"
+             #else
+                 #echo "失败！请检查 $SSL_CNF_PATCH "
+             #fi 
+        #else
+            #echo "未发现 openssl 配置文件，放弃调整"
+        #fi
+
+	# devcrypto engine 会导致 openssh 无法工作，禁用 (建议编译时不要选择此engine)
+	if [ -f "./etc/ssl/engines.cnf.d/devcrypto.cnf" ];then
+             echo -n "禁用 devcrypto 引擎 ... "
+	     rm -f ./etc/ssl/engines.cnf.d/devcrypto.cnf
+	     # 清空 etc/config/openssl
+	     > ./etc/config/openssl
+             echo "完成"
+        fi
+
+	# 如果发现 afalg engine
+	if [ -f "./usr/lib/engines-1.1/afalg.so" ] && [ -d "./etc/ssl/engines.cnf.d" ];then
+             echo -n "添加 afalg 引擎 ... "
+             cat >> ./etc/config/openssl <<EOF
+
+config engine 'afalg'
+        option enabled '1'
+
+EOF
+             cat > ./etc/ssl/engines.cnf.d/afalg.cnf <<EOF
+[afalg]
+# Leave this alone and configure algorithms with CIPERS/DIGESTS below
+default_algorithms = ALL
+
+# The following commands are only available if using the alternative
+# (sync) AFALG engine
+# Configuration commands:
+# Run 'openssl engine -t -c -vv -pre DUMP_INFO devcrypto' to see a
+# list of supported algorithms, along with their driver, whether they
+# are hw accelerated or not, and the engine's configuration commands.
+
+# USE_SOFTDRIVERS: specifies whether to use software (not accelerated)
+# drivers (0=use only accelerated drivers, 1=allow all drivers, 2=use
+# if acceleration can't be determined) [default=2]
+#USE_SOFTDRIVERS = 2
+
+# CIPHERS: either ALL, NONE, NO_ECB (all except ECB-mode) or a
+# comma-separated list of ciphers to enable [default=NO_ECB]
+# Starting in 1.2.0, if you use a cipher list, each cipher may be
+# followed by a colon (:) and the minimum request length to use
+# AF_ALG drivers for that cipher; smaller requests are processed by
+# softare; a negative value will use the default for that cipher
+#CIPHERS=AES-128-CBC:1024, AES-256-CBC:768, DES-EDE3-CBC:0
+
+# DIGESTS: either ALL, NONE, or a comma-separated list of digests to
+# enable [default=NONE]
+# It is strongly recommended not to enable digests; their performance
+# is poor, and there are many cases in which they will not work,
+# especially when calling fork with open crypto contexts.  Openssh,
+# for example, does this, and you may not be able to login.
+#DIGESTS = NONE
+EOF
+             echo "完成"
         fi
     )
+    echo "调整完成"
     echo
 }
 
