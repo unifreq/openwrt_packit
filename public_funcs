@@ -995,6 +995,17 @@ function adjust_openssh_config() {
             sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
             sed -e "s/#PermitRootLogin no/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 	    echo "完成 "
+	    if [ "$SSH_CIPHERS" != "" ];then
+                echo -n "优化 ssh client ciphers ... "
+		echo "Host *" >> ./etc/ssh/ssh_config
+		echo "    Ciphers $SSH_CIPHERS" >> ./etc/ssh/ssh_config
+                sed -e "/# Ciphers and keying/a\Ciphers $SSHD_CIPHERS" -i ./etc/ssh/sshd_config 2>/dev/null
+		echo "完成"
+	    fi
+	    if [ "$SSHD_CIPHERS" != "" ];then
+                echo -n "优化 ssh server ciphers ... "
+		echo "完成"
+	    fi
 	    echo -n "配置 shadow, 刷新密码更新日期 ... "
             utc_secs=$(date +%s)
             days=$(( utc_secs / 86400 ))

@@ -116,6 +116,9 @@ FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 P7ZIP="${PWD}/files/7z"
 # 20211217 add
 DDBR="${PWD}/files/openwrt-ddbr"
+# 20220225 add
+SSH_CIPHERS=""
+SSHD_CIPHERS=""
 ###########################################################################
 
 check_depends
