@@ -367,11 +367,52 @@ fi
 echo "umount [ ${NEW_ROOT_MP} ]"
 umount -f "${NEW_ROOT_MP}"
 if [ $? -ne 0 ]; then
-    echo "Mount [ ${NEW_ROOT_MP} ] failed, Please restart and try again!"
+    echo "Umount [ ${NEW_ROOT_MP} ] failed, Please restart and try again!"
     umount -f ${P1}
     umount -f ${P2}
     losetup -D
     exit 1
+fi
+
+# check and fix phicomm n1 mmcblk2p2 partition
+function check_and_fix_n1_partition() {
+    local target_dev_name=$1  # mmcblk2
+    local target_pt_name=$2   # p2
+    local target_pt_idx=$3    # 2
+    local safe_pt_begin_mb=$4 # 800
+    local safe_pt_begin_byte=$(($safe_pt_begin_mb * 1024 * 1024))
+
+    local cur_pt_begin_sector=$(fdisk -l /dev/${target_dev_name} | grep ${target_dev_name}${target_pt_name} | awk '{printf $2}')
+    local cur_pt_begin_mb=$(($cur_pt_begin_sector * 512 / 1024 / 1024))
+
+    if [ $cur_pt_begin_mb -ge $safe_pt_begin_mb ];then
+	 # check pass
+	 return
+    fi
+
+    local cur_pt_end_sector=$(fdisk -l /dev/${target_dev_name} | grep ${target_dev_name}${target_pt_name} | awk '{printf $3}')
+    local cur_pt_end_byte=$(( ($cur_pt_end_sector + 1) * 512 - 1))
+
+    echo "Unsafe partition found, repairing ... "
+    parted /dev/${target_dev_name} rm ${target_pt_idx} || \
+	    ( echo "rm partion ${target_pt_idx} failed" ; exit 1)
+    parted /dev/${target_dev_name} mkpart primary btrfs "${safe_pt_begin_byte}b" "${cur_pt_end_byte}b" || \
+	    ( echo "create new partion ${target_pt_idx} failed" ; exit 1)
+    echo "Partition repaired"
+}
+
+# check if need fix partition
+if [ "${MYDEVICE_NAME}" == "Phicomm N1" ] && [ "${NEW_ROOT_NAME}" == "mmcblk2p2" ];then
+    # 最新研究结果: 
+    #     Phicomm N1当采用官方 "天天链" 固件底包时，
+    #     796MB开始的 12 字节在每次重启后会被 bootloader 覆写, 
+    #     因此把安全位置设定在800MB之后
+    # The latest research results: 
+    #   When Phicomm N1 uses the official "tian tian lian" firmware bottom package, 
+    #   the 12 bytes starting from 796MB will be overwritten by bootloader after each reboot, 
+    #   so the safe location is set after 800MB
+    SAFE_PT_BEGIN_MB=800
+    check_and_fix_n1_partition "${EMMC_NAME}" "p2" 2 $SAFE_PT_BEGIN_MB
 fi
 
 echo "Format [ ${NEW_ROOT_PATH} ]"
