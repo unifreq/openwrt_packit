@@ -61,7 +61,7 @@
                                               -> kmod-brcmutil
                                               -> kmod-cfg80211
                                               -> kmod-mac80211
-        Network  ->  WirelessAPD -> hostpad-common
+        Network  ->  WirelessAPD -> hostapd-common
                                  -> wpa-cli
                                  -> wpad-basic
                  ->  iw

@@ -119,6 +119,9 @@ MODEL_DB="${PWD}/files/amlogic_model_database.txt"
 P7ZIP="${PWD}/files/7z"
 # 20211217 add
 DDBR="${PWD}/files/openwrt-ddbr"
+# 20220225 add
+SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
+SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
 ###########################################################################
 
 check_depends
@@ -165,6 +168,12 @@ FDT=/dtb/amlogic/meson-g12b-gtking-pro.dtb
 # GT-King Pro S922X-H 超频版
 # 用于 Belink GT-King Pro (2016Mhz/2208Mhz)
 #FDT=/dtb/amlogic/meson-g12b-gtking-pro-h-oc.dtb
+
+#UGOOS AM6 Plus
+#FDT=/dev/amlogic/meson-g12b-ugoos-am6.dtb
+
+# Khadas vim3
+#FDT=/dev/amlogic/meson-g12b-a311d-khadas-vim3.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF

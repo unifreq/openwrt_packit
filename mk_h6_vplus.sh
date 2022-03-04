@@ -65,7 +65,7 @@ FIX_CPU_FREQ="${PWD}/files/fixcpufreq.pl"
 SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 
 # 20201128 add
-SSL_CNF_PATCH="${PWD}/files/vplus/openssl_engine.patch"
+SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201212 add
 BAL_CONFIG="${PWD}/files/vplus/balance_irq"
@@ -101,6 +101,9 @@ OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 P7ZIP="${PWD}/files/7z"
 # 20211217 add
 DDBR="${PWD}/files/openwrt-ddbr"
+# 20220225 add
+SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
+SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
 ####################################################################
 
 check_depends
