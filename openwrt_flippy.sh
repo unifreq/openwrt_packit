@@ -122,10 +122,10 @@ sync
 # Load openwrt-armvirt-64-default-rootfs.tar.gz
 if [[ ${OPENWRT_ARMVIRT} == http* ]]; then
     echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
-    wget ${OPENWRT_ARMVIRT} -q -P ${SELECT_PACKITPATH}
+    wget -O openwrt-armvirt-64-default-rootfs.tar.gz ${OPENWRT_ARMVIRT} -q -P ${SELECT_PACKITPATH}
 else
     echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
-    cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}
+    cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}/openwrt-armvirt-64-default-rootfs.tar.gz
 fi
 sync
 
