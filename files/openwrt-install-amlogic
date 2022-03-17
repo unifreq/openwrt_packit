@@ -139,6 +139,10 @@ else
 56:H96 Max X3 (OverClock):s905x3:meson-sm1-h96-max-x3-oc.dtb:u-boot-x96maxplus.bin:/lib/u-boot/h96maxx3-u-boot.bin.sd.bin:NA:4C@2208Mhz,4GB Mem,1Gb Nic,brcm4339 wifi
 57:Ugoos X3:s905x3:meson-sm1-ugoos-x3.dtb:u-boot-ugoos-x3.bin:NA:NA:4C@2100Mhz,2(Cube)/4(Pro,Plus)GB Mem,1Gb Nic,brcm43455/43456 wifi
 58:Ugoos X3 (OverClock):s905x3:meson-sm1-ugoos-x3-oc.dtb:u-boot-ugoos-x3.bin:NA:NA:4C@2208Mhz,2(Cube)/4(Pro,Plus)GB Mem,1Gb Nic,brcm43455/43456 wifi
+59:TX3 BZ:s905x3:meson-sm1-tx3-bz.dtb:u-boot-tx3-bz.bin:/lib/u-boot/x96maxplus-u-boot.bin.sd.bin::4C@2100Mhz,4GB Mem,100Mb Nic,bcm4330 wifi
+5a:TX3 BZ (OverClock):s905x3:meson-sm1-tx3-bz-oc.dtb:u-boot-tx3-bz.bin:/lib/u-boot/x96maxplus-u-boot.bin.sd.bin::4C@2208Mhz,4GB Mem,100Mb Nic,bcm4330 wifi
+5b:TX3 QZ:s905x3:meson-sm1-tx3-qz.dtb:u-boot-tx3-qz.bin:/lib/u-boot/x96maxplus-u-boot.bin.sd.bin::4C@2100Mhz,4GB Mem,1Gb Nic,bcm4330 wifi
+5c:TX3 QZ (OverClock):s905x3:meson-sm1-tx3-qz-oc.dtb:u-boot-tx3-qz.bin:/lib/u-boot/x96maxplus-u-boot.bin.sd.bin::4C@2208Mhz,4GB Mem,1Gb Nic,bcm4330 wifi
 
 # Other
 0:Other::NA:NA:NA:NA:Enter the dtb file name of your box
@@ -589,8 +593,7 @@ while [ $i -le $max_try ]; do
      "max-file": "5"
    },
   "registry-mirrors": [
-     "https://docker.mirrors.ustc.edu.cn",
-     "https://registry.cn-shanghai.aliyuncs.com",
+     "https://mirror.baidubce.com/",
      "https://hub-mirror.c.163.com"
    ]
 }

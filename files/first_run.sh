@@ -162,8 +162,7 @@ cat > /etc/docker/daemon.json <<EOF
      "max-file": "5"
    },
   "registry-mirrors": [
-     "https://docker.mirrors.ustc.edu.cn",
-     "https://registry.cn-shanghai.aliyuncs.com",
+     "https://mirror.baidubce.com/",
      "https://hub-mirror.c.163.com"
    ]
 }
