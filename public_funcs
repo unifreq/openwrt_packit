@@ -1217,13 +1217,13 @@ function adjust_openssl_config() {
 	# 如果发现 afalg engine
 	if [ -f "./usr/lib/engines-1.1/afalg.so" ] && [ -d "./etc/ssl/engines.cnf.d" ];then
              echo -n "添加 afalg 引擎 ... "
-             cat >> ./etc/config/openssl <<EOF
+             grep "engine 'afalg'" "./etc/config/openssl" || cat >> ./etc/config/openssl <<EOF
 
 config engine 'afalg'
         option enabled '1'
 
 EOF
-             cat > ./etc/ssl/engines.cnf.d/afalg.cnf <<EOF
+             [ -f "./etc/ssl/engines.cnf.d/afalg.cnf" ] || cat > ./etc/ssl/engines.cnf.d/afalg.cnf <<EOF
 [afalg]
 # Leave this alone and configure algorithms with CIPERS/DIGESTS below
 default_algorithms = ALL
