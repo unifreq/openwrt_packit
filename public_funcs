@@ -1006,6 +1006,8 @@ function adjust_openssh_config() {
                 sed -e "/# Ciphers and keying/a\Ciphers $SSHD_CIPHERS" -i ./etc/ssh/sshd_config 2>/dev/null
 		echo "完成"
 	    fi
+	    echo "#HostkeyAlgorithms +ssh-rsa" >> ./etc/ssh/sshd_config
+	    echo "#PubkeyAcceptedAlgorithms +ssh-rsa" >> ./etc/ssh/sshd_config
 	    echo -n "配置 shadow, 刷新密码更新日期 ... "
             utc_secs=$(date +%s)
             days=$(( utc_secs / 86400 ))
