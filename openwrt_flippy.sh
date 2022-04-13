@@ -229,7 +229,11 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     # Determine whether the kernel version >= 5.10
     K_VER=$(echo "${KERNEL_VAR}" | cut -d '.' -f1)
     K_MAJ=$(echo "${KERNEL_VAR}" | cut -d '.' -f2)
-    if [ "${K_VER}" -eq "5" ]; then
+
+    # If the kernel version ends with +o, it means that u-boot.ext or u-boot.emmc do not need to be reloaded
+    if echo ${KERNEL_VAR} | grep "+o$";then
+        K510=0
+    elif [ $K_VER -eq 5 ];then
         if [ "${K_MAJ}" -ge "10" ]; then
             K510=1
         else
