@@ -4,7 +4,6 @@ echo "========================= begin $0 ==========================="
 source make.env
 source public_funcs
 init_work_env
-check_k510
 
 # 盒子型号识别参数 
 PLATFORM=amlogic
@@ -25,6 +24,8 @@ BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
 check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-amlogic-${KERNEL_VERSION}.tar.gz
 check_file ${DTBS_TGZ}
+K510=$(get_k510_from_boot_tgz "${BOOT_TGZ}" "vmlinuz-${KERNEL_VERSION}")
+export K510
 ###########################################################################
 
 # Openwrt root 源文件

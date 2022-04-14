@@ -226,28 +226,8 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
 
     cd /opt
 
-    # Determine whether the kernel version >= 5.10
-    K_VER=$(echo "${KERNEL_VAR}" | cut -d '.' -f1)
-    K_MAJ=$(echo "${KERNEL_VAR}" | cut -d '.' -f2)
-
-    # If the kernel version ends with +o, it means that u-boot.ext or u-boot.emmc do not need to be reloaded
-    if echo ${KERNEL_VAR} | grep "+o$";then
-        K510=0
-    elif [ $K_VER -eq 5 ];then
-        if [ "${K_MAJ}" -ge "10" ]; then
-            K510=1
-        else
-            K510=0
-        fi
-    elif [ "${K_VER}" -gt "5" ]; then
-        K510=1
-    else
-        K510=0
-    fi
-    export K510
-
-    # If flowoffload is turned on, or the kernel version >= 5.10, then sfe is forced to be closed by default
-    if [ "${SW_FLOWOFFLOAD}" -eq "1" ] || [ "${K510}" -eq "1" ]; then
+    # If flowoffload is turned on, then sfe is forced to be closed by default
+    if [ "${SW_FLOWOFFLOAD}" -eq "1" ]; then
         SFE_FLOW=0
     fi
 
