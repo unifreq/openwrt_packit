@@ -4,16 +4,21 @@
 free_mem=$(df -m /tmp | tail -1 | awk '{print $2}')
 bin_size=$((free_mem / 4))
 
-JQ="/usr/bin/jq"
-if [ ! -x $JQ ];then
-        echo "$JQ not found! can't do any benchmark!"
-        exit 1
-fi
-
-if [ ! -x /usr/bin/perl ];then
-        echo "/usr/bin/perl not exists!"
-        exit 1
-fi
+function create_test_json() {
+    local jsonfile=$1
+    local method=$2
+    cat > $jsonfile <<EOF
+{
+    "server" : "127.0.0.1",
+    "mode" : "tcp_only",
+    "server_port": 8388,
+    "local_port": 1080,
+    "password" : "password",
+    "timeout": 60,
+    "method" : "${method}"
+}
+EOF
+}
 
 BIN_HOME=/usr/bin
 WWW_HOME=/www
@@ -41,19 +46,19 @@ echo -ne "     [1]\b\b"
 
     read select
     case $select in 
-            2) SS_SERVER=${BIN_HOME}/ss-bin-musl/ss-server
-               SS_LOCAL=${BIN_HOME}/ss-bin-musl/ss-local
-               SS_VERSION="musl"
-               ;;
-            3) SS_SERVER=${BIN_HOME}/ssserver
-               SS_LOCAL=${BIN_HOME}/sslocal
-               SS_VERSION="rust"
-               ;;
+	    2) SS_SERVER=${BIN_HOME}/ss-bin-musl/ss-server
+	       SS_LOCAL=${BIN_HOME}/ss-bin-musl/ss-local
+	       SS_VERSION="musl"
+	       ;;
+	    3) SS_SERVER=${BIN_HOME}/ssserver
+	       SS_LOCAL=${BIN_HOME}/sslocal
+	       SS_VERSION="rust"
+	       ;;
     esac
 
 
 if [ "${select}" == "3" ];then
-        methods="aes-128-gcm aes-256-gcm chacha20-ietf-poly1305"
+	methods="aes-128-gcm aes-256-gcm chacha20-ietf-poly1305"
 else
     cat <<EOF
     ----------------------------------------------------------------------------------
@@ -65,29 +70,29 @@ echo -ne "     [1]\b\b"
 
     read select
     case $select in 
-            2) methods="
-                    aes-128-cfb
-                    aes-128-ctr
-                    aes-128-gcm
-                    aes-192-cfb
-                    aes-192-ctr
-                    aes-192-gcm
-                    aes-256-cfb
-                    aes-256-ctr
-                    aes-256-gcm
-                    salsa20
-                    chacha20
-                    chacha20-ietf
-                    chacha20-ietf-poly1305
+	    2) methods="
+		    aes-128-cfb
+		    aes-128-ctr
+		    aes-128-gcm
+		    aes-192-cfb
+		    aes-192-ctr
+		    aes-192-gcm
+		    aes-256-cfb
+		    aes-256-ctr
+		    aes-256-gcm
+		    salsa20
+		    chacha20
+		    chacha20-ietf
+		    chacha20-ietf-poly1305
                     xchacha20-ietf-poly1305
-                    rc4-md5"
-                ;;
-            *) methods="aes-128-gcm
-                    aes-192-gcm
-                    aes-256-gcm
-                    chacha20-ietf-poly1305
-                    rc4-md5"
-                ;;
+		    rc4-md5"
+		;;
+	    *) methods="aes-128-gcm
+		    aes-192-gcm
+		    aes-256-gcm
+		    chacha20-ietf-poly1305
+		    rc4-md5"
+		;;
     esac
 fi
 
@@ -99,18 +104,6 @@ mount -o bind /tmp/test ${WWW_HOME}/test
 echo "done"
 echo 
 
-cat > /tmp/ss_test.json <<EOF
-{
-    "server" : "127.0.0.1",
-    "mode" : "tcp_only",
-    "server_port": 8388,
-    "local_port": 1080,
-    "password" : "password",
-    "timeout": 60,
-    "method" : "aes-256-gcm"
-}
-EOF
-
 retfile=$(mktemp)
 echo " benchmark begin ... "
 echo "==============================================================================="
@@ -118,9 +111,7 @@ for method in $methods;do
     echo 
     echo "-------------->>>>>>>>>>>>>  method: $method"
     echo "start ss-server ... "
-    tmpfile=$(mktemp)
-    $JQ ".method=\"${method}\"" /tmp/ss_test.json > $tmpfile
-    mv $tmpfile /tmp/ss_test.json
+    create_test_json "/tmp/ss_test.json" "${method}"
     $SS_SERVER -c /tmp/ss_test.json &
     PID1=$!
     sleep 1
@@ -134,11 +125,11 @@ for method in $methods;do
     curltmp=$(mktemp)
     curl --socks5 127.0.0.1 http://localhost/test/test.bin --output /dev/null 2>$curltmp
     if [ $? -eq 0 ];then
-        echo "ok"
-        perf=$(cat $curltmp | perl -npe 's/\r/\n/g' | tail -n1 | awk '{print $7}')
-        printf "%-25s->%8s\n" "$method" "$perf" >> $retfile
+	echo "ok"
+	perf=$(awk "BEGIN {RS=\"\\r\";cnt=0;sum=0} \$7~/[0-9]+/ && \$7>0 {sum+=\$7;cnt++} END {printf(\"%0.1fMB/s\n\",sum/cnt)}" $curltmp)
+        printf "%-25s->%12s\n" "$method" "$perf" >> $retfile
     else
-        echo "failed!"
+	echo "failed!"
 
     fi
     rm -f $curltmp
@@ -159,11 +150,11 @@ rm -rf /tmp/test ${WWW_HOME}/test
 echo "done"
 echo
 echo
-echo "<<<  The benchmark result report  >>>" 
-echo "+++++++++++++++++++++++++++++++++++++"
+echo " <<<  The benchmark result report  >>>" 
+echo "+++++++++++++++++++++++++++++++++++++++"
 cat $retfile
 rm -f $retfile
-echo "+++++++++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++++++++++++++++++++++++"
 echo "ss version: [$SS_VERSION]"
 model="unknown"
 arch=$(uname -m)
