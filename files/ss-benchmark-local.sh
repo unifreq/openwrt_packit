@@ -126,7 +126,10 @@ for method in $methods;do
     curl --socks5 127.0.0.1 http://localhost/test/test.bin --output /dev/null 2>$curltmp
     if [ $? -eq 0 ];then
 	echo "ok"
-	perf=$(awk "BEGIN {RS=\"\\r\";cnt=0;sum=0} \$7~/[0-9]+/ && \$7>0 {sum+=\$7;cnt++} END {printf(\"%0.1fMB/s\n\",sum/cnt)}" $curltmp)
+	echo "--------------------------------------------------------------------------------"
+	cat $curltmp | tr '\r' '\n'
+	echo "--------------------------------------------------------------------------------"
+	perf=$(cat $curltmp | tr '\r' '\n' | tail -n1 | tr -d 'M' | awk '{printf("%0.1fMB/s\n",$7)}')
         printf "%-25s->%12s\n" "$method" "$perf" >> $retfile
     else
 	echo "failed!"
