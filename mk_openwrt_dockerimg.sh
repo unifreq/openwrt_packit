@@ -48,7 +48,7 @@ mkdir -p "$TMPDIR" && gzip -dc ${SRC_IMG} | ( cd "$TMPDIR" && tar xf - && rm -rf
 [ -f files/banner ] && \
 	cp -f files/banner $TMPDIR/etc/ && \
 	echo "The docker aarch64 special edition" >> $TMPDIR/etc/banner && \
-	echo "\n" >> $TMPDIR/etc/banner
+	echo "" >> $TMPDIR/etc/banner
 
 cat >> $TMPDIR/etc/sysupgrade.conf <<EOF
 /etc/ssh/ssh_host_ed25519_key
