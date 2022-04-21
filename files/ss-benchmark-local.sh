@@ -254,11 +254,11 @@ echo "---------------------------------------------------"
 cat $retfile
 echo "---------------------------------------------------"
 echo
-echo -e "Random number generation: [\033[32m$rnd_gspeed]\033[0m"
-echo -e "Write random number to Memory: [\033[32m$mm_wspeed]\033[0m"
-echo -e "Read from memory: [\033[32m$mm_rspeed]\033[0m"
-[ "$http_dspeed" != "" ] && echo -e "HTTP direct download:: [\033[32m$http_dspeed]\033[0m"
-[ "$https_dspeed" != "" ] && echo -e "HTTPS direct download:: [\033[32m$https_dspeed]\033[0m"
+echo -e "Random number generation: [\033[32m$rnd_gspeed\033[0m]"
+echo -e "Write random number to Memory: [\033[32m$mm_wspeed\033[0m]"
+echo -e "Read from memory: [\033[32m$mm_rspeed\033[0m]"
+[ "$http_dspeed" != "" ] && echo -e "HTTP direct download:: [\033[32m$http_dspeed\033[0m]"
+[ "$https_dspeed" != "" ] && echo -e "HTTPS direct download:: [\033[32m$https_dspeed\033[0m]"
 model="unknown"
 arch=$(uname -m)
 if [ "$arch" == "aarch64" ];then
