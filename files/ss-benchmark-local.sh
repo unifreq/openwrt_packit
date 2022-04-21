@@ -3,20 +3,55 @@
 # 测试文件默认内存的 1/4，放在/tmp(内存)下面，请事先确认空间是否足够
 free_mem=$(df -m /tmp | tail -1 | awk '{print $2}')
 bin_size=$((free_mem / 4))
-BIN_HOME=/usr/bin
+# 最少100MB
+[ $bin_size -lt 100 ] && bin_size=100
+
 # 如果在linux中测试，需开启 nginx 服务，并设置 WWW_HOME 为实际的 www_root 目录
 # example: armbian: /var/www/html
 WWW_HOME=/www
+BIN_HOME=/usr/bin
+
+###################################################################################
+function gen_random_port() {
+    local port
+    local randomdev
+    local randomdev=/dev/urandom
+    while :;do
+	port=$(dd if=${randomdev} bs=1 count=2 2>/dev/null | hexdump -d | head -n1 | awk '{printf("%d\n",$2)}')
+	if [ $port -le 1024 ];then
+  	    continue
+	fi
+        port_used=$(netstat -tnl | awk '{print $4}' | awk -F':' '$NF~/[0-9]+/ {print $NF}')
+	if [ "$port_used" == "" ];then
+	    break
+	else
+	    used=0
+            for p in $port_used;do
+                 if [ $p -eq $port ];then
+		     used=1
+		     break
+		 fi
+	    done
+	    if [ $used -eq 1 ];then
+	        continue
+	    fi
+	fi
+        break
+     done
+     echo "$port"	
+}
 
 function create_test_json() {
     local jsonfile=$1
     local method=$2
+    local server_port=$3
+    local local_port=$4
     cat > $jsonfile <<EOF
 {
     "server" : "127.0.0.1",
     "mode" : "tcp_only",
-    "server_port": 8388,
-    "local_port": 1080,
+    "server_port": ${server_port},
+    "local_port": ${local_port},
     "password" : "password",
     "timeout": 60,
     "method" : "${method}"
@@ -26,7 +61,10 @@ EOF
 
 SS_SERVER=${BIN_HOME}/ss-server
 SS_LOCAL=${BIN_HOME}/ss-local
-SS_VERSION="glibc"
+SS_VERSION="ss-libev (glibc)"
+SERVER_PORT=$(gen_random_port)
+LOCAL_PORT=$(gen_random_port)
+
 echo -e "\033[1m有多个版本的 shadowsocks, 请问要测试哪一个版本？\033[0m"
 cat <<EOF
     ----------------------------------------------------------------------------------
@@ -49,11 +87,11 @@ echo -ne "     [1]\b\b"
     case $select in 
 	    2) SS_SERVER=${BIN_HOME}/ss-bin-musl/ss-server
 	       SS_LOCAL=${BIN_HOME}/ss-bin-musl/ss-local
-	       SS_VERSION="musl"
+	       SS_VERSION="ss-libev (musl)"
 	       ;;
 	    3) SS_SERVER=${BIN_HOME}/ssserver
 	       SS_LOCAL=${BIN_HOME}/sslocal
-	       SS_VERSION="rust"
+	       SS_VERSION="ss-rust"
 	       ;;
     esac
 
@@ -97,15 +135,31 @@ echo -ne "     [1]\b\b"
     esac
 fi
 
-echo "creating a ${bin_size}MB test file ... "
-mkdir -p /tmp/test ${WWW_HOME}/test
-dd if=/dev/urandom of=/tmp/test/test.bin bs=1M count=$bin_size
-#dd if=/dev/zero of=/tmp/test/test.bin bs=1M count=$bin_size
-mount -o bind /tmp/test ${WWW_HOME}/test
+TIMEFORMAT='%3R'
+mmtmp=$(mktemp)
+
+echo -n "Random number generation benchmark ... "
+{ time dd if=/dev/urandom of=/dev/null bs=1M count=$bin_size >/dev/null 2>&1; } 2>$mmtmp
+mm_time=$(cat $mmtmp && rm -f $mmtmp)
+rnd_gspeed=$(echo $bin_size $mm_time | awk '{printf("%0.3fMB/s\n",$1/$2)}')
 echo "done"
+
+echo -n "Creating ${bin_size}MB random bin file for test ... "
+mkdir -p /tmp/test ${WWW_HOME}/test
+{ time dd if=/dev/urandom of=/tmp/test/test.bin bs=1M count=$bin_size >/dev/null 2>&1; } 2>$mmtmp
+mm_time=$(cat $mmtmp && rm -f $mmtmp)
+mm_wspeed=$(echo $bin_size $mm_time | awk '{printf("%0.3fMB/s\n",$1/$2)}')
+echo "done"
+
+echo -n "Read from memory benchmark ... "
+{ time dd if=/tmp/test/test.bin of=/dev/nul bs=1M count=$bin_size >/dev/null 2>&1; } 2>$mmtmp
+mm_time=$(cat $mmtmp && rm -f $mmtmp) 
+mm_rspeed=$(echo $bin_size $mm_time | awk '{printf("%0.3fMB/s\n",$1/$2)}')
+echo "done"
+
+mount -o bind /tmp/test ${WWW_HOME}/test
 echo 
 
-TIMEFORMAT='%3R'
 retfile=$(mktemp)
 
 function on_trap_exit() {
@@ -121,7 +175,7 @@ function on_trap_exit() {
 }
 trap on_trap_exit 2 3 15
 
-echo " benchmark begin ... "
+echo "Shadowsocks benchmark begin ... "
 echo "==============================================================================="
 for method in $methods;do
     if [ "$method" == "#" ];then
@@ -131,7 +185,7 @@ for method in $methods;do
     echo 
     echo -e "-------------->>>>>>>>>>>>>  method: \033[33m$method\033[0m"
     echo "start ss-server ... "
-    create_test_json "/tmp/ss_test.json" "${method}"
+    create_test_json "/tmp/ss_test.json" "${method}" $SERVER_PORT $LOCAL_PORT
     $SS_SERVER -c /tmp/ss_test.json &
     PID1=$!
     sleep 1
@@ -144,7 +198,7 @@ for method in $methods;do
     echo -n "start curl download benchmark ... "
     curltmp=$(mktemp)
     timetmp=$(mktemp)
-    { time curl --socks5 127.0.0.1 http://127.0.0.1/test/test.bin --output /dev/null 2>$curltmp;} 2>$timetmp
+    { time curl --socks5 127.0.0.1:${LOCAL_PORT} http://127.0.0.1/test/test.bin --output /dev/null 2>$curltmp;} 2>$timetmp
     if [ $? -eq 0 ];then
 	echo "ok"
 	realtime=$(cat $timetmp)
@@ -164,8 +218,22 @@ for method in $methods;do
     echo
     sleep 1
 done
+echo -n "HTTP direct download benchmark ... "
+{ time curl http://127.0.0.1/test/test.bin --output /dev/null 2>/dev/null; } 2>$mmtmp
+mm_time=$(cat $mmtmp && rm -f $mmtmp)
+http_dspeed=$(echo $bin_size $mm_time | awk '{printf("%0.3fMB/s\n",$1/$2)}')
+echo "done"
+
+if netstat -tnl | awk '{print $4}' | awk -F':' '$NF~/[0-9]+/ {print $NF}' | grep "^443$" >/dev/null;then
+    echo -n "HTTPS direct download benchmark ... "
+    { time curl --insecure https://127.0.0.1/test/test.bin --output /dev/null 2>/dev/null; } 2>$mmtmp
+    mm_time=$(cat $mmtmp && rm -f $mmtmp)
+    https_dspeed=$(echo $bin_size $mm_time | awk '{printf("%0.3fMB/s\n",$1/$2)}')
+    echo "done"
+fi
+
 echo "==============================================================================="
-echo " benchmark end"
+echo "Shadowsocks benchmark end"
 echo
 
 while umount ${WWW_HOME}/test 2>/dev/null;do
@@ -178,13 +246,19 @@ echo "done"
 echo
 echo
 echo -e "      \033[32m<<<  The benchmark result report  >>>\033[0m" 
+echo -e "Shadowsocks version: [\033[32m$SS_VERSION\033[0m]"
 echo "---------------------------------------------------"
 printf "\033[33m%-25s  %12s%12s\033[0m\n" "Method name" "Curl rpt" "size/time"
 printf "\033[31m%-25s  %12s%12s\033[0m\n" " " "(MB/s)" "(MB/s)"
 echo "---------------------------------------------------"
 cat $retfile
 echo "---------------------------------------------------"
-echo -e "Shadowsocks version: [\033[32m$SS_VERSION\033[0m]"
+echo
+echo -e "Random number generation: [\033[32m$rnd_gspeed]\033[0m"
+echo -e "Write random number to Memory: [\033[32m$mm_wspeed]\033[0m"
+echo -e "Read from memory: [\033[32m$mm_rspeed]\033[0m"
+[ "$http_dspeed" != "" ] && echo -e "HTTP direct download:: [\033[32m$http_dspeed]\033[0m"
+[ "$https_dspeed" != "" ] && echo -e "HTTPS direct download:: [\033[32m$https_dspeed]\033[0m"
 model="unknown"
 arch=$(uname -m)
 if [ "$arch" == "aarch64" ];then
@@ -195,6 +269,7 @@ fi
 echo -e "Model: [\033[32m$model\033[0m]"
 kernel=$(uname -r)
 echo -e "Kernel: [\033[32m$kernel\033[0m]"
+echo
 echo -e "\033[33m注：以上结果仅用于评估单核性能，不代表实际网速\033[0m"
 echo
 rm -f $retfile /tmp/ss_test.json
