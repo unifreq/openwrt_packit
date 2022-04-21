@@ -72,14 +72,14 @@ echo -ne "     [1]\b\b"
     read select
     case $select in 
 	    2) methods="
-		    aes-128-cfb
 		    aes-128-ctr
-		    aes-128-gcm
-		    aes-192-cfb
 		    aes-192-ctr
-		    aes-192-gcm
-		    aes-256-cfb
 		    aes-256-ctr
+		    aes-128-cfb
+		    aes-192-cfb
+		    aes-256-cfb
+		    aes-128-gcm
+		    aes-192-gcm
 		    aes-256-gcm
 		    salsa20
 		    chacha20
@@ -124,6 +124,10 @@ trap on_trap_exit 2 3 15
 echo " benchmark begin ... "
 echo "==============================================================================="
 for method in $methods;do
+    if [ "$method" == "#" ];then
+         printf "%-25s  %12s%12s\n" "--" "" "" >> $retfile
+	 continue
+    fi
     echo 
     echo -e "-------------->>>>>>>>>>>>>  method: \033[33m$method\033[0m"
     echo "start ss-server ... "
