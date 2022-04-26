@@ -17,8 +17,8 @@
 # E.g: openwrt-install-amlogic
 
 # Receive one-key command related parameters
-AUTO_MAINLINE_UBOOT=${1}
-ZSTD_LEVEL=6
+AUTO_MAINLINE_UBOOT="${1}"
+ZSTD_LEVEL="6"
 
 # For [luci-app-amlogic] input parameter: SOC & DTB
 # When there is no input parameter, select manually
@@ -39,7 +39,7 @@ if [[ -n "$(echo ${2} | sed -n "/^[0-9]\+$/p")" ]]; then
 fi
 
 # shared partition can be ext4, xfs, btrfs, f2fs
-SHARED_FSTYPE=${4}
+SHARED_FSTYPE="${4}"
 
 echo "AUTO_MAINLINE_UBOOT: ${AUTO_MAINLINE_UBOOT}"
 echo "SPECIFY_SOC: ${SPECIFY_SOC}"
@@ -116,6 +116,7 @@ else
 
 # Amlogic GXM Family
 21:Octopus Planet:s912:meson-gxm-octopus-planet.dtb:u-boot-zyxq.bin:NA:NA:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
+22:*FAKE* Octopus Planet *FAKE*:s912:meson-gxm-fake-octopus-planet.dtb:u-boot-zyxq.bin:NA:/lib/u-boot/bl-fake-octopus-planet.bin:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
 
 # Amlogic G12A Family
 31:X96 Max 4GB:s905x2:meson-g12a-x96-max.dtb:u-boot-x96max.bin:/lib/u-boot/x96max-u-boot.bin.sd.bin:NA:4C@1908Mhz,4GB Mem,1Gb Nic
@@ -223,24 +224,9 @@ if [ ! -f "/boot/dtb/amlogic/${FDTFILE}" ]; then
     exit 1
 fi
 
-#Check if writing to EMMC is supported
-MODULES_NOW=$(ls /lib/modules/ 2>/dev/null)
-VERSION_NOW=$(echo ${MODULES_NOW} | grep -oE '^[1-9].[0-9]{1,3}' 2>/dev/null)
-echo -e "This Kernel [ ${MODULES_NOW} ]"
-
-k510_ver=${VERSION_NOW%%.*}
-k510_maj=${VERSION_NOW##*.}
-if [ "${k510_ver}" -eq "5" ]; then
-    if [ "${k510_maj}" -ge "10" ]; then
-        K510="1"
-    else
-        K510="0"
-    fi
-elif [ "${k510_ver}" -gt "5" ]; then
-    K510="1"
-else
-    K510="0"
-fi
+K510="1"
+[[ "$(hexdump -n 15 -x "/boot/zImage" 2>/dev/null | head -n 1 | awk '{print $7}')" == "0108" ]] && K510="0"
+echo -e "K510 [ ${K510} ]"
 
 # backup old bootloader
 if [ ! -f "/root/BackupOldBootloader.img" ]; then
@@ -680,7 +666,7 @@ Please select the type of shared file system:
 4. xfs:   Very good file system, alternative to ext4.
 ---------------------------------------------------------------------------------
 EOF
-    read TARGET_SHARED_FSTYPE
+    read -p "Please Input ID: " TARGET_SHARED_FSTYPE
 fi
 case $TARGET_SHARED_FSTYPE in
 2 | btrfs)

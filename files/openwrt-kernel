@@ -72,30 +72,29 @@ sleep 3
 
 P4_PATH="/mnt/${EMMC_NAME}${PARTITION_NAME}4"
 
+get_textoffset_from_tgz() {
+    boot_tgz_file="${1}"
+    vmlinuz_name="${2}"
+    K510="1"
+    temp_dir="$(mktemp -d)"
+    (
+        cd ${temp_dir}
+        tar -xzf "${boot_tgz_file}" "${vmlinuz_name}"
+    )
+    # With TEXT_OFFSET patch is [ 0108 ], without TEXT_OFFSET patch is [ 0000 ]
+    [[ "$(hexdump -n 15 -x "${temp_dir}/${vmlinuz_name}" 2>/dev/null | head -n 1 | awk '{print $7}')" == "0108" ]] && K510="0"
+}
+
 # Move kernel related files to the ${P4_PATH} directory
 mv -f /tmp/upload/* ${P4_PATH}/ 2>/dev/null && sync
 
 if [ $(ls ${P4_PATH}/*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 3 ]; then
 
     if [ $(ls ${P4_PATH}/boot-*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 1 ]; then
-        build_boot=$(ls ${P4_PATH}/boot-*.tar.gz | head -n 1) && build_boot=${build_boot##*/}
+        build_boot_abs=$(ls ${P4_PATH}/boot-*.tar.gz | head -n 1) && build_boot=${build_boot_abs##*/}
         echo -e "Update using [ ${build_boot} ] files. Please wait a moment ..."
         flippy_version=${build_boot/boot-/} && flippy_version=${flippy_version/.tar.gz/}
-        kernel_version=$(echo ${flippy_version} | grep -oE '^[1-9].[0-9]{1,3}.[0-9]+')
-        kernel_vermaj=$(echo ${kernel_version} | grep -oE '^[1-9].[0-9]{1,3}')
-        k510_ver=${kernel_vermaj%%.*}
-        k510_maj=${kernel_vermaj##*.}
-        if [ ${k510_ver} -eq "5" ]; then
-            if [ "${k510_maj}" -ge "10" ]; then
-                K510=1
-            else
-                K510=0
-            fi
-        elif [ ${k510_ver} -gt "5" ]; then
-            K510=1
-        else
-            K510=0
-        fi
+        get_textoffset_from_tgz "${build_boot_abs}" "vmlinuz-${flippy_version}"
     else
         error_msg "Have no boot-*.tar.gz file found in the ${P4_PATH} directory."
     fi
@@ -117,32 +116,15 @@ if [ $(ls ${P4_PATH}/*.tar.gz -l 2>/dev/null | grep "^-" | wc -l) -ge 3 ]; then
     build_boot: ${build_boot} \n \
     build_dtb: ${build_dtb} \n \
     build_modules: ${build_modules} \n \
-    flippy_version: ${flippy_version} \n \
-    kernel_version: ${kernel_version} \n \
+    kernel_version: ${flippy_version} \n \
     K510: ${K510}"
 
 else
     error_msg "After upload the kernel files in [ /mnt/${EMMC_NAME}${PARTITION_NAME}4/ ], run again."
 fi
 
-MODULES_OLD=$(ls /lib/modules/ 2>/dev/null)
-VERSION_OLD=$(echo ${MODULES_OLD} | grep -oE '^[1-9].[0-9]{1,3}' 2>/dev/null)
-VERSION_ver=${VERSION_OLD%%.*}
-VERSION_maj=${VERSION_OLD##*.}
-if [ ${VERSION_ver} -eq "5" ]; then
-    if [ "${VERSION_maj}" -ge "10" ]; then
-        V510=1
-    else
-        V510=0
-    fi
-elif [ ${VERSION_ver} -gt "5" ]; then
-    V510=1
-else
-    V510=0
-fi
-
 # Check version consistency from amlogic s9xxx
-if [[ "${V510}" -lt "${K510}" && "${MYDTB_FILE}" == "amlogic" ]]; then
+if [[ "${K510}" -eq "1" && "${MYDTB_FILE}" == "amlogic" ]]; then
     echo -e "Update to kernel 5.10 or higher and install U-BOOT."
     if [ -f "/etc/flippy-openwrt-release" ]; then
         # U-BOOT adaptation
@@ -187,6 +169,9 @@ if [[ "${V510}" -lt "${K510}" && "${MYDTB_FILE}" == "amlogic" ]]; then
         dd if=/lib/u-boot/${MAINLINE_UBOOT} of=/dev/${EMMC_NAME} bs=512 skip=1 seek=1 conv=fsync
         echo -e "The MAINLINE_UBOOT file write is complete."
     fi
+elif [[ "${K510}" -eq "0" && "${MYDTB_FILE}" == "amlogic" ]]; then
+    rm -f /boot/u-boot.ext 2>/dev/null
+    rm -f /boot/u-boot.emmc 2>/dev/null
 fi
 
 echo -e "Unpack [ ${flippy_version} ] related files ..."
@@ -269,11 +254,11 @@ fi
 echo -e "03. Unpack [ ${build_modules} ] complete."
 sleep 3
 
-rm -rf ${P4_PATH}/dtb-*.tar.gz ${P4_PATH}/boot-*.tar.gz ${P4_PATH}/modules-*.tar.gz 2>/dev/null
+rm -rf ${P4_PATH}/dtb-*.tar.gz ${P4_PATH}/boot-*.tar.gz ${P4_PATH}/modules-*.tar.gz ${P4_PATH}/header-*.tar.gz 2>/dev/null
 sync
 
 sed -i '/KERNEL_VERSION/d' /etc/flippy-openwrt-release 2>/dev/null
-echo "KERNEL_VERSION='${kernel_version}'" >>/etc/flippy-openwrt-release 2>/dev/null
+echo "KERNEL_VERSION='${flippy_version}'" >>/etc/flippy-openwrt-release 2>/dev/null
 
 sed -i '/K510/d' /etc/flippy-openwrt-release 2>/dev/null
 echo "K510='${K510}'" >>/etc/flippy-openwrt-release 2>/dev/null

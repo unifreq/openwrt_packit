@@ -55,23 +55,43 @@ function check_block_dev() {
     fi
 }
 
-function check_k510() {
-    # 判断内核版本是否 >= 5.10
-    K_VER=$(echo "$KERNEL_VERSION" | cut -d '.' -f1)
-    K_MAJ=$(echo "$KERNEL_VERSION" | cut -d '.' -f2)
+# 此函数原有的用途是检查内核版本是否 >= 5.10, 现改为检查内核的 text_offset 是否为 0x01080000
+# text offset: 
+#   0x01080000  适用晶晨盒子厂商 bootloader 以及 主线 bootloader, 已过时
+#   0x00000000  适用主线 bootloader, 但不适用晶晨厂商 bootloader
+function get_k510_from_vmlinuz() {
+    local vmlinuz=$1
+    local temp_script=$(mktemp) 
+    cat > $temp_script <<EOF
+use strict;
+my \$filename = \$ARGV[0];
+open my \$fh, '<', \$filename or die;
+binmode \$fh;
+seek \$fh, 0x8, 0;
+my \$buf = "";
+read \$fh, \$buf, 0x4;
+close(\$fh);
+my \$str = unpack 'H*', \$buf; 
+print "\$str\n";
+EOF
+    local result=1
+    local text_offset=$(perl "$temp_script" "$vmlinuz")
+    [ "$text_offset" == "00000801" ] && result=0
+    rm -f $temp_script
+    echo "$result"
+}
 
-    if [ $K_VER -eq 5 ];then
-        if [ $K_MAJ -ge 10 ];then
-            K510=1
-        else
-            K510=0
-        fi
-    elif [ $K_VER -gt 5 ];then
-        K510=1
-    else
-        K510=0
-    fi
-    export K510
+function get_k510_from_boot_tgz() {
+    local boot_tgz=$1
+    local vmlinuz=$2
+    local temp_dir=$(mktemp -d)
+    ( 
+      cd $temp_dir
+      tar xzf "$boot_tgz" "$vmlinuz"
+    )
+    local result=$(get_k510_from_vmlinuz "${temp_dir}/${vmlinuz}")
+    rm -rf $temp_dir
+    echo "$result"
 }
 
 function check_depends() {
@@ -1006,6 +1026,8 @@ function adjust_openssh_config() {
                 sed -e "/# Ciphers and keying/a\Ciphers $SSHD_CIPHERS" -i ./etc/ssh/sshd_config 2>/dev/null
 		echo "完成"
 	    fi
+	    echo "#HostkeyAlgorithms +ssh-rsa" >> ./etc/ssh/sshd_config
+	    echo "#PubkeyAcceptedAlgorithms +ssh-rsa" >> ./etc/ssh/sshd_config
 	    echo -n "配置 shadow, 刷新密码更新日期 ... "
             utc_secs=$(date +%s)
             days=$(( utc_secs / 86400 ))

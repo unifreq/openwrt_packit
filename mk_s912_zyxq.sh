@@ -4,7 +4,6 @@ echo "========================= begin $0 ==========================="
 source make.env
 source public_funcs
 init_work_env
-check_k510
 
 # 盒子型号识别参数 
 PLATFORM=amlogic
@@ -21,6 +20,8 @@ BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
 check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-amlogic-${KERNEL_VERSION}.tar.gz
 check_file ${DTBS_TGZ}
+K510=$(get_k510_from_boot_tgz "${BOOT_TGZ}" "vmlinuz-${KERNEL_VERSION}")
+export K510
 ###########################################################################
 
 # Openwrt root 源文件
@@ -122,6 +123,9 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes128-gcm@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes128-gcm@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+
+#20220422 add 
+BTLD_BIN="${PWD}/files/s912/bl-fake-octopus-planet.bin"
 ###########################################################################
 
 check_depends
@@ -149,6 +153,9 @@ INITRD=/uInitrd
 
 # 用于 章鱼星球
 FDT=/dtb/amlogic/meson-gxm-octopus-planet.dtb
+
+# 用于 假冒的章鱼星球
+#FDT=/dtb/amlogic/meson-gxm-fake-octopus-planet.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
