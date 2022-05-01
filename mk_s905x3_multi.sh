@@ -160,6 +160,9 @@ FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
 # 用于 X96 Max+ (S905X3 网卡工作于 1000M) (超频至2208Mhz)
 #FDT=/dtb/amlogic/meson-sm1-x96-max-plus-oc.dtb
 
+# 用于 X96 Max+ with IP1001M (S905X3 网卡工作于 1000M) (超频至2208Mhz)
+#FDT=/dtb/amlogic/meson-sm1-x96-max-plus-ip1001m.dtb
+
 # 用于 HK1 BoX (S905X3 网卡工作于 1000M)
 #FDT=/dtb/amlogic/meson-sm1-hk1box-vontar-x3.dtb
 

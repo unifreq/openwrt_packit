@@ -599,6 +599,9 @@ function extract_rootfs_files() {
        # 新版ugoos x3 采用 brm43456
        get_random_mac
        sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43456-sdio.txt" > "brcmfmac43456-sdio.amlogic,sm1.txt"
+       # V5.1版 x96max plus 采用 AM7256 (brcm4354)
+       get_random_mac
+       sed -e "s/macaddr=00:90:4c:00:43:54/macaddr=${MACADDR}/" "brcmfmac4354-sdio.txt" > "brcmfmac4354-sdio.amlogic,sm1.txt"
    )
    echo "完成"
 
