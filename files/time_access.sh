@@ -1,9 +1,12 @@
 #!/bin/sh
 
-# 上网时间控制脚本
-# Author: flippy
-# Date: 2022-05-02
-# 功能: 指定 ip 或 mac 地址, 可以定时长放行网络或禁用网络
+echo "$$" > /tmp/time_access.pid
+program_id=${0##*/}
+if ps | grep $program_id | grep -v grep | grep -v $$ >/dev/null;then
+	echo "已有其它实例在运行中"
+	exit 0
+fi
+
 # rules 配置文件格式
 # ip地址(或mac地址)|通网时长(单位:秒)|断网时长(单位:秒)|是否启用(Y or N)
 rules_file="/etc/time_access.rules"
