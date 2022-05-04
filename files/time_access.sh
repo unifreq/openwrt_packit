@@ -73,7 +73,8 @@ execute_rule() {
 
 	ping_status=$(ip_get_ping_status $ip)
 	# 如果 ip 不在线, 则直接返回
-	if [ "$ping_statue" == "offline" ];then
+	if [ "$ping_status" == "offline" ];then
+		echo "$cur_date : $ip : $ping_status" | tee -a $log_file
 		return
 	fi
 
