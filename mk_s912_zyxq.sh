@@ -157,6 +157,9 @@ FDT=/dtb/amlogic/meson-gxm-octopus-planet.dtb
 # 用于 假冒的章鱼星球
 #FDT=/dtb/amlogic/meson-gxm-fake-octopus-planet.dtb
 
+# 用于 Tanix TX9 Pro
+#FDT=/dtb/amlogic/meson-gxm-tx9-pro.dtb
+
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
 
