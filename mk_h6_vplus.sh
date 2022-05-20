@@ -23,7 +23,7 @@ check_file ${DTBS_TGZ}
 # Openwrt 
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
-check_file ${OP_ROOT_TGZ}
+check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target Image
