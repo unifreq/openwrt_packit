@@ -15,21 +15,21 @@ if [[ -z "${OPENWRT_ARMVIRT}" ]]; then
 fi
 
 # Install the compressed package
-sudo apt-get update && sudo apt-get install -y p7zip p7zip-full zip unzip gzip xz-utils pigz zstd
+sudo apt-get -qq update && sudo apt-get -qq install -y p7zip p7zip-full zip unzip gzip xz-utils pigz zstd
 
 # Set the default value
 MAKE_PATH=${PWD}
 # The file specified in the ${OPENWRT_ARMVIRT} parameter will be saved as ${PACKAGE_FILE}
 PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "diy")
-SELECT_ARMBIANKERNEL=("5.15.25" "5.4.180")
+SELECT_ARMBIANKERNEL=("5.15.25" "5.10.100")
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
 KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
 # KERNEL_REPO_URL_VALUE URL supported format:
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/trunk/opt/kernel"
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
-KERNEL_VERSION_NAME_VALUE="5.15.25_5.4.180"
+KERNEL_VERSION_NAME_VALUE="5.15.25_5.10.100"
 KERNEL_AUTO_LATEST_VALUE="true"
 PACKAGE_SOC_VALUE="all"
 GZIP_IMGS_VALUE="auto"
@@ -199,7 +199,7 @@ kernel_path="kernel"
 i=1
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     if [[ "$(ls ${kernel_path}/*${KERNEL_VAR}*.tar.gz -l 2>/dev/null | grep "^-" | wc -l)" -lt "3" ]]; then
-        echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${KERNEL_REPO_URL}/${KERNEL_VAR} ]"
+        echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${KERNEL_REPO_URL/trunk/tree\/main}/${KERNEL_VAR} ]"
         svn export ${KERNEL_REPO_URL}/${KERNEL_VAR} ${kernel_path} --force
     else
         echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel is in the local directory."
@@ -321,6 +321,9 @@ if [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
         echo -e "${STEPS} copy ${PACKAGE_FILE} files into ${SELECT_OUTPUTPATH} folder."
         cp -f ../${PACKAGE_FILE} . && sync
     fi
+
+    # Generate sha256sum check file
+    sha256sum * >sha256sums && sync
 
     echo "PACKAGED_OUTPUTPATH=${PWD}" >>$GITHUB_ENV
     echo "PACKAGED_OUTPUTDATE=$(date +"%Y.%m.%d.%H%M")" >>$GITHUB_ENV
