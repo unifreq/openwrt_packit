@@ -895,6 +895,18 @@ KERNEL_VERSION=${KERNEL_VERSION}
 K510=${K510}
 EOF
 
+        if [ -f "./etc/uci-defaults/99-default-settings" ];then
+            sed -e "/exit 0/d" -i ./etc/uci-defaults/99-default-settings
+	    cat >> ./etc/uci-defaults/99-default-settings <<EOF
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+echo "DISTRIB_REVISION='${DISTRIB_REVISION}'" >> /etc/openwrt_release
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='${DISTRIB_DESCRIPTION} '" >> /etc/openwrt_release
+
+exit 0
+EOF
+        fi
+
         if [ "$PLATFORM" == "amlogic" ] && [ -n "$UBOOT_WITHOUT_FIP" ];then
             cat >> ./etc/flippy-openwrt-release <<EOF
 UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
