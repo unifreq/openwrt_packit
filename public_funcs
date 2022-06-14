@@ -895,7 +895,7 @@ KERNEL_VERSION=${KERNEL_VERSION}
 K510=${K510}
 EOF
 
-        if [ -f "./etc/uci-defaults/99-default-settings" ];then
+        if [ -f "./etc/uci-defaults/99-default-settings" ] && [ -n "${DISTRIB_REVISION}" ] && [ -n "${DISTRIB_DESCRIPTION}" ];then
             sed -e "/exit 0/d" -i ./etc/uci-defaults/99-default-settings
 	    cat >> ./etc/uci-defaults/99-default-settings <<EOF
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
