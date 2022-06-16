@@ -197,7 +197,7 @@ echo -e "${INFO} Package OpenWrt Kernel List: [ ${SELECT_ARMBIANKERNEL[*]} ]"
 kernel_path="kernel"
 [[ -d "${kernel_path}" ]] || sudo mkdir -p ${kernel_path}
 
-i=1
+i="1"
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
     if [[ "$(ls ${kernel_path}/*${KERNEL_VAR}*.tar.gz -l 2>/dev/null | grep "^-" | wc -l)" -lt "3" ]]; then
         echo -e "${INFO} (${i}) [ ${KERNEL_VAR} ] Kernel loading from [ ${KERNEL_REPO_URL/trunk/tree\/main}/${KERNEL_VAR} ]"
@@ -222,7 +222,7 @@ echo -e "${INFO} Package OpenWrt SoC List: [ ${PACKAGE_OPENWRT[*]} ]"
 
 # Packaged OpenWrt
 echo -e "${STEPS} Start packaging openwrt..."
-k=1
+k="1"
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
 
     cd /opt
@@ -264,7 +264,7 @@ EOF
     echo -e "${INFO} make.env file info:"
     cat make.env
 
-    i=1
+    i="1"
     for PACKAGE_VAR in ${PACKAGE_OPENWRT[*]}; do
         {
             cd /opt/${SELECT_PACKITPATH}
@@ -279,18 +279,18 @@ EOF
             fi
 
             case "${PACKAGE_VAR}" in
-                vplus)       [ -f "${SCRIPT_VPLUS}" ] && sudo ./${SCRIPT_VPLUS} ;;
-                beikeyun)    [ -f "${SCRIPT_BEIKEYUN}" ] && sudo ./${SCRIPT_BEIKEYUN} ;;
-                l1pro)       [ -f "${SCRIPT_L1PRO}" ] && sudo ./${SCRIPT_L1PRO} ;;
-                s905)        [ -f "${SCRIPT_S905}" ] && sudo ./${SCRIPT_S905} ;;
-                s905d)       [ -f "${SCRIPT_S905D}" ] && sudo ./${SCRIPT_S905D} ;;
-                s905x2)      [ -f "${SCRIPT_S905X2}" ] && sudo ./${SCRIPT_S905X2} ;;
-                s905x3)      [ -f "${SCRIPT_S905X3}" ] && sudo ./${SCRIPT_S905X3} ;;
-                s912)        [ -f "${SCRIPT_S912}" ] && sudo ./${SCRIPT_S912} ;;
-                s922x)       [ -f "${SCRIPT_S922X}" ] && sudo ./${SCRIPT_S922X} ;;
-                s922x-n2)    [ -f "${SCRIPT_S922X_N2}" ] && sudo ./${SCRIPT_S922X_N2} ;;
-                diy)         [ -f "${SCRIPT_DIY}" ] && sudo ./${SCRIPT_DIY} ;;
-                *)           ${WARNING} "Have no this SoC. Skipped."
+                vplus)       [[ -f "${SCRIPT_VPLUS}" ]] && sudo ./${SCRIPT_VPLUS} ;;
+                beikeyun)    [[ -f "${SCRIPT_BEIKEYUN}" ]] && sudo ./${SCRIPT_BEIKEYUN} ;;
+                l1pro)       [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
+                s905)        [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
+                s905d)       [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
+                s905x2)      [[ -f "${SCRIPT_S905X2}" ]] && sudo ./${SCRIPT_S905X2} ;;
+                s905x3)      [[ -f "${SCRIPT_S905X3}" ]] && sudo ./${SCRIPT_S905X3} ;;
+                s912)        [[ -f "${SCRIPT_S912}" ]] && sudo ./${SCRIPT_S912} ;;
+                s922x)       [[ -f "${SCRIPT_S922X}" ]] && sudo ./${SCRIPT_S922X} ;;
+                s922x-n2)    [[ -f "${SCRIPT_S922X_N2}" ]] && sudo ./${SCRIPT_S922X_N2} ;;
+                diy)         [[ -f "${SCRIPT_DIY}" ]] && sudo ./${SCRIPT_DIY} ;;
+                *)           echo -e "${WARNING} Have no this SoC. Skipped."
                              continue ;;
             esac
             echo -e "${SUCCESS} (${k}.${i}) Package openwrt completed."
@@ -316,7 +316,7 @@ done
 echo -e "${SUCCESS} All packaged completed. \n"
 
 echo -e "${STEPS} Output environment variables."
-if [[ -d /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} ]]; then
+if [[ -d "/opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}" ]]; then
 
     cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
 
