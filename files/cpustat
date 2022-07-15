@@ -61,6 +61,9 @@ sub get_cpu_freq {
 	$freq_str = "(" . $freq_str . ")";
     }
 
+    if($freq_str eq "") {
+	$freq_str = "Unknown";
+    }
     return $freq_str;
 }
 

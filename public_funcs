@@ -163,6 +163,16 @@ function check_depends() {
         echo "parted 程序不存在，请安装 parted"
         exit 1
     fi
+
+    # 创建 kvm 虚拟机镜像需要 qemu-img
+    if [ "$EFI" == "1" ];then
+        if qemu-img --version >/dev/null 2>&1;then
+            echo "check qemu-img ok"
+        else
+            echo "qemu-img 程序不存在，请安装 qemu-utils"
+            exit 1
+        fi
+    fi
     echo
 }
 
@@ -184,10 +194,15 @@ function init_work_env() {
     mkdir -p $TEMP_DIR
     echo "The temporary directory is : [$TEMP_DIR]"
 
-    export TGT_BOOT=${TEMP_DIR}/tgt_boot
+    if [ "$EFI" == "1" ];then
+        export TGT_BOOT=${TEMP_DIR}/tgt_efi
+        echo "The target efi directory is : [$TGT_BOOT]"
+    else
+        export TGT_BOOT=${TEMP_DIR}/tgt_boot
+        echo "The target boot directory is : [$TGT_BOOT]"
+    fi
     export TGT_ROOT=${TEMP_DIR}/tgt_root
     mkdir -p $TGT_BOOT $TGT_ROOT
-    echo "The target boot directory is : [$TGT_BOOT]"
     echo "The target rootfs directory is : [$TGT_ROOT]"
 
     export OUTPUT_DIR="${PWD}/output/"
@@ -313,10 +328,21 @@ function create_partition() {
         shift
         local pt_type=$1
         shift
+	local pt_idx=$i
         
         if [ "$skip_mb" == "" ] || [ "$pt_size" == "" ] || [ "$pt_type" == "" ];then
             break
         fi            
+
+	local esp_on=0
+	local lvm_on=0
+	if [ "$pt_type" == "efi" ];then
+	    pt_type="fat32"
+	    esp_on=1
+	elif [ "$pt_type" == "lvm" ];then
+	    pt_type="ext2"
+	    lvm_on=1
+	fi
 
         start=$(( skip_mb * 1024 * 1024 + start ))
 
@@ -345,6 +371,12 @@ function create_partition() {
             fi
         fi
 
+	if [ "$esp_on" == "1" ];then
+            parted -s ${device_name} set $pt_idx esp on
+	elif [ "$lvm_on" == "1" ];then
+            parted -s ${device_name} set $pt_idx lvm on
+        fi
+
         start=$(( end + 1 ))
         i=$((i + 1))
     done
@@ -359,16 +391,16 @@ function create_partition() {
 # 格式化文件系统
 # 参数1:  块设备名
 # 参数2:  分区1用途: boot=B rootfs=R other=O
-# 参数3： 分区1类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数3： 分区1类型: fat16|fat32|ext4|xfs|btrfs|f2fs
 # 参数4： 分区1卷标
 # 参数5:  分区2用途: boot=B rootfs=R other=O
-# 参数6： 分区2类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数6： 分区2类型: fat16|fat32|ext4|xfs|btrfs|f2fs
 # 参数7： 分区2卷标
 # 参数8:  分区3用途: boot=B rootfs=R other=O
-# 参数9： 分区3类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数9： 分区3类型: fat16|fat32|ext4|xfs|btrfs|f2fs
 # 参数10: 分区3卷标
 # 参数11: 分区4用途: boot=B rootfs=R other=O
-# 参数12: 分区4类型: fat32|ext4|xfs|btrfs|f2fs
+# 参数12: 分区4类型: fat16|fat32|ext4|xfs|btrfs|f2fs
 # 参数13：分区4卷标
 function make_filesystem() {
     local device_name=$1
@@ -416,7 +448,16 @@ function make_filesystem() {
         echo "格式化 [${device_name}p${i}], 类型为 [$fs_type], 卷标为 [$fs_label] ... "
         wait_dev ${device_name}p${i}
         case $fs_type in 
-            fat32) mkfs.vfat -n "${fs_label}" ${device_name}p${i}
+            fat16) mkfs.vfat -F 16 -n "${fs_label}" ${device_name}p${i}
+                   if [ $? -ne 0 ];then
+                        echo "[${device_name}p${i}] 格式化失败！"
+                        detach_loopdev
+                        exit 1
+                   else
+                        echo "[${device_name}p${i}] 格式化成功"
+                   fi
+                   ;;
+            fat32) mkfs.vfat -F 32 -n "${fs_label}" ${device_name}p${i}
                    if [ $? -ne 0 ];then
                         echo "[${device_name}p${i}] 格式化失败！"
                         detach_loopdev
@@ -717,12 +758,41 @@ function extract_allwinner_boot_files() {
     fi
 }
 
+function extract_qemu-aarch64_boot_files() {
+    echo -n "释放 Kernel vmlinuz、initrd.img 及 grub2 压缩包 ... "
+    ( 
+        cd ${TGT_BOOT} && \
+            cp -a "${BOOTFILES_HOME}/EFI" . && \
+        cd ${TGT_ROOT}/boot && \
+	    mkdir -p efi && \
+            cp -a "${BOOTFILES_HOME}"/grub2 . && \
+            tar xzf "${BOOT_TGZ}" && \
+            ln -s initrd.img-${KERNEL_VERSION} initrd.img && \
+	    ln -s vmlinuz-${KERNEL_VERSION} vmlinuz && \
+            rm -f uInitrd* && \
+	    sync
+    )
+    if [ $? -ne 0 ];then
+        echo "失败！"
+        detach_loopdev
+        exit 1
+    else 
+        echo "完成"
+    fi
+}
+
 # 生成 openwrt 所需的 fstab 文件
 function create_fstab_config() {
     echo "创建 fstab 配置文件 ... "
     (
         cd $TGT_ROOT
-        if [ ! -z "${BOOT_UUID}" ];then
+	if [ "$PLATFORM" == "qemu-aarch64" ];then
+            cat > ./etc/fstab <<EOF
+UUID=${ROOTFS_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
+LABEL=${BOOT_LABEL} /boot/efi vfat noatime,errors=remount-ro 0 2
+#tmpfs /tmp tmpfs defaults,nosuid 0 0
+EOF
+        elif [ ! -z "${BOOT_UUID}" ];then
             cat > ./etc/fstab <<EOF
 UUID=${ROOTFS_UUID} / btrfs compress=zstd:${ZSTD_LEVEL} 0 1
 UUID=${BOOT_UUID} /boot ext4 noatime,errors=remount-ro 0 2
@@ -753,12 +823,30 @@ config mount
         option fstype 'btrfs'
         option options 'compress=zstd:${ZSTD_LEVEL}'
 
+EOF
+
+        if [ "$PLATFORM" == "qemu-aarch64" ];then
+            cat >> ./etc/config/fstab <<EOF
+config mount
+        option target '/boot/efi'
+        option enabled '1'
+        option enabled_fsck '1'
+EOF
+        else
+            cat >> ./etc/config/fstab <<EOF
 config mount
         option target '/boot'
         option enabled '1'
         option enabled_fsck '1'
 EOF
-        if [ ! -z "${BOOT_UUID}" ];then
+	fi
+
+        if [ "$PLATFORM" == "qemu-aarch64" ];then
+            cat >> ./etc/config/fstab <<EOF
+        option label '${BOOT_LABEL}'
+        option fstype 'vfat'
+EOF
+        elif [ ! -z "${BOOT_UUID}" ];then
             cat >> ./etc/config/fstab <<EOF
         option uuid '${BOOT_UUID}'
         option fstype 'ext4'
@@ -856,28 +944,35 @@ EOF
 # CPU状态补丁
 function patch_admin_status_index_html() {
     echo "打补丁：[状态页面相关信息补丁] ... "
-    (  
-        cd $TGT_ROOT
-        if [ ! -f usr/bin/perl ];then
-             echo "未发现 perl 实用程序, 放弃补丁!"
-        else 
-            if [ -f "$CPUSTAT_PATCH" ];then 
-                 patch -p1 < ${CPUSTAT_PATCH} 
-                 if [ $? -ne 0 ];then
-                     echo "补丁失败!"
-                 else
-                     if [ -f "${CPUSTAT_PATCH_02}" ] ;then
-                         patch -p1 < ${CPUSTAT_PATCH_02}
-                         if [ $? -ne 0 ];then
-                            echo "补丁失败!"
+    if [ "$PLATFORM" == "qemu-aarch64" ];then
+	(
+	   cd $TGT_ROOT/usr/lib/lua/luci/view/admin_status/ && \
+		   sed -e 's/pcdata(boardinfo.model or "?")/pcdata(boardinfo.model or "KVM Virtual Machine")/' -i index.htm
+        )
+    else
+	(
+            cd $TGT_ROOT
+            if [ ! -f usr/bin/perl ];then
+                 echo "未发现 perl 实用程序, 放弃补丁!"
+            else 
+                if [ -f "$CPUSTAT_PATCH" ];then 
+                     patch -p1 < ${CPUSTAT_PATCH} 
+                     if [ $? -ne 0 ];then
+                         echo "补丁失败!"
+                     else
+                         if [ -f "${CPUSTAT_PATCH_02}" ] ;then
+                             patch -p1 < ${CPUSTAT_PATCH_02}
+                             if [ $? -ne 0 ];then
+                                echo "补丁失败!"
+                             fi
                          fi
                      fi
-                 fi
+                fi
+                echo "完成"
             fi
-            echo "完成"
-        fi
-        echo
-    )
+            echo
+        )
+    fi
 }
 
 # 写入 release 信息
@@ -1204,6 +1299,13 @@ EOF
 ::shutdown:/etc/init.d/rcS K shutdown
 ttyAML0::askfirst:/usr/libexec/login.sh
 tty0::askfirst:/usr/libexec/login.sh
+EOF
+                         echo "完成"
+                         ;;
+             qemu-aarch64)    cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+ttyAMA0::askfirst:/usr/libexec/login.sh
 EOF
                          echo "完成"
                          ;;
@@ -1582,14 +1684,15 @@ function write_uboot_to_disk() {
 function create_snapshot() {
     local snapshot_name=$1
     fstype=$(lsblk -o MOUNTPOINT,FSTYPE ${TGT_DEV} | grep "${TGT_ROOT}" | gawk '{print $2}')
-    if [ "$fstype" != "btrfs" ];then
-        return
-    fi
+    #if [ "$fstype" != "btrfs" ];then
+    #    return
+    #fi
     (
         cd $TGT_ROOT
         echo "创建初始快照: /etc -> /.snapshots/${snapshot_name}"
         mkdir -p .snapshots && \
         btrfs subvolume snapshot -r etc .snapshots/${snapshot_name}
+	sync
         echo "完成"
         echo
     )
