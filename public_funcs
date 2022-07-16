@@ -761,15 +761,15 @@ function extract_allwinner_boot_files() {
 function extract_qemu-aarch64_boot_files() {
     echo -n "释放 Kernel vmlinuz、initrd.img 及 grub2 压缩包 ... "
     ( 
-        cd ${TGT_BOOT} && \
-            cp -a "${BOOTFILES_HOME}/EFI" . && \
         cd ${TGT_ROOT}/boot && \
 	    mkdir -p efi && \
-            cp -a "${BOOTFILES_HOME}"/grub2 . && \
+	    tar xzf "${BOOTFILES_HOME}/grub2.tar.gz" && \
             tar xzf "${BOOT_TGZ}" && \
             ln -s initrd.img-${KERNEL_VERSION} initrd.img && \
 	    ln -s vmlinuz-${KERNEL_VERSION} vmlinuz && \
             rm -f uInitrd* && \
+        cd ${TGT_BOOT} && \
+	    tar xzf "${BOOTFILES_HOME}/EFI.tar.gz" && \
 	    sync
     )
     if [ $? -ne 0 ];then
