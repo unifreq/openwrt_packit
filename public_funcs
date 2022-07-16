@@ -1706,3 +1706,29 @@ function clean_work_env() {
     echo "完成"
     echo
 }
+
+# 添加自定义的uci_defaults项
+function append_custom_uci_defaults_command {
+    if [ ! -d "$TGT_ROOT/etc/uci-defaults" ];then
+        return
+    fi
+    local cmd
+    while :;do
+	cmd=$1
+	if [ "$cmd" == "" ];then
+            break
+	fi
+	( cd $TGT_ROOT/etc/uci-defaults
+	  if [ ! -f zzz_custom_settings ];then
+              echo -e "#!/bin/sh\n" > zzz_custom_settings
+              chmod 755 zzz_custom_settings
+          fi
+	  echo -e "${cmd}\n" >> zzz_custom_settings
+	)
+	shift
+    done
+    echo "zzz_custom_settings: ======"
+    cat "$TGT_ROOT/etc/uci-defaults/zzz_custom_settings"
+    echo "==========================="
+
+}

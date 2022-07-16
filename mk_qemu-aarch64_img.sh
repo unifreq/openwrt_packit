@@ -98,10 +98,12 @@ write_release_info
 write_banner
 config_first_run
 create_snapshot "etc-000"
+# 删除luci-app-amlogic包
+append_custom_uci_defaults_command "opkg remove --force-removal-of-dependent-packages luci-app-amlogic"
 clean_work_env
 sync
 echo "------------------------------------------------------------"
-echo "转换 raw 格式为 qcow2格式 ..."
+echo "转换 raw 格式为 qcow2 格式 ..."
 qemu-img convert -f raw -O qcow2 ${TGT_IMG} ${TGT_QCOW2_IMG}
 sync
 echo "调整 qcow2 镜像大小: ${QCOW2_MB} ..."
