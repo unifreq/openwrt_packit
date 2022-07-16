@@ -108,7 +108,7 @@ echo "调整 qcow2 镜像大小: ${QCOW2_MB} ..."
 qemu-img resize -f qcow2 ${TGT_QCOW2_IMG} ${QCOW2_MB}
 sync
 echo "------------------------------------------------------------"
-rm -f ${TGT_IMG}
+mv ${TGT_IMG} ${OUTPUT_DIR}
 sync
 echo "镜像已生成, 存放在 ${OUTPUT_DIR} 下面"
 echo "========================== end $0 ================================"
