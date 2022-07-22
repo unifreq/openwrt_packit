@@ -119,7 +119,7 @@ update_kernel() {
 
 echo -e "Start updating OpenWrt kernel in kvm virtual machine..."
 # Operation environment check
-[[ -x "/usr/sbin/openwrt-kvm-kernel" ]] || error_msg "Please give execute permission: chmod +x /usr/sbin/openwrt-kvm-kernel"
+[[ -x "/usr/sbin/openwrt-kernel-kvm" ]] || error_msg "Please give execute permission: chmod +x /usr/sbin/openwrt-kernel-kvm"
 #
 # Initialize all variables
 init_var "${@}"
