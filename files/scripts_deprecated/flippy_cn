@@ -1,7 +1,7 @@
 #!/bin/bash
 # flippy's openwrt tools
 
-VERSION="v1.2"
+VERSION="v1.3"
 ZSTD_LEVEL=6
 SNAPSHOT_PRESTR=".snapshots/"
 BACKUP_DIR="/.reserved"

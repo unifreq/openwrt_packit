@@ -5,7 +5,7 @@
 # Copyright (C) 2021-- https://github.com/ophub/luci-app-amlogic
 #======================================================================
 
-VERSION="v1.2"
+VERSION="v1.3"
 ZSTD_LEVEL=6
 SNAPSHOT_PRESTR=".snapshots/"
 BACKUP_DIR="/.reserved"
