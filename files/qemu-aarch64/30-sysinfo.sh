@@ -69,7 +69,7 @@ function storage_info()
 	root_total=$(awk '/\// {print $(NF-4)}' <<<${RootInfo})
 
 	# storage info
-	BootInfo=$(df -h /boot)
+	BootInfo=$(df -h /boot/efi)
 	boot_usage=$(awk '/\// {print $(NF-1)}' <<<${BootInfo} | sed 's/%//g')
 	boot_total=$(awk '/\// {print $(NF-4)}' <<<${BootInfo})
 
@@ -90,10 +90,8 @@ function get_data_storage()
 {
     if which lsblk >/dev/null;then
 	root_name=$(lsblk -l -o NAME,MOUNTPOINT | awk '$2~/^\/$/ {print $1'})
-	mmc_name=$(echo $root_name | awk '{print substr($1,1,length($1)-2);}')
-	if echo $mmc_name | grep mmcblk >/dev/null;then
-	    DATA_STORAGE="/mnt/${mmc_name}p4"
-	fi
+	vd_name=$(echo $root_name | awk '{print substr($1,1,length($1)-1);}')
+	DATA_STORAGE="/mnt/${vd_name}4"
     fi
 }
 
