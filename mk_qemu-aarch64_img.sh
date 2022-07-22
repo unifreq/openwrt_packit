@@ -54,6 +54,10 @@ EOF
 
 cd "$TGT_ROOT/boot/grub2"
 cat > grub.cfg <<EOF
+insmod gzio
+insmod part_gpt
+insmod zstd
+insmod btrfs
 terminal_input console
 terminal_output console
 set default="0"
