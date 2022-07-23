@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=gb2312"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 7.3.3.2 (Windows)"/>
+	<meta name="author" content="Uniq Freq"/>
+	<meta name="created" content="2022-07-23T06:07:00"/>
+	<meta name="changedby" content="Uniq Freq"/>
+	<meta name="changed" content="2022-07-23T06:07:00"/>
+	<meta name="AppVersion" content="16.0000"/>
+	<style type="text/css">
+		@page { size: 21cm 29.7cm; margin-left: 3.18cm; margin-right: 3.18cm; margin-top: 2.54cm; margin-bottom: 2.54cm }
+		p { line-height: 115%; text-align: justify; orphans: 0; widows: 0; margin-bottom: 0.25cm; direction: ltr; background: transparent }
+		h1 { font-size: 22pt; font-weight: bold; line-height: 241%; text-align: justify; page-break-inside: avoid; orphans: 0; widows: 0; margin-top: 0.6cm; margin-bottom: 0.58cm; direction: ltr; background: transparent; page-break-after: avoid }
+		h2 { line-height: 173%; text-align: justify; page-break-inside: avoid; orphans: 0; widows: 0; margin-top: 0.46cm; margin-bottom: 0.46cm; direction: ltr; background: transparent; page-break-after: avoid }
+		h2.western { font-family: "等线 Light", serif; font-size: 16pt; font-weight: bold }
+		h2.cjk { font-family: "等线 Light"; font-size: 16pt; font-weight: bold }
+		h2.ctl { font-family: ; font-size: 16pt; font-weight: bold }
+	</style>
+</head>
+<body lang="zh-CN" link="#000080" vlink="#800000" dir="ltr">
+<ol><li><h1>物理机安装依赖包</h1>
+</ol>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">apt
+install gconf2 qemu-system qemu-system-arm qemu-utils  qemu-efi
+libvirt-daemon-system libvirt-clients bridge-utils virtinst
+virt-manager seabios vgabios  gir1.2-spiceclientgtk-3.0 xauth</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">x11</span></font>字库（可选）</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">apt
+install fonts-noto*</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">桌面环境<font face="等线, serif"><span lang="en-US">(</span></font>可选<font face="等线, serif"><span lang="en-US">)</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">apt
+install tasksel</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">运行
+<font face="等线, serif"><span lang="en-US">tasksel</span></font>，选择至少一个桌面环境即可</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<ol start="2">
+	<li><h1><font face="等线, serif"><span lang="en-US">windows</span></font>客户机安装<font face="等线, serif"><span lang="en-US">ssh</span></font>客户端及<font face="等线, serif"><span lang="en-US">x11
+	server</span></font></h1>
+</ol>
+<p style="line-height: 100%; margin-bottom: 0cm">客户端可以用<font face="等线, serif"><span lang="en-US">xshell</span></font>、<font face="等线, serif"><span lang="en-US">securecrt</span></font>等等，<font face="等线, serif"><span lang="en-US">x11
+server</span></font>可以用<font face="等线, serif"><span lang="en-US">xshell</span></font>自带的，或者<font face="等线, serif"><span lang="en-US">xming</span></font>、<font face="等线, serif"><span lang="en-US">vcxsrv</span></font>、<font face="等线, serif"><span lang="en-US">cygwin
+x11</span></font>等。</p>
+<p style="line-height: 100%; margin-bottom: 0cm">以<font face="等线, serif"><span lang="en-US">securecrt+xming</span></font>为例：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_188d1c37d704356.png" name="鍥剧墖 15" align="bottom" width="164" height="127" border="0"/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">启动之后，图标在右下角（需要防火墙入站规则允许<font face="等线, serif"><span lang="en-US">xming</span></font>）</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_6b8902df1c3b11b7.png" name="鍥剧墖 16" align="bottom" width="238" height="67" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">Securecrt
+session</span></font>配置：（开启 <font face="等线, serif"><span lang="en-US">forward
+x11</span></font>）</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_b498d91cb663db7.png" name="鍥剧墖 17" align="bottom" width="643" height="639" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<h1>三、物理机网络配置</h1>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">注意：如果物理机只有单网卡的话，要把网络改成桥接，以便与虚机共用网卡。</p>
+<p style="line-height: 100%; margin-bottom: 0cm">配置示例：</p>
+<p style="line-height: 100%; margin-bottom: 0cm">文件名：<font face="等线, serif"><span lang="en-US">/etc/network/interfaces.d/br0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">#
+eth0 setup</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">allow-hotplug
+eth0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">iface
+eth0 inet manual</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">pre-up
+  ifconfig $IFACE up</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">pre-down
+ifconfig $IFACE down</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">#
+Bridge setup</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">auto
+br0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">iface
+br0 inet static</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">bridge_ports
+eth0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">bridge_stp
+off       </span></font>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">bridge_waitport
+0    </span></font>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">bridge_fd
+0          </span></font>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">address
+192.168.3.22</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">broadcast
+192.168.3.255</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">netmask
+255.255.255.0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">gateway
+192.168.3.1</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">  <font face="等线, serif"><span lang="en-US">dns-nameservers
+192.168.3.1</span></font></p>
+<h1>四、安装过程截图</h1>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US"><font color="#ff0000">qemu</span></font>的固件镜像后缀是
+<font face="等线, serif"><span lang="en-US">.qcow2</span></font>，把镜像上传到物理机的&nbsp;&nbsp;<font face="等线, serif"><span lang="en-US">/var/lib/libvirt/images/</span></font>目录下，名字可以任意改。</font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">运行 <font face="等线, serif"><span lang="en-US">virt-manager
+ </span></font>（或桌面环境下点击&ldquo;虚拟机管理&rdquo;图标）</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_8edb1d2ad39f78f8.png" name="鍥剧墖 1" align="bottom" width="820" height="490" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_17ec7c9db1ecc11.png" name="鍥剧墖 2" align="bottom" width="550" height="563" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_cad2c4182f36aec.png" name="鍥剧墖 3" align="bottom" width="507" height="535" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_96e3e83b1abc5abb.png" name="鍥剧墖 4" align="bottom" width="1250" height="538" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_db9124c05c007058.png" name="鍥剧墖 5" align="bottom" width="507" height="543" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_f074cdf95eee775e.png" name="鍥剧墖 6" align="bottom" width="502" height="537" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_fa6a2b06d8aa15f9.png" name="鍥剧墖 7" align="bottom" width="504" height="541" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_9cee1f2bed07d698.png" name="鍥剧墖 8" align="bottom" width="1026" height="845" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_5d79f55b8e2d7d0d.png" name="鍥剧墖 9" align="bottom" width="1021" height="845" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_817a1c9eb4eb0e74.png" name="鍥剧墖 10" align="bottom" width="464" height="277" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_e0e92cca1de2d513.png" name="鍥剧墖 11" align="bottom" width="1018" height="850" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_3ae6891384658031.png" name="鍥剧墖 12" align="bottom" width="731" height="842" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_255e600d8da72729.png" name="鍥剧墖 13" align="bottom" width="880" height="801" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_314874b3eaa28148.png" name="鍥剧墖 14" align="bottom" width="1491" height="839" border="0"/>
+</p>
+<h1>五、故障处理</h1>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">5.1
+cpu</span></font>模式不对：提示<font face="等线 Light, serif"><span lang="en-US">cpu
+mode &lsquo;host-mode&rsquo; not supported</span></font></h2>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_30218a5daa80c615.png" name="鍥剧墖 19" align="bottom" width="952" height="1269" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">解决方法：把<font face="等线, serif"><span lang="en-US">cpu</span></font>模式手动改成
+<font face="等线, serif"><span lang="en-US">host-passthrough
+(</span></font>如果下拉选项没这个，那就手动输入<font face="等线, serif"><span lang="en-US">)</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_7669ba50f104fb61.png" name="鍥剧墖 22" align="bottom" width="1022" height="846" border="0"/>
+</p>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">5.2
+</span></font>虚拟机服务未启动</h2>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">systemctl
+status libvirtd</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">正常情况应该这样：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_22c9561ee537a3ec.png" name="鍥剧墖 21" align="bottom" width="1231" height="370" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">如果服务未激活，请手动激活并启动服务：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">systemctl
+ enable libvirtd</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">systemctl
+ start libvirtd</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">systemctl
+ status libvirtd</span></font></p>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">5.3
+EFI </span></font>启动失败</h2>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_41ff64a1782273b1.png" name="鍥剧墖 23" align="bottom" width="812" height="1083" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">解决方法：删除虚拟机重建，多试几次，或者给虚拟机改个名</p>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">5.4
+</span></font>桥接模式下，虚拟机能<font face="等线 Light, serif"><span lang="en-US">ping</span></font>通主机，主机也能<font face="等线 Light, serif"><span lang="en-US">ping</span></font>通虚拟机，但虚机<font face="等线 Light, serif"><span lang="en-US">ping</span></font>不通外网</h2>
+<p style="line-height: 100%; margin-bottom: 0cm">解决方法：一般是物理机防火墙开着引起的，可以关掉防火墙，或者在物理机的
+<font face="等线, serif"><span lang="en-US">/etc/sysctl.conf</span></font>里添加以下内容：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">net.bridge.bridge-nf-call-ip6tables
+= 0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">net.bridge.bridge-nf-call-iptables
+= 0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">net.bridge.bridge-nf-call-arptables
+= 0</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">然后运行 <font face="等线, serif"><span lang="en-US">sysctl
+ -p </span></font>
+</p>
+<h1>六、进阶用法</h1>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">6.1
+</span></font>给虚拟机添加第<font face="等线 Light, serif"><span lang="en-US">2</span></font>张网卡</h2>
+<p style="line-height: 100%; margin-bottom: 0cm">前提是物理机有多余的网卡可用，无论是<font face="等线, serif"><span lang="en-US">usb</span></font>扩展的还是<font face="等线, serif"><span lang="en-US">pcie</span></font>扩展的都行，假设物理机的第二张网卡是<font face="等线, serif"><span lang="en-US">eth1</span></font>，那么：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_6e858d02a02ed6f9.png" name="鍥剧墖 24" align="bottom" width="1027" height="847" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_c18fc12b2690f6f4.png" name="鍥剧墖 25" align="bottom" width="1034" height="844" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_4e8294266b78bbe7.png" name="鍥剧墖 26" align="bottom" width="641" height="703" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">新添的网卡要关闭虚拟机之后才会出现，下次启动生效。</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><br/>
+
+</p>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">6.2
+</span></font>给虚拟机添加共享文件系统</h2>
+<p style="line-height: 100%; margin-bottom: 0cm">此功能可以把物理机的一个文件夹共享给虚拟机使用，实现物理机、虚拟机之间文件共享，或多个虚拟机之间文件共享，非常实用！</p>
+<p style="line-height: 100%; margin-bottom: 0cm">首先要关闭虚拟机，把内存的<font face="等线, serif"><span lang="en-US">shared
+memory</span></font>选项打开：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_bbde687cb465f619.png" name="鍥剧墖 27" align="bottom" width="1035" height="849" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">然后添加硬件，选择&ldquo;文件系统&rdquo;<font face="等线, serif"><span lang="en-US">,
+</span></font>驱动程序选择&ldquo;<font face="等线, serif"><span lang="en-US">virtiofs&rdquo;,
+</span></font>源路径选择物理机上已存在的某个文件夹，目标路径随便编个名字（例如<font face="等线, serif"><span lang="en-US">data</span></font>）</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_7abee092080dc10.png" name="鍥剧墖 28" align="bottom" width="1040" height="850" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_915aac6dd52bb471.png" name="鍥剧墖 29" align="bottom" width="1032" height="844" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">然后启动虚拟机</p>
+<p style="line-height: 100%; margin-bottom: 0cm">在虚机中输入命令：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">mkdir
+ /mnt/data</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">mount
+-t virtiofs data  /mnt/data</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">df
+-h</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_8c18b9d1bf1d74b4.png" name="鍥剧墖 30" align="bottom" width="681" height="374" border="0"/>
+
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">挂载成功，如果想要开机自动挂载的话，可以把挂载命令添加到
+<font face="等线, serif"><span lang="en-US">/etc/rc.local</span></font>里</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_2d4c0c116b8cc8dc.png" name="鍥剧墖 31" align="bottom" width="692" height="113" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_db33bd21ae209186.png" name="鍥剧墖 32" align="bottom" width="873" height="482" border="0"/>
+</p>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">6.3
+</span></font>给虚拟机添加显卡（<font face="等线 Light, serif"><span lang="en-US">openwrt</span></font>没啥用）</h2>
+<p style="line-height: 100%; margin-bottom: 0cm">虽然对于<font face="等线, serif"><span lang="en-US">openwrt</span></font>没用，但对于其它<font face="等线, serif"><span lang="en-US">linux</span></font>发行版有用，如果想在<font face="等线, serif"><span lang="en-US">armbian</span></font>里运行另一个<font face="等线, serif"><span lang="en-US">linux</span></font>（<font face="等线, serif"><span lang="en-US">debian,ubuntu,openSUSE,archlinux,centos,gentoo,</span></font>国产麒麟，国产统信<font face="等线, serif"><span lang="en-US">uos</span></font>等等），那这一步是必需的：</p>
+<p style="line-height: 100%; margin-bottom: 0cm">添加鼠标：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_fb2882c989240b1b.png" name="鍥剧墖 33" align="bottom" width="1061" height="821" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">添加键盘：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_8beecd6f90e33788.png" name="鍥剧墖 34" align="bottom" width="1028" height="783" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">添加显卡：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_b865d00a2e15fa1f.png" name="鍥剧墖 35" align="bottom" width="1033" height="794" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm">启动虚拟机：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_464387f5f2f5b3c6.png" name="鍥剧墖 36" align="bottom" width="1029" height="789" border="0"/>
+</p>
+<h2 class="cjk"><font face="等线 Light, serif"><span lang="en-US">6.4
+</span></font>给虚拟机添加直通设备</h2>
+<p style="line-height: 100%; margin-bottom: 0cm">这需要物理机支持<font face="等线, serif"><span lang="en-US">iommu</span></font>，一般的电视盒子就别想了，目前即使正规的<font face="等线, serif"><span lang="en-US">arm64</span></font>服务器也很少支持。</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_8cb8cb1651bf5ade.png" name="鍥剧墖 20" align="bottom" width="1210" height="918" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_c23be0d53902a89a.png" name="鍥剧墖 18" align="bottom" width="1206" height="919" border="0"/>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><img src="index_html_8d16d4ddca973ee5.png" name="鍥剧墖 37" align="bottom" width="441" height="482" border="0"/>
+出现这个提示就是不支持直通
+<font face="Segoe UI Emoji">&#9785;</font></p>
+<h1>七、固件升级</h1>
+<p style="line-height: 100%; margin-bottom: 0cm">每次固件发布会有<font face="等线, serif"><span lang="en-US">2</span></font>个文件：</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img
+ </span></font>
+</p>
+<p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.qcow2</span></font></p>
+<p style="line-height: 100%; margin-bottom: 0cm">其中，后缀为<font face="等线, serif"><span lang="en-US">.qcow2</span></font>的文件是首次创建虚拟机用的，而另一个后缀为<font face="等线, serif"><span lang="en-US">.img</span></font>的文件就用于升级的。</p>
+<p style="line-height: 100%; margin-bottom: 0cm">升级方法：</p>
+<ol>
+	<li><p style="line-height: 100%; margin-bottom: 0cm">把
+	<font face="等线, serif"><span lang="en-US">openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img
+	</span></font>及附带的升级脚本上传至虚拟机的
+	<font face="等线, serif"><span lang="en-US">/mnt/vda4</span></font>目录下<font face="等线, serif"><span lang="en-US"><br/>
+</span></font><font color="#ff0000">（<font face="等线, serif"><span lang="en-US">7z</span></font>压缩包里也会同时包含一个升级脚本：<font face="等线, serif"><span lang="en-US">update-kvm-openwrt.sh</span></font>，与<font face="等线, serif"><span lang="en-US">/usr/sbin/openwrt-update-kvm</span></font>是同一个文件，但版本可能更新一些）</font></p>
+	<li><p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">cd
+	/mnt/vda4</span></font></p>
+	<li><p style="line-height: 100%; margin-bottom: 0cm"><font face="等线, serif"><span lang="en-US">/usr/sbin/openwrt-update-kvm
+	 openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img</span></font></p>
+</ol>
+<p style="line-height: 100%; margin-left: 0.64cm; margin-bottom: 0cm">
+或</p>
+<p style="line-height: 100%; margin-left: 0.64cm; margin-bottom: 0cm">
+<font face="等线, serif"><span lang="en-US">./update-kvm-openwrt.sh
+openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img</span></font></p>
+</body>
+</html>
