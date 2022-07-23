@@ -71,7 +71,7 @@
 
 7. OpenWrt 在 KVM 虚拟机中的使用说明：
 
-对于性能过剩的盒子，可以先安装 Armbian 系统，再安装 KVM 虚拟机实现多系统使用。其中 `OpenWrt` 系统的编译可以使用本仓库的 [mk_qemu-aarch64_img.sh](mk_qemu-aarch64_img.sh) 脚本进行制作，其安装与使用说明详见 [qemu-aarch64-readme.pdf](https://github.com/unifreq/openwrt_packit/blob/master/files/qemu-aarch64/qemu-aarch64-readme_v1.3.pdf) 文档，更多系统如 Debian、Ubuntu、OpenSUSE、ArchLinux、Centos、Gentoo、KyLin、UOS 等可在相关网站查阅安装与使用说明。
+对于性能过剩的盒子，可以先安装 Armbian 系统，再安装 KVM 虚拟机实现多系统使用。其中 `OpenWrt` 系统的编译可以使用本仓库的 [mk_qemu-aarch64_img.sh](mk_qemu-aarch64_img.sh) 脚本进行制作，其安装与使用说明详见 [qemu-aarch64-readme.pdf](https://github.com/unifreq/openwrt_packit/blob/master/files/qemu-aarch64/qemu-aarch64-readme.pdf) 文档，更多系统如 Debian、Ubuntu、OpenSUSE、ArchLinux、Centos、Gentoo、KyLin、UOS 等可在相关网站查阅安装与使用说明。
 
 三、其它相关信息请参见我在恩山论坛的贴子：
 
@@ -114,5 +114,3 @@ https://github.com/Netflixxp/N1HK1dabao
    
    luci-app-amlogic 源码来自 https://github.com/ophub/luci-app-amlogic (smith1998)， 可以集成到openwrt固件中，并与本打包源码紧密结合，可实现在线升级内核和在线升级完整固件。
 
-七、关于qemu-aarch64固件的说明
-  https://github.com/unifreq/openwrt_packit/blob/master/files/qemu-aarch64/readme/index.html
