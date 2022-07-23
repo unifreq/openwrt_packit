@@ -87,8 +87,8 @@ if [[ ! -d "${WORK_DIR}" ]];then
 fi
 
 cd "${WORK_DIR}"
-if [[ -d "/tmp/upload" ]];then
-    mv -f /tmp/upload/* . 
+if [[ -d "/tmp/upload" ]] && [[ -f "/tmp/upload/*img*" ]];then
+    mv -f /tmp/upload/*img* . 
     if [[ $? -ne 0 ]];then
         echo "move file failed."
         exit 1
@@ -151,7 +151,9 @@ EFI_DEV=$(echo $EFI_PART_MSG | awk '{print $2}')
 EFI_UUID=$(echo $EFI_PART_MSG | awk '{print $4}')
 
 BR_FLAG=1
-if [[ ${BACKUP_RESTORE_CONFIG} == "no-restore" ]]; then
+if [[ ${BACKUP_RESTORE_CONFIG} == "restore" ]]; then
+    BR_FLAG=1
+elif [[ ${BACKUP_RESTORE_CONFIG} == "no-restore" ]]; then
     BR_FLAG=0
 else
     echo -ne "Whether to backup and restore the current config files? y/n [y]\b\b"
