@@ -68,7 +68,11 @@
        
     
     除上述必选项以外的软件包可以按需自主选择。
-                 
+
+7. OpenWrt 在 KVM 虚拟机中的使用说明：
+
+对于性能过剩的盒子，可以先安装 Armbian 系统，再安装 KVM 虚拟机实现多系统使用。其中 `OpenWrt` 系统的编译可以使用本仓库的 [mk_qemu-aarch64_img.sh](mk_qemu-aarch64_img.sh) 脚本进行制作，其安装与使用说明详见 [qemu-aarch64-readme.pdf](https://github.com/unifreq/openwrt_packit/blob/master/files/qemu-aarch64/qemu-aarch64-readme_v1.3.pdf) 文档，更多系统如 Debian、Ubuntu、OpenSUSE、ArchLinux、Centos、Gentoo、KyLin、UOS 等可在相关网站查阅安装与使用说明。
+
 三、其它相关信息请参见我在恩山论坛的贴子：
 
 https://www.right.com.cn/forum/thread-981406-1-1.html
