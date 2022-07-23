@@ -21,7 +21,7 @@ sudo apt-get -qq update && sudo apt-get -qq install -y p7zip p7zip-full zip unzi
 MAKE_PATH="${PWD}"
 # The file specified in the ${OPENWRT_ARMVIRT} parameter will be saved as ${PACKAGE_FILE}
 PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
-PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "diy")
+PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "qemu" "diy")
 SELECT_ARMBIANKERNEL=("5.10.125" "5.15.50")
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
