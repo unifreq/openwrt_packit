@@ -109,3 +109,6 @@ https://github.com/Netflixxp/N1HK1dabao
 六、采用 luci-app-amlogic 在线升级
    
    luci-app-amlogic 源码来自 https://github.com/ophub/luci-app-amlogic (smith1998)， 可以集成到openwrt固件中，并与本打包源码紧密结合，可实现在线升级内核和在线升级完整固件。
+
+七、关于qemu-aarch64固件的说明
+  https://github.com/unifreq/openwrt_packit/blob/master/files/qemu-aarch64/readme/index.html
