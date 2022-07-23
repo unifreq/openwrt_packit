@@ -49,7 +49,7 @@ SCRIPT_S905X3_FILE="mk_s905x3_multi.sh"
 SCRIPT_S912_FILE="mk_s912_zyxq.sh"
 SCRIPT_S922X_FILE="mk_s922x_gtking.sh"
 SCRIPT_S922X_N2_FILE="mk_s922x_odroid-n2.sh"
-SCRIPT_QEMU="mk_qemu-aarch64_img.sh"
+SCRIPT_QEMU_FILE="mk_qemu-aarch64_img.sh"
 SCRIPT_DIY_FILE="mk_diy.sh"
 
 # Set make.env related parameters
@@ -101,6 +101,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${SCRIPT_S912}" ]] || SCRIPT_S912="${SCRIPT_S912_FILE}"
 [[ -n "${SCRIPT_S922X}" ]] || SCRIPT_S922X="${SCRIPT_S922X_FILE}"
 [[ -n "${SCRIPT_S922X_N2}" ]] || SCRIPT_S922X_N2="${SCRIPT_S922X_N2_FILE}"
+[[ -n "${SCRIPT_QEMU}" ]] || SCRIPT_QEMU="${SCRIPT_QEMU_FILE}"
 [[ -n "${SCRIPT_DIY}" ]] || SCRIPT_DIY="${SCRIPT_DIY_FILE}"
 
 # Specify make.env variable
