@@ -102,8 +102,6 @@ write_release_info
 write_banner
 config_first_run
 create_snapshot "etc-000"
-# 删除luci-app-amlogic包
-append_custom_uci_defaults_command "opkg remove --force-removal-of-dependent-packages luci-app-amlogic"
 clean_work_env
 sync
 echo "------------------------------------------------------------"
