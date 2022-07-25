@@ -99,10 +99,10 @@ ssh 客户端是 windows 时，ssh 工具可以用 putty、xshell、securecrt �
 <img width="500" src="https://user-images.githubusercontent.com/68696949/180733725-a8494a6f-f144-4750-92ae-7dbd862e327b.png">
 </div>
 
-## 3. 在 Armbian 等物理机中配置桥接网络
+## 3. 在 Armbian 物理机中配置网络
 
-注意：如果物理机只有单网卡的话，要把网络改成桥接，以便与虚机共用网卡。以 Armbian/Debian/ubuntu 为例：（其它操作系统请自行查询网格配置方式）。文件名：`/etc/network/interfaces.d/br0`
-
+注意：如果物理机只有 1 张网卡的话，要把 eth0 网络改成桥接，以便与虚机共用网卡。以 Armbian/Debian/ubuntu 为例：（其它操作系统请自行查询网桥配置方式）。
+`/etc/network/interfaces.d/br0`
 ```yaml
 # eth0 setup
 allow-hotplug eth0
@@ -122,6 +122,20 @@ iface br0 inet static
     netmask 255.255.255.0
     gateway 192.168.3.1
     dns-nameservers 192.168.3.1
+```
+物理机有 2 张网卡时，eth1 可以提供给虚拟机做 macvtap 口，但此时物理机自身就不能再使用 eth1 了，需要停用 NetworkManager.service, 并把 eth1 设置为手动:
+`/etc/network/interfaces.d/eth1`
+```yaml
+allow-hotplug eth1
+iface eth1 inet manual
+  pre-up   ifconfig $IFACE up
+  pre-down ifconfig $IFACE down
+```
+关闭 `NetworkManager.service`
+```yaml
+systemctl stop NetworkManager.service
+systemctl disable NetworkManager.service
+init 6
 ```
 
 ## 4. 安装过程截图
