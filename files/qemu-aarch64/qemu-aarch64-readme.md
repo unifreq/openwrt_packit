@@ -164,7 +164,7 @@ init 6
 virsh console openwrt
 ```
 之后就进入openwrt的shell提示符，就如同在 ssh 或 ttyd 里一样，非常方便！
-退出 virsh console 请按 ctrl-] 快捷键。
+退出 virsh console 请按 ctrl + ] 快捷键， 即按下ctrl，再按]键。
 
 ## 5. 故障处理
 
