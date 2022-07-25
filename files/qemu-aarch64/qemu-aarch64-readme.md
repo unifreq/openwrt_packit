@@ -1,4 +1,4 @@
-# 在 KVM 虚拟机中 安装使用 OpenWrt 的说明
+# 在 KVM 虚拟机中安装使用 OpenWrt 的说明
 
 基于内核的虚拟机 Kernel-based Virtual Machine（KVM）是一种内建于 Linux® 中的开源虚拟化技术。具体而言，KVM 可帮助您将 Linux 转变为虚拟机监控程序，使主机计算机能够运行多个隔离的虚拟环境，即虚拟客户机或虚拟机（VM）。KVM 是 Linux 的一部分，Linux 也是 KVM 的一部分，Linux 有的 KVM 全都有。KVM 的某些特点让它成为了企业的首选虚拟机监控程序，比如在安全性、存储、硬件支持、内存管理、实时迁移、性能和可扩展性、调度和资源控制，以及更低延迟，更高优先级等方面均具有企业级的可靠性。
 
@@ -6,11 +6,11 @@
 
 # 目录
 
-- [在 KVM 虚拟机中 安装使用 OpenWrt 的说明](#在-kvm-虚拟机中-安装使用-openwrt-的说明)
+- [在 KVM 虚拟机中安装使用 OpenWrt 的说明](#在-kvm-虚拟机中安装使用-openwrt-的说明)
 - [目录](#目录)
   - [1. 物理机安装依赖包](#1-物理机安装依赖包)
-  - [2. 在 Windows/MAC 客户机安装 ssh 客户端及 x11 server](#2-在-windowsmac-客户机安装-ssh-客户端及-x11-server)
-    - [2.1 首先确认远程 Armbian 服务器上的 SSH 服务端开启了 X11Forwarding 功能](#21-首先确认远程-armbian-服务器上的-ssh-服务端开启了-x11forwarding-功能)
+  - [2. 安装服务端和客户端](#2-安装服务端和客户端)
+    - [2.1 服务端开启 X11Forwarding 功能](#21-服务端开启-x11forwarding-功能)
     - [2.2 安装本地电脑客户端](#22-安装本地电脑客户端)
   - [3. 在 Armbian 等物理机中配置桥接网络](#3-在-armbian-等物理机中配置桥接网络)
   - [4. 安装过程截图](#4-安装过程截图)
@@ -29,9 +29,11 @@
     - [6.7 虚拟机双网卡主路由模式拓扑](#67-虚拟机双网卡主路由模式拓扑)
   - [7. 固件升级](#7-固件升级)
     - [7.1 命令行升级方法](#71-命令行升级方法)
-    - [7.2. 用晶晨宝盒插件进行升级](#72-用晶晨宝盒插件进行升级)
+    - [7.2 用晶晨宝盒插件进行升级](#72-用晶晨宝盒插件进行升级)
     - [7.3 双系统切换](#73-双系统切换)
   - [8. 内核升级](#8-内核升级)
+    - [8.1 命令行升级方法](#81-命令行升级方法)
+    - [8.2 用晶晨宝盒插件进行升级](#82-用晶晨宝盒插件进行升级)
 
 ## 1. 物理机安装依赖包
 
@@ -63,11 +65,13 @@ sudo apt-get install -y tasksel
 
 对于性能过剩的盒子，可以先安装 Armbian 系统，再安装 KVM 虚拟机实现多系统使用。其中 OpenWrt 系统的编译可以使用本仓库的 mk_qemu-aarch64_img.sh 脚本进行制作，更多系统如 Debian、Ubuntu、OpenSUSE、ArchLinux、Centos、Gentoo、KyLin、UOS 等可在相关网站查阅安装与使用说明。
 
-## 2. 在 Windows/MAC 客户机安装 ssh 客户端及 x11 server
+## 2. 安装服务端和客户端
 
-分别在
+分别在 Armbian 服务器和本地个人电脑安装服务端和客户端。
 
-### 2.1 首先确认远程 Armbian 服务器上的 SSH 服务端开启了 X11Forwarding 功能
+### 2.1 服务端开启 X11Forwarding 功能
+
+首先确认远程 Armbian 等服务器上的 SSH 服务端开启了 X11Forwarding 功能：
 ```yaml
 # 编辑 /etc/ssh/sshd_config 文件
 X11Forwarding yes
@@ -314,15 +318,16 @@ done
 
 ### 7.1 命令行升级方法
 
+把 openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img 及附带的升级脚本上传至虚拟机的 `/mnt/vda4` 目录下（7z压缩包里也会同时包含一个升级脚本：update-kvm-openwrt.sh，与/usr/sbin/openwrt-update-kvm是同一个文件，但版本可能更新一些）
+
 ```yaml
-# 把 openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img 及附带的升级脚本上传至虚拟机的 /mnt/vda4目录下（7z压缩包里也会同时包含一个升级脚本：update-kvm-openwrt.sh，与/usr/sbin/openwrt-update-kvm是同一个文件，但版本可能更新一些）
 cd /mnt/vda4
 /usr/sbin/openwrt-update-kvm  openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img
 # 或者
 ./update-kvm-openwrt.sh openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img
 ```
 
-### 7.2. 用晶晨宝盒插件进行升级
+### 7.2 用晶晨宝盒插件进行升级
 
 <div style="width:100%;margin-top:40px;margin:5px;">
 <img width="770" src="https://user-images.githubusercontent.com/68696949/180752372-e4437e37-714e-48cc-ae39-ed203662f139.png">
@@ -342,10 +347,11 @@ cd /mnt/vda4
 
 内核升级即：只升级kernel，不升级openwrt的应用。
 
-8.1. 命令行升级
+### 8.1 命令行升级方法
+
 把 `boot-xxxx.tar.gz`、`modules-xxxx.tar.gz`两个内核压缩包上传至 `/mnt/vda4`, 然后运行：`openwrt-kernel-kvm`
 
-8.2. 用晶晨宝盒插件进行升级
+### 8.2 用晶晨宝盒插件进行升级
 
 使用方法基本与 7.2 相同
 
