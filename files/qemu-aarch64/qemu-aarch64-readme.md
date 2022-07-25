@@ -9,8 +9,8 @@
 - [在 KVM 虚拟机中 安装使用 OpenWrt 的说明](#在-kvm-虚拟机中-安装使用-openwrt-的说明)
 - [目录](#目录)
   - [1. 物理机安装依赖包](#1-物理机安装依赖包)
-  - [2. 在 Windows/MAC 客户机安装 ssh 客户端及 x11 server](#2-在-windowsmac-客户机安装-ssh-客户端及-x11-server)
-    - [2.1 首先确认远程 Armbian 服务器上的 SSH 服务端开启了 X11Forwarding 功能](#21-首先确认远程-armbian-服务器上的-ssh-服务端开启了-x11forwarding-功能)
+  - [2. 安装服务端和客户端](#2-安装服务端和客户端)
+    - [2.1 服务端开启 X11Forwarding 功能](#21-服务端开启-x11forwarding-功能)
     - [2.2 安装本地电脑客户端](#22-安装本地电脑客户端)
   - [3. 在 Armbian 等物理机中配置桥接网络](#3-在-armbian-等物理机中配置桥接网络)
   - [4. 安装过程截图](#4-安装过程截图)
@@ -63,11 +63,13 @@ sudo apt-get install -y tasksel
 
 对于性能过剩的盒子，可以先安装 Armbian 系统，再安装 KVM 虚拟机实现多系统使用。其中 OpenWrt 系统的编译可以使用本仓库的 mk_qemu-aarch64_img.sh 脚本进行制作，更多系统如 Debian、Ubuntu、OpenSUSE、ArchLinux、Centos、Gentoo、KyLin、UOS 等可在相关网站查阅安装与使用说明。
 
-## 2. 在 Windows/MAC 客户机安装 ssh 客户端及 x11 server
+## 2. 安装服务端和客户端
 
-分别在
+分别在 Armbian 服务器和本地个人电脑安装服务端和客户端。
 
-### 2.1 首先确认远程 Armbian 服务器上的 SSH 服务端开启了 X11Forwarding 功能
+### 2.1 服务端开启 X11Forwarding 功能
+
+首先确认远程 Armbian 等服务器上的 SSH 服务端开启了 X11Forwarding 功能：
 ```yaml
 # 编辑 /etc/ssh/sshd_config 文件
 X11Forwarding yes
