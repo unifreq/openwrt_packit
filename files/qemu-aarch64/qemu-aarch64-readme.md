@@ -12,7 +12,7 @@
   - [2. 安装服务端和客户端](#2-安装服务端和客户端)
     - [2.1 服务端开启 X11Forwarding 功能](#21-服务端开启-x11forwarding-功能)
     - [2.2 安装本地电脑客户端](#22-安装本地电脑客户端)
-  - [3. 在 Armbian 等物理机中配置桥接网络](#3-在-armbian-等物理机中配置桥接网络)
+  - [3. 在 Armbian 等物理机中配置网络](#3-在-armbian-等物理机中配置网络)
   - [4. 安装过程截图](#4-安装过程截图)
   - [5. 故障处理](#5-故障处理)
     - [5.1 cpu模式不对](#51-cpu模式不对)
@@ -159,6 +159,13 @@ init 6
 <img width="733" src="https://user-images.githubusercontent.com/68696949/180735900-87d6db25-011e-4634-a87c-39b4078ad793.png">
 </div>
 
+当虚拟机成功启动之后，即可关闭virt-manager图形窗口，虚拟机仍然在后台运行。第一次运行需要修改虚拟机的ip地址，可以用virsh命令连接到虚拟机的console：
+```yaml
+virsh console openwrt
+```
+之后就进入openwrt的shell提示符，就如同在 ssh 或 ttyd 里一样，非常方便！
+退出 virsh console 请按 ctrl-] 快捷键。
+
 ## 5. 故障处理
 
 常见故障如cpu模式不对、虚拟机服务未启动等解决方法如下。
@@ -290,7 +297,7 @@ df -h
 ```yaml
 virsh list
 virsh start 虚拟机名字
-virsh shutdown 虚拟机名字
+virsh destroy 虚拟机名字
 ```
 
 由此，在宿主机上可以简单写一段代码监测虚拟机状态，如果发现虚拟机未启动，则启动之。
@@ -300,7 +307,7 @@ virsh shutdown 虚拟机名字
 vm_domain="openwrt"
 while true;do
     sleep 10
-    if virsh list | awk '{print $2}' |grep "^${vm_domain}$";then
+    if ps -ef | grep qemu | grep "guest=${vm_domain}," >/dev/null 2>&1 ;then
         continue
     else
         virsh start ${vm_domain}
@@ -317,7 +324,7 @@ done
 <img width="307" src="https://user-images.githubusercontent.com/68696949/180751674-92a642b2-f8c6-4fad-80ed-1c77d950a7e4.png">
 </div>
 
-注意：在类似于S922X、RK3399这样的大小核物理机下，虚拟机自动重启有一定概率不成功，所以建议在宿主机后台运行6.5里的监测代码。
+注意：在类似于S922X、RK3399这样的大小核物理机下，虚拟机自动重启有一定概率不成功，所以建议在宿主机后台运行6.5里的监测代码。很遗憾的是，经过测试，该代码用 nohup 放在后台执行时，virsh 命令不能正确返回，因此只能象在 windows下开一个 shell 窗口运行了。
 
 ### 6.7 虚拟机双网卡主路由模式拓扑
 
