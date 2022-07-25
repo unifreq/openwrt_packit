@@ -318,8 +318,9 @@ done
 
 ### 7.1 命令行升级方法
 
+把 openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img 及附带的升级脚本上传至虚拟机的 `/mnt/vda4` 目录下（7z压缩包里也会同时包含一个升级脚本：update-kvm-openwrt.sh，与/usr/sbin/openwrt-update-kvm是同一个文件，但版本可能更新一些）
+
 ```yaml
-# 把 openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img 及附带的升级脚本上传至虚拟机的 /mnt/vda4目录下（7z压缩包里也会同时包含一个升级脚本：update-kvm-openwrt.sh，与/usr/sbin/openwrt-update-kvm是同一个文件，但版本可能更新一些）
 cd /mnt/vda4
 /usr/sbin/openwrt-update-kvm  openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img
 # 或者
