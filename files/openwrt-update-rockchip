@@ -41,6 +41,13 @@ elif [[ "$(echo ${MYDEVICE_NAME} | grep "BeikeYun")" != "" ]]; then
         MYDTB_FDTFILE="rk3328-beikeyun-1296mhz.dtb"
     fi
     SOC="beikeyun"
+elif [[ "$(echo ${MYDEVICE_NAME} | grep "FastRhino R68S")" != "" ]]; then
+    if [ -n "$CURRENT_FDTFILE" ];then
+        MYDTB_FDTFILE="$CURRENT_FDTFILE"
+    else
+        MYDTB_FDTFILE="rk3568-fastrhino-r68s.dtb"
+    fi
+    SOC="r68s"
 else
     echo "Unknown device: [ ${MYDEVICE_NAME} ], Not supported."
     exit 1
@@ -565,6 +572,11 @@ extraargs=usbcore.autosuspend=-1
 extraboardargs=
 fdtfile=/dtb/rockchip/${MYDTB_FDTFILE}
 EOF
+# 对没有 HDMI 的机型关闭 display tty 让 initrd script 输出到 uart
+# 参考 https://github.com/raspberrypi/linux/issues/2863
+if [ "$SOC" == "r68s" ];then
+    echo console=serial >> armbianEnv.txt
+fi
 sync
 echo "done"
 echo
