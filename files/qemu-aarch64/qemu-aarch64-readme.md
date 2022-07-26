@@ -27,6 +27,7 @@
     - [6.5 在命令行下查看、启动、停止虚拟机](#65-在命令行下查看启动停止虚拟机)
     - [6.6 虚拟机开机自启](#66-虚拟机开机自启)
     - [6.7 虚拟机双网卡主路由模式拓扑](#67-虚拟机双网卡主路由模式拓扑)
+    - [6.8 对于大小核 soc 的特殊设置](#68-对于大小核 soc 的特殊设置)
   - [7. 固件升级](#7-固件升级)
     - [7.1 命令行升级方法](#71-命令行升级方法)
     - [7.2 用晶晨宝盒插件进行升级](#72-用晶晨宝盒插件进行升级)
@@ -324,14 +325,49 @@ done
 <img width="307" src="https://user-images.githubusercontent.com/68696949/180751674-92a642b2-f8c6-4fad-80ed-1c77d950a7e4.png">
 </div>
 
-注意：在类似于S922X、RK3399这样的大小核物理机下，虚拟机自动重启有一定概率不成功，所以建议在宿主机后台运行6.5里的监测代码。很遗憾的是，经过测试，该代码用 nohup 放在后台执行时，virsh 命令不能正确返回，因此只能象在 windows下开一个 shell 窗口运行了。
-
 ### 6.7 虚拟机双网卡主路由模式拓扑
 
 <div style="width:100%;margin-top:40px;margin:5px;">
 <img width="296" src="https://user-images.githubusercontent.com/68696949/180751788-8de29441-9bfc-4657-a8fa-c860a6db0426.png">
 </div>
 
+### 6.8 对于大小核 soc 的特殊设置
+注意：在类似于S922X、RK3399这样的大小核物理机下，虚拟机自动重启有一定概率不成功。可能会报如下错误：
+  `kvm: kvm_init_vcpu: kvm_arch_init_vcpu failed (0): Invalid argument`
+
+  解决方法：可以手动修改虚拟机控制文件，静态绑定 cpu 核心，示例如下：
+
+  运行 virsh edit vm_name(虚拟机名称)，然后修改 vcpu 小节, 默认：
+  ```xml
+  <vcpu placement='static'>6</vcpu>
+  ```
+  改为：
+  ```xml
+  <vcpu placement='static' cpuset='0-5'>6</vcpu>
+  <cputune>
+    <vcpupin vcpu='0' cpuset='0'/>
+    <vcpupin vcpu='1' cpuset='1'/>
+    <vcpupin vcpu='2' cpuset='2'/>
+    <vcpupin vcpu='3' cpuset='3'/>
+    <vcpupin vcpu='4' cpuset='4'/>
+    <vcpupin vcpu='5' cpuset='5'/>
+    <emulatorpin cpuset='0-5'/>
+  </cputune>
+  ```
+  假设虚拟机只想分配4核，2小核加2大核（以s922x为例， 0-1 是小核， 2-5是大核)
+  ```xml
+  <vcpu placement='static' cpuset='0,1,4,5'>4</vcpu>
+  <cputune>
+    <vcpupin vcpu='0' cpuset='0'/>
+    <vcpupin vcpu='1' cpuset='1'/>
+    <vcpupin vcpu='2' cpuset='4'/>
+    <vcpupin vcpu='3' cpuset='5'/>
+    <emulatorpin cpuset='0,1,4,5'/>
+  </cputune>
+  ```  
+  修改完毕之后，要关闭虚拟机才生效。
+  本节内容参考了 [华为云: 虚拟机绑核](https://support.huaweicloud.com/tngg-kunpengcpfs/kunpengkvm_05_0008.html#:~:text=vcpu%20placement%20%3D%20%27static%27,cpuset%3D%274-7%27%EF%BC%9A%E7%94%A8%E4%BA%8EIO%E7%BA%BF%E7%A8%8B%E3%80%81worker%20threads%E7%BA%BF%E7%A8%8B%E4%BB%85%E8%83%BD%E4%BD%BF%E7%94%A84-7%E8%BF%994%E4%B8%AA%E6%A0%B8%EF%BC%8C%E8%8B%A5%E4%B8%8D%E9%85%8D%E7%BD%AE%E6%AD%A4%E5%8F%82%E6%95%B0%EF%BC%8C%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BB%BB%E5%8A%A1%E7%BA%BF%E7%A8%8B%E4%BC%9A%E5%9C%A8CPU%E4%BB%BB%E6%84%8Fcore%E4%B8%8A%E6%B5%AE%E5%8A%A8%EF%BC%8C%E4%BC%9A%E5%AD%98%E5%9C%A8%E6%9B%B4%E5%A4%9A%E7%9A%84%E8%B7%A8NUMA%E5%92%8C%E8%B7%A8DIE%E6%8D%9F%E8%80%97%E3%80%82%20vcpupin%E7%94%A8%E4%BA%8E%E9%99%90%E5%88%B6%E5%AF%B9CPU%E7%BA%BF%E7%A8%8B%E5%81%9A%E4%B8%80%E5%AF%B9%E4%B8%80%E7%BB%91%E6%A0%B8%E3%80%82%20%E8%8B%A5%E4%B8%8D%E4%BD%BF%E7%94%A8vcpupin%E7%BB%91CPU%E7%BA%BF%E7%A8%8B%EF%BC%8C%E5%88%99%E7%BA%BF%E7%A8%8B%E4%BC%9A%E5%9C%A84-7%E8%BF%99%E4%B8%AA4%E4%B8%AA%E6%A0%B8%E4%B9%8B%E9%97%B4%E5%88%87%E6%8D%A2%EF%BC%8C%E9%80%A0%E6%88%90%E9%A2%9D%E5%A4%96%E5%BC%80%E9%94%80%E3%80%82)
+  
 ## 7. 固件升级
 
 每次固件发布会有2个文件：`openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img` 和 `openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.qcow2`
