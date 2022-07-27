@@ -287,7 +287,7 @@ df -h
 
 如果出现这个提示就是不支持直通。
 
-### 6.5 在命令行下查看、启动、停止虚拟机
+### 6.5 在命令行下查看、编辑、启动、停止虚拟机
 
 用 `virsh` 命令可以查看、启动和停止虚拟机。
 
@@ -295,26 +295,14 @@ df -h
 <img width="206" src="https://user-images.githubusercontent.com/68696949/180751376-d50fbd96-9687-4094-af3c-e63bf77d9aa4.png">
 </div>
 
-```yaml
-virsh list
-virsh start 虚拟机名字
-virsh destroy 虚拟机名字
-```
-
-由此，在宿主机上可以简单写一段代码监测虚拟机状态，如果发现虚拟机未启动，则启动之。
-
-```yaml
-#!/bin/bash
-vm_domain="openwrt"
-while true;do
-    sleep 10
-    if ps -ef | grep qemu | grep "guest=${vm_domain}," >/dev/null 2>&1 ;then
-        continue
-    else
-        virsh start ${vm_domain}
-        sleep 10
-    fi
-done
+```bash
+virsh list   # 显示已启动的虚拟机， 如果要显示所有虚机，用 virsh list --all
+virsh edit vm_name  # 修改虚拟机的配置文件(/etc/libvirt/qemu/vm_name.xml)，有些更改会立即生效，而大多数更改需关闭虚拟机后才生效，此功能不建议初学者使用
+virsh console vm_name # 连接到虚拟机的控制台(/dev/ttyAMA0), 可执行 shell 命令， 类似于 docker exec -it container bash 的功能
+virsh start vm_name  # 启动虚拟机
+virsh reboot vm_name # 重启虚拟机，需要虚拟机中有 acpid 服务的支持，否则此命令无效。 建议在固件底包中加入 acpid
+virsh shutdown vm_name  # 正常停止虚拟机，需要虚拟机中有 acpid 服务的支持，否则此命令无效。 建议在固件底包中加入 acpid
+virsh destroy vm_name # 强行停止虚拟机
 ```
 
 ### 6.6 虚拟机开机自启
