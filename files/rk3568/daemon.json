@@ -1,0 +1,14 @@
+{
+  "bip": "172.31.0.1/24",
+  "data-root": "/mnt/mmcblk0p4/docker/",
+  "log-level": "warn",
+  "log-driver": "json-file",
+  "log-opts": {
+     "max-size": "10m",
+     "max-file": "5"
+   },
+  "registry-mirrors": [
+     "https://mirror.baidubce.com/",
+     "https://hub-mirror.c.163.com"
+   ]
+}
