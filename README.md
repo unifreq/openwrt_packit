@@ -52,6 +52,7 @@
                  -> Compression -> bsdtar 或 p7zip(非官方源)、pigz
                  -> Shells  ->  bash         
                  -> gawk、getopt、losetup、tar、uuidgen
+                 -> acpid (可选， 用于 kvm 虚拟机固件)
 
         * (可选)Wifi基础包：
         *     打出的包可支持博通SDIO无线模块,Firmware不用选，
