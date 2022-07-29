@@ -427,7 +427,7 @@ cd /mnt/vda4
   
   默认的qcow2镜像，由于是动态分配，其初始尺寸比较小(<1057MB)，但实际在虚拟机中的磁盘容量却很大(默认是 16385MB, QCOW2_MB="+15328M", 1057+15328=16385)，且包含4个分区(efi + rootfs1 + rootfs2 + share), 在使用过程中，qcow2 占用物理机磁盘的空间会逐渐变大，直至撑满16385MB的最大尺寸。
                                             
-  在使用 mk_qemu-aarch64_img.sh 创建镜像时，可以自定义分区尺寸以符合个性化需求， 一般情况下可以修改 ROOTFS_MB(略大于 rootfs + kernel 解压以后所占的空间即可)及 QCOW2_MB 两个变量， 例如：
+  在使用 mk_qemu-aarch64_img.sh 创建镜像时，可以自定义分区尺寸以符合个性化需求， 一般情况下可以修改 ROOTFS_MB(略大于 rootfs + kernel 解压以后所占的空间 * 0.6 即可，btrfs + zstd 压缩率大约是 40-50% )及 QCOW2_MB 两个变量， 例如：
 ```bash
 ROOTFS_MB=640 QCOW2_MB="+2048M" ./mk_qemu-aarch64_img.sh 
 ```
