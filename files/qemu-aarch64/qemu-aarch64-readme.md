@@ -50,7 +50,7 @@ dmesg | grep kvm
 
 在物理机系统中安装 KVM 依赖包：
 ```yaml
-sudo apt-get install -y gconf2 qemu-system qemu-system-arm qemu-utils qemu-efi libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager seabios vgabios gir1.2-spiceclientgtk-3.0 xauth
+sudo apt-get install -y gconf2 qemu-system-arm qemu-utils qemu-efi libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager seabios vgabios gir1.2-spiceclientgtk-3.0 xauth
 ```
 
 安装 x11 字库（可选）
