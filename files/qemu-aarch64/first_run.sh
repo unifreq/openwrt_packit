@@ -38,6 +38,7 @@ if [ "$fail" == "1" ];then
 	exit 1
 fi
 
+
 CURRENT_PT_CNT=$(parted /dev/${DISK_NAME} print | awk '$1~/[1-9]+/ {print $1}' | wc -l)
 if [ "$CURRENT_PT_CNT" != "2" ];then
     echo "现存分区数量不为2,放弃!"
@@ -45,12 +46,21 @@ if [ "$CURRENT_PT_CNT" != "2" ];then
     exit 1
 fi
 
-TARGET_ROOTFS2_FSTYPE=btrfs
-TARGET_SHARED_FSTYPE=btrfs
-
+DISK_TOTAL_B=$(lsblk -b -l | grep disk | awk '{print $4}')
 SKIP_MiB=$(awk '{print $1}' /etc/part_size)
 BOOT_MiB=$(awk '{print $2}' /etc/part_size)
 ROOTFS_MiB=$(awk '{print $3}' /etc/part_size)
+
+USED_MiB=$((SKIP_MiB + BOOT_MiB + ROOTFS_MiB + 1))
+AVAIABLE_MiB=$(( (DISK_TOTAL_B / 1024 / 1024) - USED_MiB))
+if [[ $AVAIABLE_MiB -lt $ROOTFS_MiB ]];then
+    echo "磁盘空闲空间不满足扩展分区的要求！"
+    destory_myself
+    exit 1
+fi
+
+TARGET_ROOTFS2_FSTYPE=btrfs
+TARGET_SHARED_FSTYPE=btrfs
 
 echo "create new partition ... "
 START_P3=$(( (SKIP_MiB + BOOT_MiB + ROOTFS_MiB) * 1024 * 1024 ))
