@@ -210,7 +210,7 @@ sudo systemctl status libvirtd
 
 表现为：虚拟机能ping通主机，主机也能ping通虚拟机，但虚机ping不通外网。
 
-解决方法1：物理机防火墙的默认规则会阻止虚拟机访问外网，标准的解决方案是在物理机的 `/etc/sysctl.conf` 里添加以下内容：
+解决方法1：物理机防火墙的默认规则会阻止虚拟机访问外网，标准的解决方案是在物理机的 `/etc/sysctl.conf` 里添加以下内容, 以禁用网桥上的 netfilter：
 ```yaml
 net.bridge.bridge-nf-call-ip6tables = 0
 net.bridge.bridge-nf-call-iptables = 0
