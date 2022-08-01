@@ -947,7 +947,8 @@ function patch_admin_status_index_html() {
     if [ "$PLATFORM" == "qemu-aarch64" ];then
 	(
 	   cd $TGT_ROOT/usr/lib/lua/luci/view/admin_status/ && \
-		   sed -e 's/pcdata(boardinfo.model or "?")/pcdata(boardinfo.model or "KVM Virtual Machine")/' -i index.htm
+		   sed -e 's/pcdata(boardinfo.model or "?")/pcdata(boardinfo.model or "KVM Virtual Machine")/' -i index.htm && \
+		   sed -e "s/grep 'br-lan'/grep -E 'br-lan|eth0'/" -i index.htm
         )
     else
 	(
@@ -1064,6 +1065,9 @@ function copy_supplement_files() {
               sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
 
         [ -n "$BAL_CONFIG" ] && [ -f $BAL_CONFIG ] && cp -v $BAL_CONFIG etc/
+
+	[ -n "${BALANCE_IRQ_HOME}" ] && [ -d "${BALANCE_IRQ_HOME}" ] && cp -av "${BALANCE_IRQ_HOME}"/* .
+
         [ -f "./etc/init.d/cpufreq" ] && [ -n "$CPUFREQ_INIT" ] && [ -f $CPUFREQ_INIT ] && cp -v $CPUFREQ_INIT etc/init.d/ && chmod 755 etc/init.d/cpufreq
         [ -n "$WIRELESS_CONFIG" ] && [ -f $WIRELESS_CONFIG ] && cp -v $WIRELESS_CONFIG etc/config/
         [ -n "$FIX_CPU_FREQ" ] && [ -f $FIX_CPU_FREQ ] && cp -v $FIX_CPU_FREQ ./usr/sbin && chmod 755 ./usr/sbin/fixcpufreq.pl

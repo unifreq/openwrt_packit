@@ -1,0 +1,8 @@
+#!/bin/sh /etc/rc.common
+
+START=42
+ 
+start() {        
+	/usr/sbin/gen-balance-irq-conf.sh
+	/usr/sbin/balethirq.pl
+}                 
