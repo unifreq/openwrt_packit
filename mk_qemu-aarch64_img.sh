@@ -23,9 +23,9 @@ echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target raw Image
 ###################################################################
-TGT_IMG="${WORK_DIR}/openwrt_${PLATFORM}_${SOC}_${BOARD}_k${KERNEL_VERSION}${SUBVER}.img"
+TGT_IMG="${WORK_DIR}/openwrt_${PLATFORM}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}_update.img"
 # Target qcow2 Image
-TGT_QCOW2_IMG="${OUTPUT_DIR}/openwrt_${PLATFORM}_${SOC}_${BOARD}_k${KERNEL_VERSION}${SUBVER}.qcow2"
+TGT_QCOW2_IMG="${OUTPUT_DIR}/openwrt_${PLATFORM}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}.qcow2"
 ###################################################################
 
 check_depends
