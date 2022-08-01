@@ -146,7 +146,7 @@ sub tunning_eth_ring {
 sub enable_eth_rps_rfs {
     my $rps_sock_flow_entries = 0;
     for my $eth ("eth0","eth1") {
-        if(-d "/sys/class/net/${eth}/queues/rx-0") {
+        if((-d "/sys/class/net/${eth}/queues/rx-0") && (-d "/sys/class/net/${eth}/queues/rx-0/virtio_net")) {
             my $value = 32768;
             $rps_sock_flow_entries += $value;
             my $eth_cpu_mask_hex;
