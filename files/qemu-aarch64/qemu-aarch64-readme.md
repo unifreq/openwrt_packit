@@ -328,8 +328,15 @@ virsh destroy vm_name # 强行停止虚拟机
 
 ### 6.6 虚拟机开机自启
 
-`virsh autostart 虚拟机名字`
-
+```bash
+ virsh autostart vm_name
+ vi /etc/default/libivrt-guests
+   # set on boot action
+   ON_BOOT=start
+   # set on shutdown action
+   ON_SHUTDOWN=shutdown
+ ```
+ 
 <div style="width:100%;margin-top:40px;margin:5px;">
 <img width="307" src="https://user-images.githubusercontent.com/68696949/180751674-92a642b2-f8c6-4fad-80ed-1c77d950a7e4.png">
 </div>
