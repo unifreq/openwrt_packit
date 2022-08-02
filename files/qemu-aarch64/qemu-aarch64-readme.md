@@ -28,6 +28,7 @@
     - [6.6 虚拟机开机自启](#66-虚拟机开机自启)
     - [6.7 虚拟机双网卡主路由模式拓扑](#67-虚拟机双网卡主路由模式拓扑)
     - [6.8 对于大小核 soc 的特殊设置](#68-对于大小核-soc-的特殊设置)
+    - [6.9 物理机性能优化](#69-物理机性能优化)
   - [7. 固件升级](#7-固件升级)
     - [7.1 命令行升级方法](#71-命令行升级方法)
     - [7.2 用晶晨宝盒插件进行升级](#72-用晶晨宝盒插件进行升级)
@@ -396,6 +397,71 @@ virsh destroy vm_name # 强行停止虚拟机
   </cputune>
   ```
   本节内容参考了 [华为云: 虚拟机绑核](https://support.huaweicloud.com/tngg-kunpengcpfs/kunpengkvm_05_0008.html#:~:text=vcpu%20placement%20%3D%20%27static%27,cpuset%3D%274-7%27%EF%BC%9A%E7%94%A8%E4%BA%8EIO%E7%BA%BF%E7%A8%8B%E3%80%81worker%20threads%E7%BA%BF%E7%A8%8B%E4%BB%85%E8%83%BD%E4%BD%BF%E7%94%A84-7%E8%BF%994%E4%B8%AA%E6%A0%B8%EF%BC%8C%E8%8B%A5%E4%B8%8D%E9%85%8D%E7%BD%AE%E6%AD%A4%E5%8F%82%E6%95%B0%EF%BC%8C%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BB%BB%E5%8A%A1%E7%BA%BF%E7%A8%8B%E4%BC%9A%E5%9C%A8CPU%E4%BB%BB%E6%84%8Fcore%E4%B8%8A%E6%B5%AE%E5%8A%A8%EF%BC%8C%E4%BC%9A%E5%AD%98%E5%9C%A8%E6%9B%B4%E5%A4%9A%E7%9A%84%E8%B7%A8NUMA%E5%92%8C%E8%B7%A8DIE%E6%8D%9F%E8%80%97%E3%80%82%20vcpupin%E7%94%A8%E4%BA%8E%E9%99%90%E5%88%B6%E5%AF%B9CPU%E7%BA%BF%E7%A8%8B%E5%81%9A%E4%B8%80%E5%AF%B9%E4%B8%80%E7%BB%91%E6%A0%B8%E3%80%82%20%E8%8B%A5%E4%B8%8D%E4%BD%BF%E7%94%A8vcpupin%E7%BB%91CPU%E7%BA%BF%E7%A8%8B%EF%BC%8C%E5%88%99%E7%BA%BF%E7%A8%8B%E4%BC%9A%E5%9C%A84-7%E8%BF%99%E4%B8%AA4%E4%B8%AA%E6%A0%B8%E4%B9%8B%E9%97%B4%E5%88%87%E6%8D%A2%EF%BC%8C%E9%80%A0%E6%88%90%E9%A2%9D%E5%A4%96%E5%BC%80%E9%94%80%E3%80%82)
+
+### 6.9 物理机性能优化
+ 
+运行 armbian-config， 选择 system -> cpu -> minfreq -> maxfreq -> governor ( 建议选择 schedutil ) 
+
+另外， 对于一般的arm64 soc，采用内置网卡或usb网卡时，通常会挤占cpu0, 导致整体网络性能不佳（如果网卡是 pcie 接口，并且支持 rss 多队列的话则不存在此问题）
+  
+armbian 有一个系统服务： armbian-hardware-optimize.service ， 可以对 softirq 等进行一些必要的优化，可以选择开启：
+```bash
+systemctl status armbian-hardware-optimize.service 
+systemctl enable armbian-hardware-optimize.service
+systemctl start armbian-hardware-optimize.service
+```
+  
+如果 armbian-hardware-optimize.service 没有达到预期效果，或是没采用 armbian的话，可以用我写的脚本： [balethirq.pl](/files/balethirq.pl) + [配置文件：balance_irq demo](/files/s922x/balance_irq):
+```bash
+cp   balethirq.pl  /usr/sbin
+
+# 创建 /etc/balance_irq， 进行中断配置，简而言之就是把网卡产生的中断分散到多个cpu里
+# 设备名称(devname)  cpu亲和性(cpu affinity)
+vi  /etc/balance_irq
+eth0 1
+xhci-hcd:usb1 6
+```
+  
+balance_irq配置参考：
+```bash
+root@gtking-pro:~# cat /proc/interrupts 
+           CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       
+  9:          0          0          0          0          0          0     GICv2  25 Level     vgic
+ 11:   17580788   33822531   34847277   34198393   34319935   34518922     GICv2  30 Level     arch_timer
+ 12:          0     229777     183235     217133     194856     188719     GICv2  27 Level     kvm guest vtimer
+ 14:          0          0          0     640860          0          0     GICv2  40 Level     eth0
+ 15:         15          0          0          0          0          0     GICv2  89 Edge      dw_hdmi_top_irq, ff600000.hdmi-tx
+ 21:          0          0          0          0          0          0     GICv2 235 Edge      ff800280.cec
+ 22:         40          0          0          0          0          0     GICv2 225 Edge      ttyAML0
+ 23:          8          0          0          0          0          0     GICv2 228 Edge      ff808000.ir
+ 24:          0          0          0          0          0          0     GICv2  76 Edge      vdec
+ 25:          0          0          0          0          0          0     GICv2  64 Edge      esparserirq
+ 26:        314          0          0          0          0          0     GICv2  35 Edge      meson
+ 27:       1126          0          0          0          0          0     GICv2  71 Edge      ffd1c000.i2c
+ 28:       4778          0          0          0          0          0     GICv2  58 Edge      ttyAML6
+ 29:    3468797          0          0          0          0          0     GICv2 221 Edge      ffe03000.sd
+ 30:          0          0          0          0          0          0     GICv2 222 Edge      ffe05000.sd
+ 31:       5233      91355          0          0          0          0     GICv2 223 Edge      ffe07000.mmc
+ 33:          0          0          0          0          0          0     GICv2 194 Level     panfrost-job
+ 34:          0          0          0          0          0          0     GICv2 193 Level     panfrost-mmu
+ 35:          4          0          0          0          0          0     GICv2 192 Level     panfrost-gpu
+ 36:          0          0          0          0          0          0     GICv2  63 Level     ff400000.usb, ff400000.usb
+ 37:        535          0    3031088          0          0          0     GICv2  62 Level     xhci-hcd:usb1
+ 38:          1          0          0          0          0          0  meson-gpio-irqchip  26 Level     mdio_mux-0.0:00
+IPI0:    113124     140214    3226181     993988    1235145    1329681       Rescheduling interrupts
+IPI1:     66072     703466     282906     331811    3737960     332876       Function call interrupts
+IPI2:         0          0          0          0          0          0       CPU stop interrupts
+IPI3:         0          0          0          0          0          0       CPU stop (for crash dump) interrupts
+IPI4:         0          0          0          0          0          0       Timer broadcast interrupts
+IPI5:      3761      15984     378310     823397    1323761     923798       IRQ work interrupts
+IPI6:         0          0          0          0          0          0       CPU wake-up interrupts
+Err:          0  
+```
+需要注意到两张网卡： 内置网卡`eth0`，以及外置网卡（USB RTL8153)， 表现为 `xhci-hcd:usb1`
+
+在上例的 `balance_irq` 里， `eth0 -> cpu1`     `xhci-hcd:usb1 -> cpu6`  在这里，cpu编号是从1开始，而不是从0开始
+  
+最后，把 `/usr/bin/balethirq.pl`  添加到  `/etc/rc.local` 里以实现开机启动。
   
 ## 7. 固件升级
 
