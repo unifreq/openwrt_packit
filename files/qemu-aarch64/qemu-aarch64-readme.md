@@ -415,7 +415,7 @@ systemctl start armbian-hardware-optimize.service
 ```bash
 cp   balethirq.pl  /usr/sbin
 
-# 创建 /etc/balance_irq， 进行中断配置，简而言之就是把网卡产生的中断分散到多个cpu里
+# 创建 /etc/balance_irq， 进行中断配置，简而言之就是把两张网卡产生的中断分散到两个cpu里（默认情况下是共用第1个cpu)
 # 设备名称(devname)  cpu亲和性(cpu affinity)
 vi  /etc/balance_irq
 eth0 1
