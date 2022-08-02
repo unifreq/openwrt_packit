@@ -382,6 +382,19 @@ virsh destroy vm_name # 强行停止虚拟机
   </cputune>
   ```  
   修改完毕之后，要关闭虚拟机才生效。
+  
+  优化建议：以 GT-King Pro (Amlogic S922X-H 为例）， 保留物理机的 cpu0 不分配，而把 cpu1-5 分配给虚拟机，其配置如下：
+  ```xml
+  <vcpu placement='static' cpuset='1-5'>5</vcpu>
+  <cputune>
+    <vcpupin vcpu='0' cpuset='1'/>
+    <vcpupin vcpu='1' cpuset='2'/>
+    <vcpupin vcpu='2' cpuset='3'/>
+    <vcpupin vcpu='3' cpuset='4'/>
+    <vcpupin vcpu='4' cpuset='5'/>
+    <emulatorpin cpuset='1-5'/>
+  </cputune>
+  ```
   本节内容参考了 [华为云: 虚拟机绑核](https://support.huaweicloud.com/tngg-kunpengcpfs/kunpengkvm_05_0008.html#:~:text=vcpu%20placement%20%3D%20%27static%27,cpuset%3D%274-7%27%EF%BC%9A%E7%94%A8%E4%BA%8EIO%E7%BA%BF%E7%A8%8B%E3%80%81worker%20threads%E7%BA%BF%E7%A8%8B%E4%BB%85%E8%83%BD%E4%BD%BF%E7%94%A84-7%E8%BF%994%E4%B8%AA%E6%A0%B8%EF%BC%8C%E8%8B%A5%E4%B8%8D%E9%85%8D%E7%BD%AE%E6%AD%A4%E5%8F%82%E6%95%B0%EF%BC%8C%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BB%BB%E5%8A%A1%E7%BA%BF%E7%A8%8B%E4%BC%9A%E5%9C%A8CPU%E4%BB%BB%E6%84%8Fcore%E4%B8%8A%E6%B5%AE%E5%8A%A8%EF%BC%8C%E4%BC%9A%E5%AD%98%E5%9C%A8%E6%9B%B4%E5%A4%9A%E7%9A%84%E8%B7%A8NUMA%E5%92%8C%E8%B7%A8DIE%E6%8D%9F%E8%80%97%E3%80%82%20vcpupin%E7%94%A8%E4%BA%8E%E9%99%90%E5%88%B6%E5%AF%B9CPU%E7%BA%BF%E7%A8%8B%E5%81%9A%E4%B8%80%E5%AF%B9%E4%B8%80%E7%BB%91%E6%A0%B8%E3%80%82%20%E8%8B%A5%E4%B8%8D%E4%BD%BF%E7%94%A8vcpupin%E7%BB%91CPU%E7%BA%BF%E7%A8%8B%EF%BC%8C%E5%88%99%E7%BA%BF%E7%A8%8B%E4%BC%9A%E5%9C%A84-7%E8%BF%99%E4%B8%AA4%E4%B8%AA%E6%A0%B8%E4%B9%8B%E9%97%B4%E5%88%87%E6%8D%A2%EF%BC%8C%E9%80%A0%E6%88%90%E9%A2%9D%E5%A4%96%E5%BC%80%E9%94%80%E3%80%82)
   
 ## 7. 固件升级
