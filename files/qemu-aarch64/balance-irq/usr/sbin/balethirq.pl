@@ -146,7 +146,9 @@ sub tunning_eth_ring {
 sub enable_eth_rps_rfs {
     my $rps_sock_flow_entries = 0;
     for my $eth ("eth0","eth1") {
-        if((-d "/sys/class/net/${eth}/queues/rx-0") && (-d "/sys/class/net/${eth}/queues/rx-0/virtio_net")) {
+	# rps优化只针对单队列网卡，
+	# 如果存在 rx-1,则表示该网卡支持 rss 多队列，不需要优化
+        if((-d "/sys/class/net/${eth}/queues/rx-0") && (! -d "/sys/class/net/${eth}/queues/rx-1")) {
             my $value = 32768;
             $rps_sock_flow_entries += $value;
             my $eth_cpu_mask_hex;
