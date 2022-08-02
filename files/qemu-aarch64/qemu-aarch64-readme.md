@@ -461,7 +461,33 @@ Err:          0
 
 在上例的 `balance_irq` 里， `eth0 -> cpu1`     `xhci-hcd:usb1 -> cpu6`  在这里，cpu编号是从1开始，而不是从0开始
   
-最后，把 `/usr/bin/balethirq.pl`  添加到  `/etc/rc.local` 里以实现开机启动。
+最后，把 `/usr/sbin/balethirq.pl`  添加到  `/etc/rc.local` 里以实现开机启动。
+```bash
+root@gtking-pro:~# cat /etc/rc.local
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+/usr/sbin/balethirq.pl
+exit 0
+```
+  
+```bash
+root@gtking-pro:~# balethirq.pl 
+irq name:eth0, irq:14, affinity: 1
+irq name:xhci-hcd:usb1, irq:37, affinity: 20
+Set the rps cpu mask of eth0 to 0x1e
+Set the rps cpu mask of eth1 to 0x1e
+```
   
 ## 7. 固件升级
 
