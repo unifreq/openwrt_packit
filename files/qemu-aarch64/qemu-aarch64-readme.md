@@ -49,9 +49,9 @@ dmesg | grep kvm
 
 <img width="600" src="https://user-images.githubusercontent.com/68696949/180730488-88848d3b-30c6-4c73-9321-4dc64c0c5fc7.png">
 
-在物理机系统中安装 KVM 依赖包：
+在物理机系统中安装 KVM 依赖包(ubuntu jammy)：
 ```yaml
-sudo apt-get install -y gconf2 qemu-system-arm qemu-utils qemu-efi libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager seabios vgabios gir1.2-spiceclientgtk-3.0 xauth
+sudo apt-get install -y gconf2 qemu-system-arm qemu-utils qemu-efi ipxe-qemu libvirt-daemon-system libvirt-clients bridge-utils virtinst virt-manager seabios vgabios gir1.2-spiceclientgtk-3.0 xauth
 ```
 
 安装 x11 字库（可选）
