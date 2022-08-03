@@ -492,7 +492,7 @@ Set the rps cpu mask of eth1 to 0x1e
   
 ## 7. 固件升级
 
-每次固件发布会有2个文件：`openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.img` 和 `openwrt_qemu-aarch64_generic_vm_k5.18.13-flippy-75+.qcow2`
+每次固件发布会有2个文件, 例如：`openwrt_qemu-aarch64_generic_R22.7.7_k5.18.15-flippy-75+_update.img` 和 `openwrt_qemu-aarch64_R22.7.7_k5.18.15-flippy-75+.qcow2`
 其中，后缀为.qcow2的文件是首次创建虚拟机用的，而另一个后缀为.img的文件就用于升级的。
 
 ### 7.1 命令行升级方法
