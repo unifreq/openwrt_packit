@@ -1,4 +1,4 @@
-这是 Flippy 的 Openwrt 打包源码，主要用于制作基于arm64 soc的一系列电视盒及开发板可用的openwrt固件，例如：Phicomm N1(amlogic s905d)、贝壳云(rockchip rk3328)、我家云(rockchip rk3328)、微加云(allwinner H6)、Amlogic S905x3、Amlogic s912、Amlogic S922x等，除了原生固件以外，也支持 ARM64 Docker openwrt、ARM64 QEMU KVM openwrt等多种型式的固件，基本可满足所有arm64机型的需求了。
+这是 Flippy 的 Openwrt 打包源码，主要用于制作基于arm64 soc的一系列电视盒及开发板可用的openwrt固件，例如：Phicomm N1(amlogic s905d)、贝壳云(rockchip rk3328)、我家云(rockchip rk3328)、微加云(allwinner H6)、Amlogic S905x3、Amlogic s912、Amlogic S922x等，除了原生固件以外，也支持 ARM64 Docker openwrt、ARM64 QEMU KVM openwrt等多种形式的固件，基本可满足所有arm64机型的需求了。
 
 一、制作材料：
 1. Flippy预编译好的 Arm64 内核 (在 https://t.me/openwrt_flippy  及 https://pan.baidu.com/s/1tY_-l-Se2qGJ0eKl7FZBuQ 提取码：846l)
