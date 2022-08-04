@@ -1,0 +1,12 @@
+# Bring eth2 and eth3 up when boot
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+ip link set dev eth2 up
+ip link set dev eth3 up
+
+board_config_flush
+
+exit 0

@@ -107,6 +107,8 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+# 20220804 add
+BOARD_SCRIPT1="${PWD}/files/rk3568/50-pcie_eth_up"
 ####################################################################
 
 check_depends
@@ -136,7 +138,7 @@ overlay_prefix=rockchip
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
 rootflags=compress=zstd:${ZSTD_LEVEL}
-extraargs=usbcore.autosuspend=-1
+extraargs=usbcore.autosuspend=-1 net.ifnames=0
 extraboardargs=
 fdtfile=/dtb/rockchip/rk3568-fastrhino-r68s.dtb
 console=serial
