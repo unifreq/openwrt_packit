@@ -332,7 +332,7 @@ virsh destroy vm_name # 强行停止虚拟机
 
 ```bash
  virsh autostart vm_name
- vi /etc/default/libivrt-guests
+ vi /etc/default/libvirt-guests
    # set on boot action
    ON_BOOT=start
    # set on shutdown action
