@@ -42,7 +42,7 @@
        *** 必选软件包(基础依赖包，仅保证打出的包可以写入EMMC,可以在EMMC上在线升级，不包含具体的应用)： 
        Languages -> Perl               
                     ->  perl-http-date
-                    ->  perbase-file
+                    ->  perlbase-file
                     ->  perlbase-getopt
                     ->  perlbase-time
                     ->  perlbase-unicode                              
