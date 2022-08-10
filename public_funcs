@@ -466,7 +466,7 @@ function make_filesystem() {
                         echo "[${device_name}p${i}] 格式化成功"
                    fi
                    ;;
-             ext4) mkfs.ext4 -U ${fs_uuid} -L "${fs_label}" ${device_name}p${i}
+             ext4) mkfs.ext4 -U ${fs_uuid} -L "${fs_label}" -b 4k ${device_name}p${i}
                    if [ $? -ne 0 ];then
                         echo "[${device_name}p${i}] 格式化失败！"
                         detach_loopdev
