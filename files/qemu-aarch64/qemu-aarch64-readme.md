@@ -29,6 +29,7 @@
     - [6.7 虚拟机双网卡主路由模式拓扑](#67-虚拟机双网卡主路由模式拓扑)
     - [6.8 对于大小核 soc 的特殊设置](#68-对于大小核-soc-的特殊设置)
     - [6.9 物理机性能优化](#69-物理机性能优化)
+    - [6.10 物理机针对vhost_net及virtio-net-pci的进一步优化](#610-物理机针对vhost_net及virtio-net-pci的进一步优化)
   - [7. 固件升级](#7-固件升级)
     - [7.1 命令行升级方法](#71-命令行升级方法)
     - [7.2 用晶晨宝盒插件进行升级](#72-用晶晨宝盒插件进行升级)
@@ -489,6 +490,56 @@ irq name:xhci-hcd:usb1, irq:37, affinity: 20
 Set the rps cpu mask of eth0 to 0x1e
 Set the rps cpu mask of eth1 to 0x1e
 ```
+### 6.10 物理机针对vhost_net及virtio-net-pci的进一步优化
+KVM虚拟机采用virtio-net-pci半虚拟化网卡驱动，在虚拟机中装载virtio_net模块，而在物理机中装载vhost_net模块。
+
+1. 使用多队列 virtio-net (即虚拟网卡开启rss)，通过向虚拟机 XML 配置 queues='N'（最多可以与vcpu数量相等，建议从 N=2 开始尝试），运行`virsh edit vm_name`：
+```xml
+<interface type='network'>
+      <source network='default'/>
+      <model type='virtio'/>
+      <driver name='vhost' queues='N'/>
+</interface>
+```
+本节参考了 [虚拟化调试和优化指南](https://access.redhat.com/documentation/zh-cn/red_hat_enterprise_linux/7/html-single/virtualization_tuning_and_optimization_guide/index#sect-Virtualization_Tuning_Optimization_Guide-Networking-Multi-queue_virtio-net)
+
+2. 启用打包的虚拟队列
+
+传统上，Virtio 在主机和虚拟机之间共享拆分队列。Packed virtqueues 是另一种紧凑的 virtqueue 布局，主机和来宾都可以读取和写入，在性能方面更有效。运行`virsh edit vm_name`
+```xml
+<interface type='network'>
+      <source network='default'/>
+      <model type='virtio'/>
+      <driver name='vhost' packed='on'/>
+</interface>
+```
+本节参考了[基于第三代英特尔® 至强® 可扩展处理器的平台上的 KVM/Qemu 虚拟化调整指南](https://www.intel.cn/content/www/cn/zh/developer/articles/guide/kvm-tuning-guide-on-xeon-based-systems.html)
+  
+本节和上节的方案可以联合使用，即：
+```xml
+<interface type='network'>
+      <source network='default'/>
+      <model type='virtio'/>
+      <driver name='vhost' queues='N' packed='on'/>
+</interface>
+```  
+  
+3. 启用 vhost-net 零拷贝
+
+零复制传输（Bridge Zero Copy Transmit）模式对于大尺寸的数据包较为有效。通常在客机网络和外部网络间的大数据包传输中，它对主机 CPU 负荷的减少可达到 15%，对吞吐量没有影响。
+它不对客机到客机、客机到主机或小数据包负载造成影响。
+   
+在 Linux 中，默认禁用 vhost-net 零拷贝。要永久启用此操作，请添加一个包含以下内容 vhost-net.conf 的新文件：/etc/modprobe.d/vhost-net.conf
+```
+options vhost_net  experimental_zcopytx=1
+```
+然后重启系统，验证零拷贝是否开启:
+```bash
+cat /sys/module/vhost_net/parameters/experimental_zcopytx 
+```
+值为1则启用，为0则未启用
+ 
+本节参考了 [虚拟化调试和优化指南](https://access.redhat.com/documentation/zh-cn/red_hat_enterprise_linux/7/html-single/virtualization_tuning_and_optimization_guide/index#sect-Virtualization_Tuning_Optimization_Guide-Networking-Multi-queue_virtio-net)
   
 ## 7. 固件升级
 
