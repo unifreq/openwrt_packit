@@ -147,7 +147,7 @@ init 6
 
 ## 4. 安装过程截图
 
-`qemu` 的固件镜像后缀是 `.qcow2`，把镜像上传到物理机的 `/var/lib/libvirt/images/` 目录下，名字可以任意改，如 `openwrt.qcow2` 等。运行 `virt-manager` 命令启动 GUI 图形界面（或桌面环境下点击 `虚拟机管理` 图标）。
+`qemu` 的固件镜像后缀是 `.qcow2`，如果下载得到的格式是.7z/.zip/.gz/.xz等，则需要先解压。把镜像上传到物理机的 `/var/lib/libvirt/images/` 目录下，名字可以任意改，如 `openwrt.qcow2` 等。运行 `virt-manager` 命令启动 GUI 图形界面（或桌面环境下点击 `虚拟机管理` 图标）。
 
 <div style="width:100%;margin-top:40px;margin:5px;">
 <img width="492" src="https://user-images.githubusercontent.com/68696949/180735265-31a2665a-9dd3-4df3-ab7d-056a58675ca1.png">
