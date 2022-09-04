@@ -1008,6 +1008,10 @@ EOF
 UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
 EOF
         fi
+
+	if [ "${SOC}" == "rk3588" ];then
+            echo "LOCK_KERNEL=${LOCK_KERNEL}" >> ./etc/flippy-openwrt-release
+        fi
     )
     cat $TGT_ROOT/etc/flippy-openwrt-release
     echo 
@@ -1292,12 +1296,21 @@ ttyS0::askfirst:/usr/libexec/login.sh
 EOF
                          echo "完成"
                          ;;
-             rockchip)   cat > ./etc/inittab <<EOF
+             rockchip)   if [ "${SOC}" == rk3588 ];then
+                             cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+tty1::askfirst:/usr/libexec/login.sh
+ttyFIQ0::askfirst:/usr/libexec/login.sh
+EOF
+                         else
+                             cat > ./etc/inittab <<EOF
 ::sysinit:/etc/init.d/rcS S boot
 ::shutdown:/etc/init.d/rcS K shutdown
 tty1::askfirst:/usr/libexec/login.sh
 ttyS2::askfirst:/usr/libexec/login.sh
 EOF
+                         fi
                          echo "完成"
                          ;;
              amlogic)    cat > ./etc/inittab <<EOF
@@ -1661,11 +1674,15 @@ function write_uboot_to_disk() {
 
         if [ "$PLATFORM" == "rockchip" ] && [ -n "$BOOTLOADER_IMG" ] && [ -f "$BOOTLOADER_IMG" ];then
             echo "写入 bootloader ..."
-            echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442"
-            echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1"
-
-            dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442
-            dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
+	    if [ "$SOC" == "rk3588" ];then
+                echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=64 seek=64"
+                dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=64 seek=64
+	    else
+                echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442"
+                echo "dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1"
+                dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=1 count=442
+                dd if=${BOOTLOADER_IMG} of=${TGT_DEV} conv=fsync,notrunc bs=512 skip=1 seek=1
+	    fi
 
             sync
             echo "完成"
