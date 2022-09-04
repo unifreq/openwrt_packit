@@ -46,7 +46,7 @@ KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 
-DAEMON_JSON="${PWD}/files/rk3328/daemon.json"
+DAEMON_JSON="${PWD}/files/rk3588/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
 FLIPPY="${PWD}/files/scripts_deprecated/flippy_cn"
@@ -112,7 +112,7 @@ SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ct
 check_depends
 
 SKIP_MB=16
-BOOT_MB=160
+BOOT_MB=256
 ROOTFS_MB=1024
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
