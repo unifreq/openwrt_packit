@@ -1301,6 +1301,7 @@ EOF
 ::sysinit:/etc/init.d/rcS S boot
 ::shutdown:/etc/init.d/rcS K shutdown
 tty1::askfirst:/usr/libexec/login.sh
+ttyS2::askfirst:/usr/libexec/login.sh
 ttyFIQ0::askfirst:/usr/libexec/login.sh
 EOF
                          else
@@ -1324,6 +1325,7 @@ EOF
              qemu-aarch64)    cat > ./etc/inittab <<EOF
 ::sysinit:/etc/init.d/rcS S boot
 ::shutdown:/etc/init.d/rcS K shutdown
+tty1::askfirst:/usr/libexec/login.sh
 ttyAMA0::askfirst:/usr/libexec/login.sh
 EOF
                          echo "完成"

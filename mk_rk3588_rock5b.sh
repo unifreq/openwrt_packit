@@ -44,9 +44,8 @@ GETCPU_SCRIPT="${PWD}/files/getcpu"
 KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 
-FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
-
-DAEMON_JSON="${PWD}/files/rk3588/daemon.json"
+FIRSTRUN_SCRIPT="${PWD}/files/rk3588/rock5b/first_run.sh"
+DAEMON_JSON="${PWD}/files/rk3588/rock5b/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
 FLIPPY="${PWD}/files/scripts_deprecated/flippy_cn"
@@ -63,8 +62,6 @@ SND_MOD="${PWD}/files/rk3588/rock5b/snd-rock5b"
 # 20200709 add
 COREMARK="${PWD}/files/coremark.sh"
 
-# 20201024 add
-BAL_ETH_IRQ="${PWD}/files/balethirq.pl"
 # 20201026 add
 FIX_CPU_FREQ="${PWD}/files/fixcpufreq.pl"
 SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
@@ -72,6 +69,8 @@ SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 # 20201128 add
 SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
+# 20201024 add
+BAL_ETH_IRQ="${PWD}/files/rk3588/rock5b/balethirq.pl"
 # 20201212 add
 BAL_CONFIG="${PWD}/files/rk3588/rock5b/balance_irq"
 
