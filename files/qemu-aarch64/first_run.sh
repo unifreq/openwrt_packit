@@ -21,15 +21,17 @@ if [ "$ROOT_PTNAME" == "" ];then
     exit 1
 fi
 
-# 找到分区所在的磁盘, 仅支持 mmcblk?p?  sd?? hd?? vd??等格式
+# 找到分区所在的磁盘, 仅支持 mmcblk?p?  nvme?n?p? sd?? hd?? vd??等格式
 case $ROOT_PTNAME in 
        mmcblk?p[1-4]) DISK_NAME=$(echo $ROOT_PTNAME | awk '{print substr($1, 1, length($1)-2)}');;
+           nvme?n?p?) DISK_NAME=$(echo $ROOT_PTNAME | awk '{print substr($1, 1, length($1)-2)}');;
    [hsv]d[a-z][1-9]*) DISK_NAME=$(echo $ROOT_PTNAME | awk '{print substr($1, 1, length($1)-1)}');;
 		   *) echo "无法识别 $ROOT_PTNAME 的磁盘类型!"
 		      destory_myself
 		      exit 1
 		   ;;
 esac
+echo "Root disk name: ${DISK_NAME}"
 
 # 第一次运行，需要修复磁盘大小
 printf 'f\n' | parted ---pretend-input-tty /dev/${DISK_NAME} print || fail=1
@@ -38,7 +40,6 @@ if [ "$fail" == "1" ];then
 	exit 1
 fi
 
-
 CURRENT_PT_CNT=$(parted /dev/${DISK_NAME} print | awk '$1~/[1-9]+/ {print $1}' | wc -l)
 if [ "$CURRENT_PT_CNT" != "2" ];then
     echo "现存分区数量不为2,放弃!"
@@ -46,13 +47,18 @@ if [ "$CURRENT_PT_CNT" != "2" ];then
     exit 1
 fi
 
-DISK_TOTAL_B=$(lsblk -b -l | grep disk | awk '{print $4}')
+DISK_TOTAL_B=$(lsblk -b -l | grep disk | grep "${DISK_NAME}" | awk '{print $4}')
 SKIP_MiB=$(awk '{print $1}' /etc/part_size)
 BOOT_MiB=$(awk '{print $2}' /etc/part_size)
 ROOTFS_MiB=$(awk '{print $3}' /etc/part_size)
 
 USED_MiB=$((SKIP_MiB + BOOT_MiB + ROOTFS_MiB + 1))
 AVAIABLE_MiB=$(( (DISK_TOTAL_B / 1024 / 1024) - USED_MiB))
+
+echo "Disk total bytes: ${DISK_TOTAL_B}"
+echo "Used MBytes: ${USED_MiB}"
+echo "Avaiable MBytes: ${AVAIABLE_MiB}"
+
 if [[ $AVAIABLE_MiB -lt $ROOTFS_MiB ]];then
     echo "磁盘空闲空间不满足扩展分区的要求！"
     destory_myself
@@ -75,7 +81,10 @@ parted /dev/${DISK_NAME} unit MiB print
 # mkfs
 case $DISK_NAME in 
    mmcblk*) PT_PRE=${DISK_NAME}p
-	    LB_PRE="EMMC_"
+	    LB_PRE="MMC_"
+	    ;;
+     nvme*) PT_PRE=${DISK_NAME}p
+	    LB_PRE="NVME_"
 	    ;;
 	 *) PT_PRE=${DISK_NAME}
 	    LB_PRE=""

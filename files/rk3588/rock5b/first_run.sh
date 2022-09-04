@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MYSELF="/etc/first_run.sh"
+MYSELF=$0
 
 function destory_myself() {
     rm -f $MYSELF /etc/part_size
@@ -61,7 +61,7 @@ echo "Avaiable MBytes: ${AVAIABLE_MiB}"
 
 if [[ $AVAIABLE_MiB -lt $ROOTFS_MiB ]];then
     echo "磁盘空闲空间不满足扩展分区的要求！"
-    #destory_myself
+    destory_myself
     exit 1
 fi
 
