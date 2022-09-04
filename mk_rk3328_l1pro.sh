@@ -84,7 +84,7 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 
 # 20200416 add
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
-BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip"
+BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip/rk3328"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
 BOOTLOADER_IMG="${PWD}/files/rk3328/btld-rk3328.bin"
 

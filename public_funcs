@@ -715,7 +715,7 @@ function extract_rockchip_boot_files() {
     echo -n "释放 Kernel zImage、uInitrd 及 dtbs 压缩包 ... "
     ( 
           cd ${TGT_BOOT} && \
-              cp "${BOOTFILES_HOME}"/* . && \
+              cp -v "${BOOTFILES_HOME}"/* . && \
               tar xzf "${BOOT_TGZ}" && \
               rm -f initrd.img-${KERNEL_VERSION} && \
               ln -sf vmlinuz-${KERNEL_VERSION} Image && \
