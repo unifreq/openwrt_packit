@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MYSELF=$0
+MYSELF="/etc/first_run.sh"
 
 function destory_myself() {
     rm -f $MYSELF /etc/part_size
@@ -31,6 +31,7 @@ case $ROOT_PTNAME in
 		      exit 1
 		   ;;
 esac
+echo "Root disk name: ${DISK_NAME}"
 
 # 第一次运行，需要修复磁盘大小
 printf 'f\n' | parted ---pretend-input-tty /dev/${DISK_NAME} print || fail=1
@@ -46,16 +47,21 @@ if [ "$CURRENT_PT_CNT" != "2" ];then
     exit 1
 fi
 
-DISK_TOTAL_B=$(lsblk -b -l | grep disk | awk '{print $4}')
+DISK_TOTAL_B=$(lsblk -b -l | grep disk | grep "${DISK_NAME}" | awk '{print $4}')
 SKIP_MiB=$(awk '{print $1}' /etc/part_size)
 BOOT_MiB=$(awk '{print $2}' /etc/part_size)
 ROOTFS_MiB=$(awk '{print $3}' /etc/part_size)
 
 USED_MiB=$((SKIP_MiB + BOOT_MiB + ROOTFS_MiB + 1))
 AVAIABLE_MiB=$(( (DISK_TOTAL_B / 1024 / 1024) - USED_MiB))
+
+echo "Disk total bytes: ${DISK_TOTAL_B}"
+echo "Used MBytes: ${USED_MiB}"
+echo "Avaiable MBytes: ${AVAIABLE_MiB}"
+
 if [[ $AVAIABLE_MiB -lt $ROOTFS_MiB ]];then
     echo "磁盘空闲空间不满足扩展分区的要求！"
-    destory_myself
+    #destory_myself
     exit 1
 fi
 
