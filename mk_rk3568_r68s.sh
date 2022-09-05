@@ -41,9 +41,6 @@ KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
-BOOT_CMD="${PWD}/files/boot.cmd"
-# files/boot.cmd compile with rk3568 u-boot
-BOOT_SCR="${PWD}/files/rk3568/boot.scr"
 
 PWM_FAN="${PWD}/files/pwm-fan.pllllllll"
 DAEMON_JSON="${PWD}/files/rk3568/daemon.json"
@@ -85,9 +82,9 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 
 # 20200416 add
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
-BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip"
+BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip/rk3568/r68s"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
-BOOTLOADER_IMG="${PWD}/files/rk3568/btld-rk3568.bin"
+BOOTLOADER_IMG="${PWD}/files/rk3568/rk3568-r68s-fastrhino-bootloader.bin"
 
 # 20210618 add
 DOCKER_README="${PWD}/files/DockerReadme.pdf"
@@ -129,19 +126,13 @@ extract_rockchip_boot_files
 
 echo "修改引导分区相关配置 ... "
 cd $TGT_BOOT
-[ -f $BOOT_CMD ] && cp $BOOT_CMD boot.cmd
-[ -f $BOOT_SCR ] && cp $BOOT_SCR boot.scr
-ln -sf ./dtb-${KERNEL_VERSION}/rockchip/rk3568-fastrhino-r68s*.dtb .
-cat > armbianEnv.txt <<EOF
-verbosity=7
-overlay_prefix=rockchip
+sed -e '/rootdev=/d' -i armbianEnv.txt
+sed -e '/rootfstype=/d' -i armbianEnv.txt
+sed -e '/rootflags=/d' -i armbianEnv.txt
+cat >> armbianEnv.txt <<EOF
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
 rootflags=compress=zstd:${ZSTD_LEVEL}
-extraargs=usbcore.autosuspend=-1 net.ifnames=0
-extraboardargs=
-fdtfile=/dtb/rockchip/rk3568-fastrhino-r68s.dtb
-console=serial
 EOF
 echo "armbianEnv.txt -->"
 echo "==============================================================================="
