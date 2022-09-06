@@ -120,8 +120,10 @@ check_kernel() {
     echo -e "Kernel name: ${kernel_name}"
 
     # check if kernel is locked
-    if [[ "${SOC}" == "rk3588" && "${LOCK_KERNEL}" != "${KERNEL_VERSION}"* ]]; then
-        error_msg "The kernel version is locked to ${LOCK_KERNEL}. "
+    if [ -n "${LOCK_KERNEL}" ];then
+       if ! echo "${kernel_name}" | grep -E "^${LOCK_KERNEL}" >/dev/null;then
+           echo "The kernel version is locked to ${LOCK_KERNEL}. "
+       fi
     fi
 
     # Check if the file is added with TEXT_OFFSET patch
