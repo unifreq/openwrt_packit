@@ -1058,11 +1058,22 @@ function copy_supplement_files() {
         [ -n "$OPENWRT_UPDATE" ] && [ -f ${OPENWRT_UPDATE} ] && cp -v ${OPENWRT_UPDATE} ./usr/sbin/
 	[ -n "${DDBR}" ] && [ -f "${DDBR}" ] && cp -v ${DDBR} ./usr/sbin/
 
-        # 我家云, 风扇调速脚本
-        if [ "$PLATFORM" == "rockchip" ] && [ "$SOC" == "rk3328" ] && [ "$BOARD" == "l1pro" ] && [ -f "$PWM_FAN" ];then
-            cp -v $PWM_FAN ./usr/bin
-            echo "pwm_fan" > ./etc/modules.d/pwm_fan
-            sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
+        # 我家云, rock5b 风扇调速脚本
+        if [ "$PLATFORM" == "rockchip" ];then
+	    if [ "$SOC" == "rk3328" ] && [ "$BOARD" == "l1pro" ] && [ -f "$PWM_FAN" ];then
+                echo "该机型有pwm风扇接口，故添加风扇调速脚本 ... "
+                cp -v $PWM_FAN ./usr/bin
+                echo "pwm_fan" > ./etc/modules.d/pwm_fan
+                sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
+                echo "完成"
+            fi
+	    if [ "$SOC" == "rk3588" ] && [ "$BOARD" == "rock5b" ] && [ -f "$PWM_FAN" ];then
+                echo "该机型有pwm风扇接口，故添加风扇调速脚本 ... "
+                cp -v $PWM_FAN ./usr/bin
+                echo "pwm_fan" > ./etc/modules.d/pwm_fan
+                sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
+                echo "完成"
+            fi
         fi
 
         [ -n "$BAL_ETH_IRQ" ] && [ -f $BAL_ETH_IRQ ] && cp -v $BAL_ETH_IRQ ./usr/sbin && chmod 755 ./usr/sbin/balethirq.pl && \
