@@ -206,7 +206,7 @@ FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
 #FDT=/dtb/amlogic/meson-sm1-tx3-qz-oc.dtb
 
 # 用于腾讯极光盒子3Pro ( Skyworth LB2004 A4091)
-#FDT=/deb/amlogic/meson-sm1-skyworth-lb2004-a4091.dtb
+#FDT=/dtb/amlogic/meson-sm1-skyworth-lb2004-a4091.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd:${ZSTD_LEVEL} console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
