@@ -121,8 +121,10 @@ check_kernel() {
 
     # check if kernel is locked
     if [ -n "${LOCK_KERNEL}" ];then
-       if ! echo "${kernel_name}" | grep -E "^${LOCK_KERNEL}" >/dev/null;then
-           echo "The kernel version is locked to ${LOCK_KERNEL}. "
+       if [ "${LOCK_KERNEL}" != "${kernel_name}" ];then
+           if ! echo "${kernel_name}" | grep -E '^5.10.\d+-.*?rk3588.*?$' >/dev/null;then
+               error_msg "The kernel version is locked to [ ${LOCK_KERNEL} ], but your kernel is [ ${kernel_name} ]. "
+           fi
        fi
     fi
 
