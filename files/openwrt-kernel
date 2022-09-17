@@ -244,14 +244,14 @@ update_kernel() {
         cd /boot
 	if [[ "${PLATFORM}" == "qemu-aarch64" ]];then
 	    ln -sf initrd.img-${kernel_name} initrd.img && \
-		    ln -sf vmlinuz${kernel_name} ${MYBOOT_VMLINUZ}
+		    ln -sf vmlinuz-${kernel_name} ${MYBOOT_VMLINUZ}
 	elif [[ "$boot_fstype" == "vfat" ]];then
        	    cp -f uInitrd-${kernel_name} uInitrd && \
 		    cp -f vmlinuz-${kernel_name} ${MYBOOT_VMLINUZ} && \
 		    sync
 	else
 	    ln -sf uInitrd-${kernel_name} uInitrd && \
-		    ln -sf vmlinuz${kernel_name} ${MYBOOT_VMLINUZ}
+		    ln -sf vmlinuz-${kernel_name} ${MYBOOT_VMLINUZ}
 	fi
     )
     echo -e "(1/3) Unpacking [ boot-${kernel_name}.tar.gz ] done."
