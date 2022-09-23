@@ -42,7 +42,6 @@ KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 
-PWM_FAN="${PWD}/files/pwm-fan.pllllllll"
 DAEMON_JSON="${PWD}/files/rk3568/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
@@ -70,11 +69,11 @@ SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201212 add
-BAL_CONFIG="${PWD}/files/rk3568/balance_irq"
+BAL_CONFIG="${PWD}/files/rk3568/r68s/balance_irq"
 
 # 20210307 add
 SS_LIB="${PWD}/files/ss-glibc/lib-glibc.tar.xz"
-SS_BIN="${PWD}/files/ss-glibc/armv8a_crypto/ss-bin-glibc.tar.xz"
+SS_BIN="${PWD}/files/ss-glibc/armv8.2a_crypto/ss-bin-glibc.tar.xz"
 JQ="${PWD}/files/jq"
 
 # 20210330 add
@@ -84,14 +83,14 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
 BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip/rk3568/r68s"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
-BOOTLOADER_IMG="${PWD}/files/rk3568/rk3568-r68s-fastrhino-bootloader.bin"
+BOOTLOADER_IMG="${PWD}/files/rk3568/r68s/bootloader.bin"
 
 # 20210618 add
 DOCKER_README="${PWD}/files/DockerReadme.pdf"
 
 # 20210704 add
 SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
-FORCE_REBOOT="${PWD}/files/rk3328/reboot"
+FORCE_REBOOT="${PWD}/files/rk3568/reboot"
 
 # 20210923 add
 OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
@@ -105,7 +104,7 @@ DDBR="${PWD}/files/openwrt-ddbr"
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
 # 20220804 add
-BOARD_SCRIPT1="${PWD}/files/rk3568/50-pcie_eth_up"
+BOARD_SCRIPT1="${PWD}/files/rk3568/r68s/50-pcie_eth_up"
 ####################################################################
 
 check_depends
