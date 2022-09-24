@@ -1547,7 +1547,7 @@ function adjust_kernel_env() {
         fi    
 
         case $ps in 
-            allwinner_h6|rockchip_rk3328) 
+            allwinner_h6|rockchip_rk3328|rockchip_rk3568|rockchip_rk3588) 
                 echo -n "当前机型并未内置 broadcom 无线模块, 禁用 brcmfmac 驱动 ... "
                 mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
                 echo "完成"
@@ -1633,6 +1633,12 @@ function adjust_kernel_env() {
             echo "完成"
             echo -n "启用 PWM 驱动 ... "
             echo "pwm_meson" > ./etc/modules.d/pwm_meson
+            echo "完成"
+        fi
+
+        if [ "$SOC" == "rk3568" ];then
+            echo -n "启用 GPU 驱动 ... "
+            echo "panfrost" > ./etc/modules.d/panfrost
             echo "完成"
         fi
     )
