@@ -1,8 +1,8 @@
-eth0    1
-eth1    3
-eth2-0	1
-eth2-16 3
-eth3-0  2
-eth3-16  4
-xhci-hcd:usb1	2
+eth0		4
+eth1		3
+eth2-0		2
+eth2-16		1
+eth3-0		1
+eth3-16		2
+xhci-hcd:usb1	3
 xhci-hcd:usb3	4

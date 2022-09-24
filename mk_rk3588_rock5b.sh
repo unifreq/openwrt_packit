@@ -70,7 +70,7 @@ SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201024 add
-BAL_ETH_IRQ="${PWD}/files/rk3588/rock5b/balethirq.pl"
+BAL_ETH_IRQ="${PWD}/files/balethirq.pl"
 # 20201212 add
 BAL_CONFIG="${PWD}/files/rk3588/rock5b/balance_irq"
 
