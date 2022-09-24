@@ -37,6 +37,10 @@ sub read_config {
     open $fh, "<", $config_file or die $!;
     while(<$fh>) {
         chomp;
+	# 跳过注释行
+	next if(/^#/);
+	# 跳过空行
+	next if(/^\s*$/);
         my($name, $value) = split;
         my @cpus = split(',', $value);
         # ARMV8 当前最多CPU核数是8核
