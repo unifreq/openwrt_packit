@@ -111,10 +111,10 @@ check_depends
 
 SKIP_MB=16
 BOOT_MB=160
-ROOTFS_MB=720
-SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
+ROOTFS_MB=960
+SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
-create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
+create_partition "$TGT_DEV" "gpt" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
 make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd:${ZSTD_LEVEL}"
