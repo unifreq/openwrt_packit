@@ -44,7 +44,7 @@ GETCPU_SCRIPT="${PWD}/files/getcpu"
 KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 
-FIRSTRUN_SCRIPT="${PWD}/files/rk3588/rock5b/first_run.sh"
+FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 DAEMON_JSON="${PWD}/files/rk3588/rock5b/daemon.json"
 
 TTYD="${PWD}/files/ttyd"

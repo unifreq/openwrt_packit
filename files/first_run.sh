@@ -47,7 +47,7 @@ if [ "$CURRENT_PT_CNT" != "2" ];then
     exit 1
 fi
 
-DISK_TOTAL_B=$(lsblk -b -l | grep disk | grep "${DISK_NAME}" | awk '{print $4}')
+DISK_TOTAL_B=$(lsblk -b -l | grep disk | grep -E "^${DISK_NAME}\s" | awk '{print $4}')
 SKIP_MiB=$(awk '{print $1}' /etc/part_size)
 BOOT_MiB=$(awk '{print $2}' /etc/part_size)
 ROOTFS_MiB=$(awk '{print $3}' /etc/part_size)
