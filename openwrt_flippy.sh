@@ -21,7 +21,13 @@ sudo apt-get -qq update && sudo apt-get -qq install -y p7zip p7zip-full zip unzi
 MAKE_PATH="${PWD}"
 # The file specified in the ${OPENWRT_ARMVIRT} parameter will be saved as ${PACKAGE_FILE}
 PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
-PACKAGE_OPENWRT=("vplus" "beikeyun" "l1pro" "r68s" "s905" "s905d" "s905x2" "s905x3" "s912" "s922x" "s922x-n2" "qemu" "diy")
+PACKAGE_OPENWRT=(
+    "vplus"
+    "beikeyun" "l1pro" "r66s" "r68s"
+    "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
+    "qemu"
+    "diy"
+)
 SELECT_ARMBIANKERNEL=("5.10.125" "5.15.50")
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
@@ -42,6 +48,7 @@ SAVE_OPENWRT_ARMVIRT_VALUE="true"
 SCRIPT_VPLUS_FILE="mk_h6_vplus.sh"
 SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
+SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
@@ -95,6 +102,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
 [[ -n "${SCRIPT_BEIKEYUN}" ]] || SCRIPT_BEIKEYUN="${SCRIPT_BEIKEYUN_FILE}"
 [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
+[[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
 [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
 [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
 [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
@@ -286,6 +294,7 @@ EOF
                 vplus)       [[ -f "${SCRIPT_VPLUS}" ]] && sudo ./${SCRIPT_VPLUS} ;;
                 beikeyun)    [[ -f "${SCRIPT_BEIKEYUN}" ]] && sudo ./${SCRIPT_BEIKEYUN} ;;
                 l1pro)       [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
+                r66s)        [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
                 r68s)        [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
                 s905)        [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
                 s905d)       [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
