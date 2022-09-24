@@ -1,4 +1,4 @@
-verbosity=4
+verbosity=7
 overlay_prefix=rockchip
 rootdev=/dev/mmcblk0p2
 rootfstype=btrfs
