@@ -1181,7 +1181,7 @@ function adjust_openssh_config() {
 
 config rule
         option name 'drop-wan-ssh'
-        option src '*'
+        option src 'wan'
         option dest 'wan'
         option dest_port '22'
         option proto 'tcp'
