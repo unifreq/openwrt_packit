@@ -1,19 +1,19 @@
-# wan
-eth0		4
+# lan
+eth0		2
 
 # lan
-eth1		3
+eth1		1
 
 # pcie lan
-eth2-0		3
-eth2-16		2
-eth2-18		2
+eth2-0		2
+eth2-16		1
+eth2-18		1
 
-# pcie lan
-eth3-0		2
-eth3-16		1
-eth3-18		1
+# pcie wan
+eth3-0		3
+eth3-16		4
+eth3-18		4
 
 # usb 3.0
-xhci-hcd:usb1	4
-xhci-hcd:usb3	3
+xhci-hcd:usb1	1
+xhci-hcd:usb3	4
