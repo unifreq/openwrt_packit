@@ -11,23 +11,25 @@
 # 本配置文件格式：
 #        第1列： 设备名
 #        第2列： 期望绑定在第几个cpu (从1开始)
+#
+#  配置文件改好，运行 balethirq.pl 即时生效
 
 # lan
-eth0		2
+eth0		1
 
 # lan
-eth1		1
+eth1		2
 
 # pcie lan
-eth2-0		2
-eth2-16		1
-eth2-18		1
+eth2-0		3
+eth2-16		2
+eth2-18		2
 
 # pcie wan
-eth3-0		3
-eth3-16		4
-eth3-18		4
+eth3-0		4
+eth3-16		1
+eth3-18		1
 
 # usb 3.0
 xhci-hcd:usb1	1
-xhci-hcd:usb3	4
+xhci-hcd:usb3	2

@@ -218,7 +218,5 @@ sub board_special_config() {
     my $board = &get_boardinfo();
     if($board eq "FastRhino R68S") {
         &tunning_eth_ring("eth2", 256, 256);
-    } elsif($board eq "FastRhino R66S") {
-        &tunning_eth_ring("eth0", 256, 256);
     }
 }
