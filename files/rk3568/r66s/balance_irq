@@ -1,13 +1,13 @@
 # pcie-lan
-eth0-0	1
-eth0-16 2
-eth0-18 2
+eth0-0	2
+eth0-16 1
+eth0-18 1
 
 # pcie-wan
-eth1-0	3
-eth1-16	4
-eth1-18	4
+eth1-0	4
+eth1-16	3
+eth1-18	3
 
 # usb 3.0
 xhci-hcd:usb1	2
-xhci-hcd:usb3	4
+xhci-hcd:usb3	3
