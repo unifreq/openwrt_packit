@@ -7,7 +7,7 @@
 
 board_config_update
 
-nanopi_r2s_generate_mac()
+generate_mac()
 {
 	local sd_hash=$(sha256sum /sys/class/block/mmcblk0/device/cid)
 	local mac_base=$(macaddr_canonicalize "$(echo "${sd_hash}" | dd bs=1 count=12 2>/dev/null)")
@@ -33,8 +33,8 @@ swap_interface()
 
 # Init LAN and WAN
 json_is_a network object && exit 0
-WAN_MAC=$(nanopi_r2s_generate_mac)
-ucidef_set_interfaces_lan_wan 'eth1 eth2 eth3' 'eth0'
+WAN_MAC=$(generate_mac)
+ucidef_set_interfaces_lan_wan 'eth0 eth1 eth2' 'eth3'
 ucidef_set_interface_macaddr "wan" $WAN_MAC
 ucidef_set_interface_macaddr "lan" $(macaddr_add $WAN_MAC +1)
 

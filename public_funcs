@@ -1099,7 +1099,7 @@ function copy_supplement_files() {
         [ -n "$SYSINFO_SCRIPT" ] && [ -x ./bin/bash ] && [ -f "${SYSINFO_SCRIPT}" ] && cp -v "${SYSINFO_SCRIPT}" ./etc/profile.d/ && \
              sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./etc/passwd && sed -e "s/\/bin\/ash/\/bin\/bash/" -i ./usr/libexec/login.sh
         
-        [ -n "$BOARD_SCRIPT1" ] && [ -f $BOARD_SCRIPT1 ] && cp -v $BOARD_SCRIPT1 ./etc/board.d/
+        [ -n "$BOARD_HOME" ] && [ -d $BOARD_HOME ] && cp -v $BOARD_HOME/* ./etc/board.d/
 
         [ -f ./etc/sysupgrade.conf ] && \
              cat >> ./etc/sysupgrade.conf <<EOF

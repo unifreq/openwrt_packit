@@ -103,8 +103,8 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
-# 20220804 add
-BOARD_SCRIPT1="${PWD}/files/rk3568/r68s/50-pcie_eth_up"
+# 20220927 add
+BOARD_HOME="${PWD}/files/rk3568/r68s/board.d"
 ####################################################################
 
 check_depends
