@@ -101,7 +101,7 @@ sub read_irq_data {
         if(exists $cpu_map{$name}) {
             $irq_map{$name} = $irq;
             if($name =~ m/\Axhci-hcd:usb[1-9]\Z/) { 
-		if (not exists $cpu_map{eth1}) {
+		if (not (exists $cpu_map{eth1} || exists $cpu_map{eth1-0}) ) {
                     # 对于单网口的设备，USB外接网卡视为eth1
 		    $usb_as_eth1 = 1;
                     $uniq_eth_cpu_map{eth1} =  1 << ($min_cpu_map{$name} - 1);
