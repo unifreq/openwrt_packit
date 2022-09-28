@@ -20,14 +20,18 @@ eth0		1
 # lan
 eth1		2
 
-# pcie lan
+# pcie lan rx
 eth2-0		3
+# pcie lan tx-0
 eth2-16		2
+# pcie lan tx-1
 eth2-18		2
 
-# pcie wan
+# pcie wan rx
 eth3-0		4
+# pcie wan tx-0
 eth3-16		1
+# pcie wan tx-1
 eth3-18		1
 
 # usb 3.0
