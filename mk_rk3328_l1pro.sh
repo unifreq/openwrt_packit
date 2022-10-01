@@ -56,9 +56,6 @@ FMW_HOME="${PWD}/files/firmware"
 SMB4_PATCH="${PWD}/files/smb4.11_enable_smb1.patch"
 SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 
-# 20200404 add
-SND_MOD="${PWD}/files/rk3328/snd-rk3328"
-
 # 20200709 add
 COREMARK="${PWD}/files/coremark.sh"
 
@@ -106,6 +103,8 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+# 20221001 add
+MODULES_HOME="${PWD}/files/rk3328/modules.d"
 #####################################################################
 
 check_depends

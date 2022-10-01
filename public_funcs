@@ -1546,6 +1546,12 @@ function adjust_kernel_env() {
             echo "完成"
         fi    
 
+	if [ -n "${MODULES_HOME}" ] && [ -d "${MODULES_HOME}" ];then
+            echo "启用自定义的内核模块 ... "
+	    cp -v ${MODULES_HOME}/* ./etc/modules.d/
+            echo "完成"
+        fi
+
         case $ps in 
             allwinner_h6|rockchip_rk3328|rockchip_rk3568|rockchip_rk3588) 
                 echo -n "当前机型并未内置 broadcom 无线模块, 禁用 brcmfmac 驱动 ... "

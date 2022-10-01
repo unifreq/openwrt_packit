@@ -53,9 +53,6 @@ FMW_HOME="${PWD}/files/firmware"
 SMB4_PATCH="${PWD}/files/smb4.11_enable_smb1.patch"
 SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 
-# 20200403 add
-SND_MOD="${PWD}/files/rk3568/snd-rk3568"
-
 # 20200709 add
 COREMARK="${PWD}/files/coremark.sh"
 
@@ -105,6 +102,8 @@ SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
 # 20220927 add
 BOARD_HOME="${PWD}/files/rk3568/r68s/board.d"
+# 20221001 add
+MODULES_HOME="${PWD}/files/rk3568/modules.d"
 ####################################################################
 
 check_depends
