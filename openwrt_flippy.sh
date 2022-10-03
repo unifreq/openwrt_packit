@@ -282,7 +282,7 @@ EOF
             cd /opt/${SELECT_PACKITPATH}
             echo -e "${STEPS} (${k}.${i}) Start packaging OpenWrt, Kernel is [ ${KERNEL_VAR} ], SoC is [ ${PACKAGE_VAR} ]"
 
-            now_remaining_space="$(df -hT ${PWD} | grep '/dev/' | awk '{print $5}' | sed 's/.$//' | awk -F "." '{print $1}')"
+            now_remaining_space="$(df -Tk ${PWD} | grep '/dev/' | awk '{print $5}' | echo $(($(xargs) / 1024 / 1024)))"
             if [[ "${now_remaining_space}" -le "2" ]]; then
                 echo -e "${WARNING} If the remaining space is less than 2G, exit this packaging. \n"
                 break 2
