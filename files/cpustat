@@ -149,6 +149,134 @@ sub get_avgload {
     return $result;
 }
 
+sub get_eth_name {
+    my $eth = shift;
+    return (split /\//, $eth)[-1];
+}
+
+sub get_eth_operstate {
+    my $eth = shift;
+    my $fh;
+    open $fh, "<", "$eth/operstate" or warn $!;
+    my $operstate = <$fh>;
+    close $fh;
+    $operstate =~ s/\n//;
+    return $operstate;
+}
+
+sub get_eth_driver {
+    my $eth = shift;
+    my $fh;
+    open $fh, "<", "$eth/device/uevent" or warn $!;
+    my $driver;
+    while(<$fh>) {
+        chomp;
+	if(/^DRIVER=/) {
+	    $driver = (split /=/, $_)[-1];
+            last;	    
+	}
+    }
+    close $fh;
+    return $driver;
+}
+
+sub get_eth_duplex {
+    my $eth = shift;
+    my $fh;
+    open $fh, "<", "$eth/duplex" or warn $!;
+    my $duplex = <$fh>;
+    close $fh;
+    $duplex =~ s/\n//;
+    return $duplex;
+}
+
+sub get_eth_speed {
+    my $eth = shift;
+    my $fh;
+    open $fh, "<", "$eth/speed" or warn $!;
+    my $speed = <$fh>;
+    close $fh;
+    $speed =~ s/\n//;
+    if($speed == -1) {
+        my $driver = &get_eth_driver("$eth");
+	if($driver eq "virtio_net") {
+	    $speed = "Maximum";
+	} else {
+            $speed = "";
+	}
+    } elsif($speed <= 100) {
+        $speed = $speed, "Mb/s";
+    } else {
+        $speed = sprintf "%.1fGb/s", $speed / 1000;
+    }
+    $speed =~ s/\.0//;
+    return $speed;
+}
+
+sub get_eth_temperature {
+    my($driver, $eth_name) = @_;
+    my $ret = "";
+    if($driver eq 'r8125') {
+	my $fh;
+	open $fh, "<", "/proc/net/r8125/$eth_name/temp" or die $!;
+	while(<$fh>) {
+            chomp;
+	    if(/^Cel:/) {
+               $ret = (split /:/, $_)[-1]."℃";
+	       last;
+	    }
+	}
+	close $fh;
+    }	    
+    return $ret;
+}
+
+sub get_ethinfo {
+     my @eth_ary = sort (</sys/class/net/e[tn]*>);   
+     if($#eth_ary == -1) {
+         print "[]\n";
+	 return;
+     }
+     print "[\n";
+     for (my $i = 0; $i <= $#eth_ary; $i++) {
+	     print "  {\n";
+	     my $eth_name = &get_eth_name($eth_ary[$i]);
+	     my $driver = &get_eth_driver($eth_ary[$i]);
+	     my $operstate = &get_eth_operstate($eth_ary[$i]) eq "up" ? 1 : 0;
+	     my $speed = &get_eth_speed($eth_ary[$i]);
+	     my $duplex = &get_eth_duplex($eth_ary[$i]);
+	     my $temperature = &get_eth_temperature($driver, $eth_name);
+	     if($temperature eq "") {
+                  $temperature = "☰";
+	     }
+
+	     if(($duplex eq "unknown")) {
+                 if(($driver eq "virtio_net") && ($operstate == 1)) {
+	            $duplex = "full";
+		 }
+             }
+
+	     if($operstate == 1) {
+	         $speed .= " $duplex duplex";
+	     } else {
+	         $speed = "☷";
+	     }
+
+	     print qq|    "name": "|, $eth_name, qq|",\n|;
+	     print qq|    "driver": "|, $driver, qq|",\n|;
+	     print qq|    "temperature": "|, $temperature, qq|",\n|;
+	     print qq|    "operstate": |, $operstate, qq|,\n|;
+	     print qq|    "speed": "|, "$speed",qq|"\n|;
+	     if($i < $#eth_ary) {
+	         print "  },\n";
+	     } else {
+	         print "  }\n";
+	     }
+     }
+     print "]";
+     return;
+}
+
 #####   main program #####
 my $argc = scalar( @ARGV );
 if($argc == 0) {
@@ -169,4 +297,6 @@ if($argc == 0) {
     print &get_uptime, "\n";
 } elsif($ARGV[0] eq "-l") {
     print &get_avgload, "\n";
+} elsif($ARGV[0] eq "-e") {
+    print &get_ethinfo, "\n";
 }

@@ -75,8 +75,9 @@ cp -f files/kmod "$TMPDIR/sbin/" && \
 		 ln -s kmod rmmod 
 	)
 
-cat files/luci-admin-status-index-html.patch | (cd "$TMPDIR/" && patch -p1) && \
-	cat files/luci-admin-status-index-html-02.patch | (cd "$TMPDIR/" && patch -p1)
+for p in `echo files/index.html.patches/*.patch`;do
+    cat $p | (cd "$TMPDIR/" && patch -p1 && find . -name '*.orig' -exec rm {} \; && find . -name '*.rej' -exec rm {} \;)
+done
 
 cat files/docker/init.d_turboacc.patch | (cd "$TMPDIR/" && patch -p1 )
 if ! cat files/docker/cbi_turboacc_new.patch | (cd "$TMPDIR/" && patch -p1 );then

@@ -956,18 +956,23 @@ function patch_admin_status_index_html() {
             if [ ! -f usr/bin/perl ];then
                  echo "未发现 perl 实用程序, 放弃补丁!"
             else 
-                if [ -f "$CPUSTAT_PATCH" ];then 
-                     patch -p1 < ${CPUSTAT_PATCH} 
-                     if [ $? -ne 0 ];then
-                         echo "补丁失败!"
-                     else
-                         if [ -f "${CPUSTAT_PATCH_02}" ] ;then
-                             patch -p1 < ${CPUSTAT_PATCH_02}
-                             if [ $? -ne 0 ];then
-                                echo "补丁失败!"
-                             fi
-                         fi
-                     fi
+		if [ -d "${INDEX_PATCH_HOME}" ];then
+                   cp ./usr/lib/lua/luci/view/admin_status/index.htm ./usr/lib/lua/luci/view/admin_status/index.htm.bak
+		   ret=0
+		   for p in `echo ${INDEX_PATCH_HOME}/*.patch`;do
+                       patch -p1 < $p 
+		       if [ $? -ne 0 ];then
+                            echo "补丁失败，还原原始文件 ... "
+                            mv ./usr/lib/lua/luci/view/admin_status/index.htm.bak  ./usr/lib/lua/luci/view/admin_status/index.htm
+			    ret=1
+                            echo "已还原"
+			    break
+                       fi
+	           done
+		   if [ $ret -eq 0 ];then
+                        echo "补丁成功"
+			rm -f ./usr/lib/lua/luci/view/admin_status/index.htm.bak
+		   fi
                 fi
                 echo "完成"
             fi
