@@ -153,13 +153,7 @@ sys_tempx=`echo $sys_temp | sed 's/ / /g'`
 
 # display info
 
-if [ -f /proc/device-tree/model ];then
-    machine_model=$(cat /proc/device-tree/model|tr -d "\000")
-elif [ "$PLATFORM" == "qemu-aarch64" ];then
-    machine_model="KVM Virtual Machine"
-else
-    machine_model="N/A"
-fi
+machine_model=`/usr/bin/cpustat -b`
 echo -e "设备信息： \033[93m${machine_model}\033[0m"
 printf "CPU 型号:  \x1B[93m%s\x1B[0m" "$sys_tempx"
 echo ""

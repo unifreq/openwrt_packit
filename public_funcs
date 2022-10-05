@@ -944,13 +944,6 @@ EOF
 # CPU状态补丁
 function patch_admin_status_index_html() {
     echo "打补丁：[状态页面相关信息补丁] ... "
-    if [ "$PLATFORM" == "qemu-aarch64" ];then
-	(
-	   cd $TGT_ROOT/usr/lib/lua/luci/view/admin_status/ && \
-		   sed -e 's/pcdata(boardinfo.model or "?")/pcdata(boardinfo.model or "KVM Virtual Machine")/' -i index.htm && \
-		   sed -e "s/grep 'br-lan'/grep -E 'br-lan|eth0'/" -i index.htm
-        )
-    else
 	(
             cd $TGT_ROOT
             if [ ! -f usr/bin/perl ];then
@@ -978,7 +971,6 @@ function patch_admin_status_index_html() {
             fi
             echo
         )
-    fi
 }
 
 # 写入 release 信息
