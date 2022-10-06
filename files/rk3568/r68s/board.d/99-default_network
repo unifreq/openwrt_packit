@@ -33,10 +33,11 @@ swap_interface()
 
 # Init LAN and WAN
 json_is_a network object && exit 0
-WAN_MAC=$(generate_mac)
+LAN_MAC=$(generate_mac)
+WAN_MAC=$(macaddr_add $LAN_MAC +1)
 ucidef_set_interfaces_lan_wan 'eth0 eth1 eth2' 'eth3'
+ucidef_set_interface_macaddr "lan" $LAN_MAC
 ucidef_set_interface_macaddr "wan" $WAN_MAC
-ucidef_set_interface_macaddr "lan" $(macaddr_add $WAN_MAC +1)
 
 board_config_flush
 
