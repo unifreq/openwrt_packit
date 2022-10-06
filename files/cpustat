@@ -232,8 +232,17 @@ sub get_eth_temperature {
     return $ret;
 }
 
+sub get_ethlist() {
+     return sort (</sys/class/net/e[tn]*>);   
+}
+
+sub get_ethcount() {
+     my @eth_ary = &get_ethlist;
+     return $#eth_ary + 1;
+}
+
 sub get_ethinfo {
-     my @eth_ary = sort (</sys/class/net/e[tn]*>);   
+     my @eth_ary = &get_ethlist;
      if($#eth_ary == -1) {
          print "[]\n";
 	 return;
@@ -329,6 +338,8 @@ if($argc == 0) {
     print &get_avgload, "\n";
 } elsif($ARGV[0] eq "-e") {
     print &get_ethinfo, "\n";
+} elsif($ARGV[0] eq "-ec") {
+    print &get_ethcount, "\n";
 } elsif($ARGV[0] eq "-b") {
     print &get_boardinfo, "\n";
 }
