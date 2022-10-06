@@ -243,13 +243,9 @@ sub get_ethcount() {
 
 sub get_ethinfo {
      my @eth_ary = &get_ethlist;
-     if($#eth_ary == -1) {
-         print "[]\n";
-	 return;
-     }
-     print "[\n";
+     my $ret = "[\n";
      for (my $i = 0; $i <= $#eth_ary; $i++) {
-	     print "  {\n";
+	     $ret .= "  {\n";
 	     my $eth_name = &get_eth_name($eth_ary[$i]);
 	     my $driver = &get_eth_driver($eth_ary[$i]);
 	     my $operstate = &get_eth_operstate($eth_ary[$i]) eq "up" ? 1 : 0;
@@ -272,19 +268,19 @@ sub get_ethinfo {
 	         $speed = "☷";
 	     }
 
-	     print qq|    "name": "|, $eth_name, qq|",\n|;
-	     print qq|    "driver": "|, $driver, qq|",\n|;
-	     print qq|    "temperature": "|, $temperature, qq|",\n|;
-	     print qq|    "operstate": |, $operstate, qq|,\n|;
-	     print qq|    "speed": "|, "$speed",qq|"\n|;
+	     $ret .= qq|    "name": "| . $eth_name . qq|",\n|;
+	     $ret .= qq|    "driver": "| . $driver . qq|",\n|;
+	     $ret .= qq|    "temperature": "| . $temperature . qq|",\n|;
+	     $ret .= qq|    "operstate": | . $operstate . ",\n";
+	     $ret .= qq|    "speed": "| . $speed . qq|"\n|;
 	     if($i < $#eth_ary) {
-	         print "  },\n";
+	         $ret .= "  },\n";
 	     } else {
-	         print "  }\n";
+	         $ret .= "  }\n";
 	     }
      }
-     print "]";
-     return;
+     $ret .= "]";
+     return $ret;
 }
 
 sub get_archname() {
