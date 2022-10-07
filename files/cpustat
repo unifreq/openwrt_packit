@@ -206,7 +206,7 @@ sub get_eth_speed {
             $speed = "";
 	}
     } elsif($speed <= 100) {
-        $speed = $speed, "Mb/s";
+        $speed .= "Mb/s";
     } else {
         $speed = sprintf "%.1fGb/s", $speed / 1000;
     }
