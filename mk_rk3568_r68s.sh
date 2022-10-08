@@ -5,6 +5,13 @@ source make.env
 source public_funcs
 init_work_env
 
+# 默认是否开启软件FLOWOFFLOAD
+SW_FLOWOFFLOAD=0
+# 默认是否开启硬件FLOWOFFLOAD
+HW_FLOWOFFLOAD=0
+# 默认是否开启SFE
+SFE_FLOW=1
+
 PLATFORM=rockchip
 SOC=rk3568
 BOARD=r68s
