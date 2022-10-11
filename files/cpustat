@@ -233,7 +233,12 @@ sub get_eth_temperature {
 }
 
 sub get_ethlist() {
-     return sort (</sys/class/net/e[tn]*>);   
+    my $board = &get_boardinfo;
+    if($board eq "FastRhino R66S") {
+     	return reverse sort (</sys/class/net/e[tn]*>);   
+    } else {
+     	return sort (</sys/class/net/e[tn]*>);   
+    }
 }
 
 sub get_ethcount() {
