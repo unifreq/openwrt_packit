@@ -31,7 +31,7 @@
 +		local user_info = luci.sys.exec("cat /proc/net/arp | grep -E 'br-lan|eth0' | grep '0x2' | wc -l")
  		
  		local cpu_usage = (luci.sys.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
-+		local eth_info = luci.sys.exec("/usr/bin/cpustat -e")
++		local eth_info = luci.sys.exec("/usr/bin/cpustat -e 2>/dev/null")
  
  		local rv = {
  			cpuusage    = cpu_usage,
@@ -70,7 +70,7 @@
  	<table width="100%" cellspacing="10">
  		<tr><td width="33%"><%:Hostname%></td><td><%=luci.sys.hostname() or "?"%></td></tr>
 -		<tr><td width="33%"><%:Model%></td><td><%=pcdata(boardinfo.model or "?")%> <%=luci.sys.exec("cat /etc/bench.log") or " "%></td></tr>
-+		<tr><td width="33%"><%:Model%></td><td><%=luci.sys.exec("/usr/bin/cpustat -b")%> <%=luci.sys.exec("cat /etc/bench.log") or " "%></td></tr>
++		<tr><td width="33%"><%:Model%></td><td><%=luci.sys.exec("/usr/bin/cpustat -b 2>/dev/null")%> <%=luci.sys.exec("cat /etc/bench.log") or " "%></td></tr>
  		<tr><td width="33%"><%:Architecture%></td><td><%=pcdata(boardinfo.system or "ARMv8 Processor")%> x <%=luci.sys.exec("cat /proc/cpuinfo | grep 'processor' | wc -l") or "1"%></td></tr>
  		<tr><td width="33%"><%:Firmware Version%></td><td>
  			<%=pcdata(ver.distname)%> <%=pcdata(ver.distversion)%> /

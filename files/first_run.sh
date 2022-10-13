@@ -232,6 +232,34 @@ if [ -f "/etc/config/AdGuardHome" ];then
 fi
 sync
 echo "done"
+
+# Modify nfs config
+echo "Fix nfs config ... "
+if [ -f "/etc/exports" ];then
+cat > /etc/exports <<EOF
+
+/mnt    *(ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash)
+/mnt/${PT_PRE}4  *(rw,fsid=1,sync,no_subtree_check,no_root_squash)
+EOF
+fi
+
+if [ -f "/etc/config/nfs" ];then
+cat > /etc/config/nfs <<EOF
+config share
+        option clients '*'
+        option enabled '1'
+        option path '/mnt'
+        option options 'ro,fsid=0,sync,nohide,no_subtree_check,insecure,no_root_squash'
+
+config share
+        option enabled '1'
+        option path '/mnt/${PT_PRE}4'
+        option clients '*'
+        option options 'rw,fsid=1,sync,no_subtree_check,no_root_squash'
+EOF
+fi
+echo "done"
+
 echo "clean ... "
 destory_myself
 echo "done"

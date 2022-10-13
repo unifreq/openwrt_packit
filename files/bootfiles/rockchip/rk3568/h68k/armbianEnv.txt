@@ -1,0 +1,10 @@
+verbosity=7
+overlay_prefix=rockchip
+rootdev=/dev/mmcblk0p2
+rootfstype=btrfs
+rootflags=compress=zstd
+extraargs=usbcore.autosuspend=-1
+extraboardargs=net.ifnames=0
+fdtfile=/dtb/rockchip/rk3568-opc-h68k.dtb
+docker_optimizations=on
+console=serial
