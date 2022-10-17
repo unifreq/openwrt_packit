@@ -135,7 +135,6 @@ echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}
 # clone ${SELECT_PACKITPATH} repo
 echo -e "${STEPS} Cloning package script repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into ${SELECT_PACKITPATH}."
 git clone --depth 1 ${SCRIPT_REPO_URL} -b ${SCRIPT_REPO_BRANCH} ${SELECT_PACKITPATH}
-sync
 
 # Load *-armvirt-64-default-rootfs.tar.gz
 if [[ "${OPENWRT_ARMVIRT}" == http* ]]; then
@@ -145,7 +144,6 @@ else
     echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
     cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}/${PACKAGE_FILE}
 fi
-sync
 
 # Normal ${PACKAGE_FILE} file should not be less than 10MB
 armvirt_rootfs_size="$(ls -l ${SELECT_PACKITPATH}/${PACKAGE_FILE} 2>/dev/null | awk '{print $5}')"
@@ -207,7 +205,7 @@ fi
 echo -e "${INFO} Package OpenWrt Kernel List: [ ${SELECT_ARMBIANKERNEL[*]} ]"
 
 kernel_path="kernel"
-[[ -d "${kernel_path}" ]] || sudo mkdir -p ${kernel_path}
+[[ -d "${kernel_path}" ]] || mkdir -p ${kernel_path}
 
 i="1"
 for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
@@ -257,7 +255,7 @@ for KERNEL_VAR in ${SELECT_ARMBIANKERNEL[*]}; do
         echo -e "${INFO} (${k}) OPENWRT_VER: ${OPENWRT_VER}"
     fi
 
-    rm -f make.env 2>/dev/null && sync
+    rm -f make.env 2>/dev/null
     cat >make.env <<EOF
 WHOAMI="${WHOAMI}"
 OPENWRT_VER="${OPENWRT_VER}"
@@ -271,7 +269,6 @@ ENABLE_WIFI_K510="${ENABLE_WIFI_K510}"
 DISTRIB_REVISION="${DISTRIB_REVISION}"
 DISTRIB_DESCRIPTION="${DISTRIB_DESCRIPTION}"
 EOF
-    sync
 
     echo -e "${INFO} make.env file info:"
     cat make.env
@@ -283,8 +280,8 @@ EOF
             echo -e "${STEPS} (${k}.${i}) Start packaging OpenWrt, Kernel is [ ${KERNEL_VAR} ], SoC is [ ${PACKAGE_VAR} ]"
 
             now_remaining_space="$(df -Tk ${PWD} | grep '/dev/' | awk '{print $5}' | echo $(($(xargs) / 1024 / 1024)))"
-            if [[ "${now_remaining_space}" -le "2" ]]; then
-                echo -e "${WARNING} If the remaining space is less than 2G, exit this packaging. \n"
+            if [[ "${now_remaining_space}" -le "3" ]]; then
+                echo -e "${WARNING} If the remaining space is less than 3G, exit this packaging. \n"
                 break 2
             else
                 echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
@@ -309,13 +306,12 @@ EOF
                              continue ;;
             esac
             echo -e "${SUCCESS} (${k}.${i}) Package openwrt completed."
-            sync
 
             echo -e "${STEPS} Compress the .img file in the [ ${SELECT_OUTPUTPATH} ] directory. \n"
             cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
             case "${GZIP_IMGS}" in
-                7z | .7z)      ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; sync; rm -f %' ;;
-                zip | .zip)    ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; sync; rm -f %' ;;
+                7z | .7z)      ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; rm -f %' ;;
+                zip | .zip)    ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; rm -f %' ;;
                 zst | .zst)    zstd --rm *.img ;;
                 xz | .xz)      xz -z *.img ;;
                 gz | .gz | *)  pigz -9 *.img ;;
@@ -337,7 +333,7 @@ if [[ -d "/opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}" ]]; then
 
     if [[ "${SAVE_OPENWRT_ARMVIRT}" == "true" ]]; then
         echo -e "${STEPS} copy ${PACKAGE_FILE} files into ${SELECT_OUTPUTPATH} folder."
-        cp -f ../${PACKAGE_FILE} . && sync
+        cp -f ../${PACKAGE_FILE} .
     fi
 
     # Generate sha256sum check file
