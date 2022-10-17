@@ -11,7 +11,7 @@ BOARD=rock5b
 SUBVER=$1
 
 # lock the kernel version
-KERNEL_VERSION=5.10.123-rk3588-flippy
+KERNEL_VERSION=5.10.124-rk3588-flippy
 LOCK_KERNEL=${KERNEL_VERSION}
 
 # Kernel image sources

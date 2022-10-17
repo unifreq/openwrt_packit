@@ -11,5 +11,5 @@ docker_optimizations=on
 extraargs=
 extraboardargs=net.ifnames=0
 overlay_prefix=rk3588
-overlays=uart7-m2
+overlays=uart7-m2 full-cpufreq
 user_overlays=
