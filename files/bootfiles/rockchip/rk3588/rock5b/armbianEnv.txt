@@ -1,4 +1,4 @@
-verbosity=4
+verbosity=7
 bootlogo=true
 fdtfile=rockchip/rk3588-rock-5b.dtb
 rootdev=/dev/mmcblk0p2
