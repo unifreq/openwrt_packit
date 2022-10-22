@@ -105,7 +105,7 @@ SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,chacha20-poly1305@op
 # 20220906 add
 PWM_FAN="${PWD}/files/rk3588/rock5b/pwm-fan.pl"
 # 20221001 add
-MODULES_HOME="${PWD}/files/rk3328/modules.d"
+MODULES_HOME="${PWD}/files/rk3588/modules.d"
 ####################################################################
 
 check_depends
