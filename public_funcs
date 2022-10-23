@@ -1106,6 +1106,19 @@ EOF
              rm -rf ./usr/lib/opkg/info/p7zip* ./usr/lib/p7zip ./usr/bin/7z
 	     cp -v "${P7ZIP}" ./usr/bin/7z && chmod 755 ./usr/bin/7z
         fi
+
+        # 增加ll,la,l命令缩写，历史命令补全（上下方向键）
+        if [ ./etc/profile ];then
+            cat >> ./etc/profile <<EOF
+
+alias ll='ls -alF --color=suto'
+alias la='ls -A'
+alias l='ls -CF'
+
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+EOF
+        fi
     )
     echo "==============================================================================="
     echo "完成"
