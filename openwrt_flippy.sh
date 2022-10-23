@@ -23,19 +23,19 @@ MAKE_PATH="${PWD}"
 PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 PACKAGE_OPENWRT=(
     "vplus"
-    "beikeyun" "l1pro" "r66s" "r68s"
+    "beikeyun" "l1pro" "r66s" "r68s" "h68k"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "qemu"
     "diy"
 )
-SELECT_ARMBIANKERNEL=("5.10.125" "5.15.50")
+SELECT_ARMBIANKERNEL=("6.0.1" "5.15.50")
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
 KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
 # KERNEL_REPO_URL_VALUE URL supported format:
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/trunk/opt/kernel"
 # KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt/kernel"
-KERNEL_VERSION_NAME_VALUE="5.10.125_5.15.50"
+KERNEL_VERSION_NAME_VALUE="6.0.1_5.15.50"
 KERNEL_AUTO_LATEST_VALUE="true"
 PACKAGE_SOC_VALUE="all"
 GZIP_IMGS_VALUE="auto"
@@ -50,6 +50,7 @@ SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
+SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
@@ -104,6 +105,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
 [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
 [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
+[[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
 [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
 [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
 [[ -n "${SCRIPT_S905X2}" ]] || SCRIPT_S905X2="${SCRIPT_S905X2_FILE}"
@@ -293,6 +295,7 @@ EOF
                 l1pro)       [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
                 r66s)        [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
                 r68s)        [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
+                h68k)        [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
                 s905)        [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
                 s905d)       [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
                 s905x2)      [[ -f "${SCRIPT_S905X2}" ]] && sudo ./${SCRIPT_S905X2} ;;
