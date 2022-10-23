@@ -615,7 +615,6 @@ function extract_rootfs_files() {
    (
        cd $TGT_ROOT/lib/firmware
        mv *.hcd brcm/ 2>/dev/null
-       [ -f "$REGULATORY_DB" ] && tar xzf "$REGULATORY_DB"
        cd brcm
 
        # gtking/gtking pro 采用 bcm4356 wifi/bluetooth 模块

@@ -31,7 +31,6 @@ TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${
 
 # patches、scripts
 ####################################################################
-REGULATORY_DB="${PWD}/files/regulatory.db.tar.gz"
 CPUSTAT_SCRIPT="${PWD}/files/cpustat"
 CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 INDEX_PATCH_HOME="${PWD}/files/index.html.patches"

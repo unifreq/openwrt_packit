@@ -34,7 +34,6 @@ TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${
 
 # 补丁和脚本
 ###########################################################################
-REGULATORY_DB="${PWD}/files/regulatory.db.tar.gz"
 KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
 MAC_SCRIPT1="${PWD}/files/fix_wifi_macaddr.sh"
