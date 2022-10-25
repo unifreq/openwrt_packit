@@ -1,0 +1,138 @@
+#!/bin/bash
+
+VIM_PATCH="${PWD}/myfiles/molokai.vim"
+NETWORK_PATCH="${PWD}/myfiles/luci-network.patch"
+DOCKER_PATCH="${PWD}/myfiles/docker.patch"
+
+my_adjust_samba_config() {
+    echo "调整 samba server 配置 ..."
+    (
+        # for cifsd
+        if [ -f ./etc/init.d/cifsd ];then
+            echo -n "发现 cifsd, 禁用 samba4. "        
+            rm -f ./etc/rc.d/S98samba4
+        fi
+        # for smbd
+        if [ -f ./etc/init.d/smbd ];then
+            echo -n "发现 smbd, 禁用 samba4. "        
+            rm -f ./etc/rc.d/S98samba4
+        fi                
+        # for ksmbd
+        if [ -f ./etc/init.d/ksmbd ];then
+            echo -n "发现 ksmbd, 禁用 samba4. "        
+            rm -f ./etc/rc.d/S98samba4
+            sed -e 's/modprobe ksmbd/sleep 1 \&\& modprobe ksmbd/' -i ./etc/init.d/ksmbd
+        fi
+        # for samba4 enable smbv1 protocol
+        if [ -f ./etc/config/samba4 ];then
+            echo "发现 samba4, 将启用 smbv1 协议. "        
+            [ -f ${SMB4_PATCH} ] && patch -p1 < ${SMB4_PATCH}
+        fi
+    )
+    echo "完成"
+    echo
+}
+
+patch_vimrc() {
+    echo "调整 vim 配置 ..."
+	if [ -f $VIM_PATCH ];then
+		cp -f $VIM_PATCH ./usr/share/vim/vim??/colors/
+		sed -i '1 i\colorscheme molokai' ./usr/share/vim/vimrc
+		cat >> ./usr/share/vim/vimrc <<EOF
+set tabstop=2
+set shiftwidth=4
+set expandtab
+set softtabstop=4
+EOF
+	fi
+}
+
+my_write_banner() {
+    echo "写入 banner 信息 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f $BANNER ];then
+            cp -f $BANNER ./etc/banner
+            echo " -----------------------------------" >> etc/banner
+            echo " [33mLEDE ${OPENWRT_VER} ${KERNEL_VERSION}[0m" >> etc/banner
+            echo >> etc/banner
+        fi
+    )
+    cat $TGT_ROOT/etc/banner
+    echo
+}
+
+immortalwrt_banner() {
+    echo "写入 banner 信息 ... "
+    (
+        cd $TGT_ROOT
+        if [ -f $BANNER ];then
+            cp -f $BANNER ./etc/banner
+            echo " ----------------------------------------" >> etc/banner
+            echo " [33mOpenwrt-18.06 ${KERNEL_VERSION} ${OPENWRT_VER}[0m" >> etc/banner
+            echo >> etc/banner
+        fi
+    )
+    cat $TGT_ROOT/etc/banner
+    echo
+}   
+
+immortalwrt_profile() {
+    echo "调整 profile 配置 ... "
+    cd $TGT_ROOT
+    if [[ -f ./etc/profile ]]; then
+        rmLine=$(cat ./etc/profile | grep -n alF | head -1 | cut -d : -f 1)
+        sed -i "${rmLine}d" ./etc/profile
+}
+
+patch_luci_network() {
+    echo "修复接口状态显示错误"
+    (
+        cd $TGT_ROOT
+        if [ -f "${NETWORK_PATCH}" ];then
+            patch -p1 < ${NETWORK_PATCH}
+            if [ $? -ne 0 ];then
+                echo "修复失败"
+            fi
+        fi
+        echo "完成"
+        echo
+    )
+}
+
+immortalwrt_docker_config() {
+    echo "调整 docker server 配置 ... "
+    (
+        cd $TGT_ROOT
+        [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
+        if [ -f ./etc/init.d/docker ];then
+            echo "发现 docker 服务，正在调整 ... "
+            [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && [ ! -f ./etc/init.d/dockerman ] && patch -p1 < $DOCKERD_PATCH
+
+            if [ -f "./etc/init.d/dockerman" ] ;then
+                cat >> ./etc/config/dockerd <<EOF
+
+config globals 'globals'
+        option alt_config_file '/etc/docker/daemon.json' 
+    option auto_start '1'
+EOF
+                sed -e '/uci -q set dockerd.globals.auto_start="0"/d' -i ./etc/uci-defaults/luci-app-dockerman 
+            fi
+
+        # 由first_run.sh负责重新开启docker服务
+            echo "默认关闭 docker 服务 ... "
+            rm -f ./etc/rc.d/S??docker ./etc/rc.d/S??dockerman
+            echo "完成"
+        else
+            echo "未发现 docker 服务，放弃调整"
+        fi
+    )
+    echo
+}
+
+immortalwrt_firewall_custom(){
+    echo "添加 docker 防火墙规则... "
+    cd $TGT_ROOT
+    [ -f ./etc/firewall.user ] && echo -e "\niptables -t nat -A POSTROUTING -s 172.31.0.0/16 ! -o docker0 -j MASQUERADE" >> ./etc/firewall.user
+    echo "完成"
+}

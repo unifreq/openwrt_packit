@@ -1,0 +1,16 @@
+--- a/usr/lib/lua/luci/model/network.lua	2022-04-16 19:18:51.820063200 +0800
++++ b/usr/lib/lua/luci/model/network.lua	2022-04-16 19:18:51.830063200 +0800
+@@ -923,12 +923,7 @@
+ 
+ 	if type(addrs) == "table" then
+ 		for n, addr in ipairs(addrs) do
+-			if type(addr["local-address"]) == "table" then
+-				rv[#rv+1] = "%s/%d" %{
+-					addr["local-address"].address,
+-					addr["local-address"].mask
+-				}
+-			end
++			rv[#rv+1] = "%s1/%d" %{ addr.address, addr.mask }
+ 		end
+ 	end
+ 
