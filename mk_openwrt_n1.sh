@@ -175,8 +175,7 @@ echo
 echo "修改根文件系统相关配置 ... "
 cd $TGT_ROOT
 copy_supplement_files
-sed -i '/# Update release file/a\    flippy_ver=$(uname -r)' ./usr/sbin/openwrt-kernel
-sed -i 's| Kernel.*/ Kernel: |${flippy_ver}/|' ./usr/sbin/openwrt-kernel
+adjust_openwrt_kernel
 extract_glibc_programs
 adjust_docker_config
 adjust_openssl_config

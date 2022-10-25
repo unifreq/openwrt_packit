@@ -136,3 +136,13 @@ immortalwrt_firewall_custom(){
     [ -f ./etc/firewall.user ] && echo -e "\niptables -t nat -A POSTROUTING -s 172.31.0.0/16 ! -o docker0 -j MASQUERADE" >> ./etc/firewall.user
     echo "完成"
 }
+
+adjust_openwrt_kernel() {
+    echo "调整 openwrt-kernel ..."
+    cd $TGT_ROOT
+    if [ -f ./usr/sbin/openwrt-kernel ];then
+        sed -i '/# Update release file/a\    flippy_ver=$(uname -r)' ./usr/sbin/openwrt-kernel
+        sed -i 's| Kernel.*/ Kernel: |${flippy_ver}/|' ./usr/sbin/openwrt-kernel
+    fi
+    echo "完成"
+}
