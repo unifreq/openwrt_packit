@@ -1,6 +1,6 @@
 verbosity=7
 bootlogo=true
-fdtfile=rockchip/rk3588-h88k.dtb
+fdtfile=rockchip/rk3588-hinlink-h88k.dtb
 rootdev=/dev/mmcblk0p2
 rootfstype=btrfs 
 rootflags=compress=zstd:6
