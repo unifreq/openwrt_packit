@@ -71,7 +71,7 @@ SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201212 add
-BAL_CONFIG="${PWD}/files/rk3568/h68k/balance_irq"
+BAL_CONFIG="${PWD}/files/rk3568/e25/balance_irq"
 
 # 20210307 add
 SS_LIB="${PWD}/files/ss-glibc/lib-glibc.tar.xz"
