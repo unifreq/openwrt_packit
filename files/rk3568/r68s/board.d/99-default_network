@@ -23,7 +23,7 @@ generate_mac()
         local sd_hash=$(sha256sum /sys/class/block/mmcblk0/device/cid | cut -f1) 
 
         # get mac address head
-        local dice=$(echo $sd_hash | tr -d '[a-f]' | cut -b 1-6)
+        local dice=${mac_grp_cnt}$(echo $sd_hash | tr -d '[a-f]' | cut -b 1-6)
         local idx=$((dice % mac_grp_cnt))
         eval local mac_head="\$mac_grp_${idx}"
 
