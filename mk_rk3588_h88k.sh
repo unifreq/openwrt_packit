@@ -11,7 +11,7 @@ BOARD=h88k
 SUBVER=$1
 
 # lock the kernel version
-KERNEL_VERSION=5.10.149-rk3588-flippy
+KERNEL_VERSION=5.10.150-rk3588-flippy
 LOCK_KERNEL=${KERNEL_VERSION}
 
 # Kernel image sources
