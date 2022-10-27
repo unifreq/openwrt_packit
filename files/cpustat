@@ -238,6 +238,8 @@ sub get_ethlist() {
      	return reverse sort (</sys/class/net/e[tn]*>);   
     } elsif($board eq "HINLINK OPC-H68K Board") {
      	return reverse sort (</sys/class/net/e[tn]*>);   
+    } elsif($board eq "Radxa E25") {
+     	return reverse sort (</sys/class/net/e[tn]*>);   
     } else {
      	return sort (</sys/class/net/e[tn]*>);   
     }

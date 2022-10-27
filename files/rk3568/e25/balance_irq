@@ -29,5 +29,7 @@ eth1-16	1
 eth1-18	1
 
 # usb 3.0
-xhci-hcd:usb1	1
-xhci-hcd:usb3	2
+xhci-hcd:usb2	1
+
+# sata
+ahci[fc400000.sata] 2
