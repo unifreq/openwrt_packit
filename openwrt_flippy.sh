@@ -23,7 +23,7 @@ MAKE_PATH="${PWD}"
 PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 PACKAGE_OPENWRT=(
     "vplus"
-    "beikeyun" "l1pro" "r66s" "r68s" "h68k"
+    "beikeyun" "l1pro" "r66s" "r68s" "h68k" "e25"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "qemu"
     "diy"
@@ -51,6 +51,7 @@ SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
+SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
@@ -106,6 +107,7 @@ ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
 [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
 [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
 [[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
+[[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
 [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
 [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
 [[ -n "${SCRIPT_S905X2}" ]] || SCRIPT_S905X2="${SCRIPT_S905X2_FILE}"
@@ -296,6 +298,7 @@ EOF
                 r66s)        [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
                 r68s)        [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
                 h68k)        [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
+                e25)         [[ -f "${SCRIPT_E25}" ]] && sudo ./${SCRIPT_E25} ;;
                 s905)        [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
                 s905d)       [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
                 s905x2)      [[ -f "${SCRIPT_S905X2}" ]] && sudo ./${SCRIPT_S905X2} ;;
