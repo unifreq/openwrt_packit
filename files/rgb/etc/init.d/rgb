@@ -48,7 +48,7 @@ start() {
 		 --BlueOffSecs=${blue_off_secs} &
 
    local rgb_pid=$!
-   echo "$RGB_PID" > $PID_FILE
+   echo "$rgb_pid" > $PID_FILE
 }
 
 stop() {
