@@ -1097,6 +1097,8 @@ function copy_supplement_files() {
         
         [ -n "$BOARD_HOME" ] && [ -d $BOARD_HOME ] && cp -v $BOARD_HOME/* ./etc/board.d/
 
+	[ -n "${RGB_HOME}" ] && [ -d ${RGB_HOME} ] && cp -av ${RGB_HOME}/* ./
+
         [ -f ./etc/sysupgrade.conf ] && \
              cat >> ./etc/sysupgrade.conf <<EOF
 /root/.ssh/

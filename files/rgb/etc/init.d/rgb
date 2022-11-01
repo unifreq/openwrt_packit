@@ -1,0 +1,59 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+NAME=rgb
+PID_FILE="/tmp/run/rgb.pid"
+
+uci_get_by_type() {
+    local ret=$(uci get $NAME.@$1[0].$2 2>/dev/null)
+    echo ${ret:=$3}
+}
+
+uci_set_by_type() {
+    uci set $NAME.@$1[0].$2=$3 2>/dev/null
+    uci commit $NAME
+}
+
+start() {
+    [ ! -x /usr/bin/rgb ] && exit
+    config_load $NAME
+    
+    local red_mode=$(uci_get_by_type leds red_mode "fixed")
+    local green_mode=$(uci_get_by_type leds green_mode "fixed")
+    local blue_mode=$(uci_get_by_type leds blue_mode "fixed")
+
+    local red_led=$(uci_get_by_type leds red_led "surround:red")
+    local green_led=$(uci_get_by_type leds green_led "surround:green")
+    local blue_led=$(uci_get_by_type leds blue_led "surround:blue")
+    local red_on_secs=$(uci_get_by_type leds red_on_secs 5)
+    local red_off_secs=$(uci_get_by_type leds red_off_secs 2)
+
+    local green_on_secs=$(uci_get_by_type leds green_on_secs 8)
+    local green_off_secs=$(uci_get_by_type leds green_off_secs 4)
+
+    local blue_on_secs=$(uci_get_by_type leds blue_on_secs 13)
+    local blue_off_secs=$(uci_get_by_type leds blue_off_secs 8)
+
+    /usr/bin/rgb --RedMode=${red_mode} \
+	         --GreenMode=${green_mode} \
+		 --BlueMode=${blue_mode} \
+		 --RedName=${red_led} \
+		 --GreenName=${green_led} \
+		 --BlueName=${blue_led} \
+		 --RedOnSecs=${red_on_secs} \
+		 --RedOffSecs=${red_off_secs} \
+		 --GreenOnSecs=${green_on_secs} \
+		 --GreenOffSecs=${green_off_secs} \
+		 --BlueOnSecs=${blue_on_secs} \
+		 --BlueOffSecs=${blue_off_secs} &
+
+   local rgb_pid=$!
+   echo "$RGB_PID" > $PID_FILE
+}
+
+stop() {
+   local rgb_pid=$(cat $PID_FILE 2>/dev/null)
+   if [ -n ${rgb_pid} ];then
+       kill $rgb_pid 2>/dev/null
+   fi
+}

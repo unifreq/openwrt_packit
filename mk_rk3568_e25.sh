@@ -111,6 +111,8 @@ BOARD_HOME="${PWD}/files/rk3568/e25/board.d"
 MODULES_HOME="${PWD}/files/rk3568/e25/modules.d"
 # 20221013 add
 WIRELESS_CONFIG="${PWD}/files/rk3568/e25/wireless"
+# 20221101 add
+RGB_HOME="${PWD}/files/rgb"
 ####################################################################
 
 check_depends
