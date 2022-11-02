@@ -1097,7 +1097,13 @@ function copy_supplement_files() {
         
         [ -n "$BOARD_HOME" ] && [ -d $BOARD_HOME ] && cp -v $BOARD_HOME/* ./etc/board.d/
 
-	[ -n "${RGB_HOME}" ] && [ -d ${RGB_HOME} ] && cp -av ${RGB_HOME}/* ./
+	if [ -n "${RGB_HOME}" ] && [ -d ${RGB_HOME} ];then
+             cp -av ${RGB_HOME}/* ./
+	     # rgb custom config file
+	     if [ -n "${RGB_CONFIG}" ] && [ -f "${RGB_CONFIG}" ];then
+                 cp -v ${RGB_CONFIG} ./etc/config/rgb
+             fi
+        fi
 
         [ -f ./etc/sysupgrade.conf ] && \
              cat >> ./etc/sysupgrade.conf <<EOF

@@ -102,6 +102,9 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+# 20221102 add
+RGB_HOME="${PWD}/files/rgb"
+RGB_CONFIG="${PWD}/files/vplus/rgb"
 ####################################################################
 
 check_depends
