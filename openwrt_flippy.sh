@@ -326,6 +326,7 @@ make_openwrt() {
                     boot_kernel_file="$(ls boot-${KERNEL_VAR}* 2>/dev/null | head -n 1)"
                     boot_kernel_file="${boot_kernel_file//boot-/}"
                     boot_kernel_file="${boot_kernel_file//.tar.gz/}"
+                    [[ "${vb}" == "rk3588" ]] && rk3588_file="${boot_kernel_file}" || rk3588_file=""
                     echo -e "${INFO} (${i}.${k}) KERNEL_VERSION: ${boot_kernel_file}"
 
                     cd /opt/${SELECT_PACKITPATH}
@@ -342,6 +343,7 @@ make_openwrt() {
                     cat >make.env <<EOF
 WHOAMI="${WHOAMI}"
 OPENWRT_VER="${OPENWRT_VER}"
+RK3588_KERNEL_VERSION="${rk3588_file}"
 KERNEL_VERSION="${boot_kernel_file}"
 KERNEL_PKG_HOME="/opt/kernel"
 SW_FLOWOFFLOAD="${SW_FLOWOFFLOAD}"
