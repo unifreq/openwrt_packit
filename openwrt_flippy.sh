@@ -24,7 +24,6 @@ SCRIPT_REPO_BRANCH_VALUE="master"
 
 # Set the *rootfs.tar.gz package save name
 PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
-PACKAGE_SOC_VALUE="all"
 
 # Set the list of supported device
 PACKAGE_OPENWRT=(
@@ -35,14 +34,13 @@ PACKAGE_OPENWRT=(
     "qemu"
     "diy"
 )
-# Set the list of devices using the rk3588 kernel
-PACKAGE_OPENWRT_RK3588=(
-    "rock5b" "h88k"
-)
+# Set the list of devices using the [ rk3588 ] kernel
+PACKAGE_OPENWRT_RK3588=("rock5b" "h88k")
+# All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
+PACKAGE_SOC_VALUE="all"
 
 # Set the default packaged kernel download repository
 KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt"
-# The rk3588 kernel is not universal. Only the kernel with the directory name of [ rk3588 ] is used
 # Common kernel directory, RK3588 kernel directory, [ rk3588 ] is the fixed name
 KERNEL_DIR=("kernel" "rk3588")
 COMMON_KERNEL=("6.0.1" "5.15.50")
@@ -156,18 +154,15 @@ init_var() {
     [[ -n "${DISTRIB_REVISION}" ]] || DISTRIB_REVISION="${DISTRIB_REVISION_VALUE}"
     [[ -n "${DISTRIB_DESCRIPTION}" ]] || DISTRIB_DESCRIPTION="${DISTRIB_DESCRIPTION_VALUE}"
 
-    # KERNEL_REPO_URL URL format conversion to support svn co
-    [[ -n "$(echo ${KERNEL_REPO_URL} | grep "tree")" ]] && {
-        # Left part
-        KERNEL_REPO_URL_LEFT="${KERNEL_REPO_URL%\/tree*}"
-        # Right part
-        KERNEL_REPO_URL_RIGHT="${KERNEL_REPO_URL#*tree\/}"
-        KERNEL_REPO_URL_RIGHT="${KERNEL_REPO_URL_RIGHT#*\/}"
-        KERNEL_REPO_URL="${KERNEL_REPO_URL_LEFT}/trunk/${KERNEL_REPO_URL_RIGHT}"
+    # Confirm package object
+    [[ "${PACKAGE_SOC}" != "all" ]] && {
+        unset PACKAGE_OPENWRT
+        oldIFS=$IFS
+        IFS=_
+        PACKAGE_OPENWRT=(${PACKAGE_SOC})
+        IFS=$oldIFS
     }
-    # Process the previous address, remove the [ /kernel ] directory
-    KERNEL_REPO_URL="${KERNEL_REPO_URL//opt\/kernel/opt}"
-    echo -e "${INFO} Kernel download address: [ ${KERNEL_REPO_URL} ]"
+    echo -e "${INFO} Package OpenWrt List: [ ${PACKAGE_OPENWRT[*]} ]"
 
     # Reset KERNEL_DIR options
     [[ -n "${KERNEL_VERSION_DIR}" ]] && {
@@ -177,6 +172,28 @@ init_var() {
         KERNEL_DIR=(${KERNEL_VERSION_DIR})
         IFS=$oldIFS
     }
+
+    # KERNEL_REPO_URL URL format conversion to support svn co
+    [[ -n "$(echo ${KERNEL_REPO_URL} | grep "tree")" ]] && {
+        # Left part
+        KERNEL_REPO_URL_LEFT="${KERNEL_REPO_URL%\/tree*}"
+        # Right part
+        KERNEL_REPO_URL_RIGHT="${KERNEL_REPO_URL#*tree\/}"
+        KERNEL_REPO_URL_RIGHT="${KERNEL_REPO_URL_RIGHT#*\/}"
+        KERNEL_REPO_URL="${KERNEL_REPO_URL_LEFT}/trunk/${KERNEL_REPO_URL_RIGHT}"
+    }
+
+    # Remove [ /kernel ] for breakings kernel repository
+    [[ "${KERNEL_REPO_URL,,}" == *"github.com/breakings/openwrt/"* ]] && {
+        KERNEL_REPO_URL="${KERNEL_REPO_URL//opt\/kernel/opt}"
+        KERNEL_DIR=("kernel" "rk3588")
+    }
+    # Remove [ /stable ] for ophub kernel repository
+    [[ "${KERNEL_REPO_URL,,}" == *"github.com/ophub/kernel/"* ]] && {
+        KERNEL_REPO_URL="${KERNEL_REPO_URL//pub\/stable/pub}"
+        KERNEL_DIR=("stable" "rk3588")
+    }
+    echo -e "${INFO} Kernel download repository: [ ${KERNEL_REPO_URL} ]"
     echo -e "${INFO} Kernel storage directory: [ ${KERNEL_DIR[*]} ]"
 
     # Reset COMMON_KERNEL options
@@ -189,16 +206,6 @@ init_var() {
     }
     echo -e "${INFO} Common Kernel List: [ ${COMMON_KERNEL[*]} ]"
     echo -e "${INFO} RK3588 Kernel List: [ ${RK3588_KERNEL[*]} ]"
-
-    # Confirm package object
-    [[ "${PACKAGE_SOC}" != "all" ]] && {
-        unset PACKAGE_OPENWRT
-        oldIFS=$IFS
-        IFS=_
-        PACKAGE_OPENWRT=(${PACKAGE_SOC})
-        IFS=$oldIFS
-    }
-    echo -e "${INFO} Package OpenWrt List: [ ${PACKAGE_OPENWRT[*]} ]"
 }
 
 init_packit_repo() {
@@ -213,10 +220,10 @@ init_packit_repo() {
 
     # Load *-armvirt-64-default-rootfs.tar.gz
     if [[ "${OPENWRT_ARMVIRT}" == http* ]]; then
-        echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
+        echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
         wget ${OPENWRT_ARMVIRT} -q -O "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
     else
-        echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into ${SELECT_PACKITPATH}"
+        echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
         cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}/${PACKAGE_FILE}
     fi
 
@@ -224,7 +231,7 @@ init_packit_repo() {
     armvirt_rootfs_size="$(ls -l ${SELECT_PACKITPATH}/${PACKAGE_FILE} 2>/dev/null | awk '{print $5}')"
     echo -e "${INFO} armvirt_rootfs_size: [ ${armvirt_rootfs_size} ]"
     if [[ "${armvirt_rootfs_size}" -ge "10000000" ]]; then
-        echo -e "${INFO} ${SELECT_PACKITPATH}/${PACKAGE_FILE} loaded successfully."
+        echo -e "${INFO} [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] loaded successfully."
     else
         error_msg "The [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] failed to load."
     fi
@@ -336,8 +343,6 @@ make_openwrt() {
                 build_kernel="${COMMON_KERNEL[*]}"
                 vb="$(echo "${KERNEL_DIR[@]}" | sed -e "s|rk3588||" | xargs)"
             fi
-            echo -e "${INFO} (${i}) OpenWrt name: [ ${PACKAGE_VAR} ]"
-            echo -e "${INFO} (${i}) Kernel directory: [ ${vb} ], Kernel list: [ ${build_kernel[*]} ]"
 
             k="1"
             for KERNEL_VAR in ${build_kernel[*]}; do
@@ -352,7 +357,7 @@ make_openwrt() {
                     boot_kernel_file="${boot_kernel_file//boot-/}"
                     boot_kernel_file="${boot_kernel_file//.tar.gz/}"
                     [[ "${vb}" == "rk3588" ]] && rk3588_file="${boot_kernel_file}" || rk3588_file=""
-                    echo -e "${INFO} (${i}.${k}) KERNEL_VERSION: [ ${boot_kernel_file} ]"
+                    echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel name: [ ${boot_kernel_file} ]"
 
                     cd /opt/${SELECT_PACKITPATH}
 
@@ -383,8 +388,6 @@ EOF
 
                     echo -e "${INFO} make.env file info:"
                     cat make.env
-
-                    echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel name: [ ${KERNEL_VAR} ]"
 
                     # Check the available size of server space
                     now_remaining_space="$(df -Tk ${PWD} | grep '/dev/' | awk '{print $5}' | echo $(($(xargs) / 1024 / 1024)))"
@@ -418,10 +421,9 @@ EOF
                         *)        echo -e "${WARNING} Have no this SoC. Skipped."
                                   continue ;;
                     esac
-                    echo -e "${SUCCESS} (${i}.${k}) Package openwrt completed."
 
                     # Generate compressed file
-                    echo -e "${STEPS} Compress the OpenWrt file in the [ ${SELECT_OUTPUTPATH} ] directory. \n"
+                    echo -e "${STEPS} (${i}.${k}) Start making compressed files in the [ ${SELECT_OUTPUTPATH} ] directory."
                     cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
                     case "${GZIP_IMGS}" in
                         7z | .7z)      ls *.img | head -n 1 | xargs -I % sh -c '7z a -t7z -r %.7z %; rm -f %' ;;
@@ -430,6 +432,8 @@ EOF
                         xz | .xz)      xz -z *.img ;;
                         gz | .gz | *)  pigz -9f *.img ;;
                     esac
+
+                    echo -e "${SUCCESS} (${i}.${k}) OpenWrt packaging succeeded: [ ${PACKAGE_VAR} - ${vb} - ${KERNEL_VAR} ] \n"
                     sync
 
                     let k++
@@ -450,7 +454,7 @@ out_github_env() {
         cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
 
         if [[ "${SAVE_OPENWRT_ARMVIRT}" == "true" ]]; then
-            echo -e "${STEPS} copy ${PACKAGE_FILE} files into ${SELECT_OUTPUTPATH} folder."
+            echo -e "${INFO} copy [ ${PACKAGE_FILE} ] into [ ${SELECT_OUTPUTPATH} ]"
             cp -f ../${PACKAGE_FILE} .
         fi
 
@@ -487,4 +491,4 @@ out_github_env
 
 # Display the remaining space on the server
 echo -e "${INFO} Server space usage after compilation:\n$(df -hT ${PWD}) \n"
-echo -e "${STEPS} The packaging process has been completed. \n"
+echo -e "${SUCCESS} The packaging process has been completed. \n"
