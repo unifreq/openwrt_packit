@@ -10,9 +10,11 @@ SOC=rk3588
 BOARD=rock5b
 SUBVER=$1
 
-# lock the kernel version
-KERNEL_VERSION=5.10.150-rk3588-flippy
-LOCK_KERNEL=${KERNEL_VERSION}
+if [ -n "$RK3588_KERNEL_VERSION" ];then
+    # lock the kernel version
+    KERNEL_VERSION=$RK3588_KERNEL_VERSION
+    LOCK_KERNEL=${KERNEL_VERSION}
+fi
 
 # Kernel image sources
 ###################################################################
