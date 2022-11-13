@@ -220,6 +220,8 @@ sub board_special_config() {
         &optimize_eth_parameters("eth0","eth1");
     } elsif($board eq "FastRhino R68S") {
         &optimize_eth_parameters("eth0","eth1","eth2","eth3");
+    } elsif($board eq "HINLINK OPC-H66K Board") {
+        &optimize_eth_parameters("eth0","eth1","eth2");
     } elsif($board eq "HINLINK OPC-H68K Board") {
         &optimize_eth_parameters("eth0","eth1","eth2","eth3");
     } elsif($board eq "Radxa E25") {

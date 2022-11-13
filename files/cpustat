@@ -217,6 +217,7 @@ sub get_eth_speed {
 sub get_eth_temperature {
     my($driver, $eth_name) = @_;
     my $ret = "";
+    return $ret if (! -d "/proc/net/r8125/$eth_name");
     if($driver eq 'r8125') {
 	my $fh;
 	open $fh, "<", "/proc/net/r8125/$eth_name/temp" or die $!;
