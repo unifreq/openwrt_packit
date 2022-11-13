@@ -29,7 +29,7 @@ PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 PACKAGE_OPENWRT=(
     "rock5b" "h88k"
     "vplus"
-    "beikeyun" "l1pro" "r66s" "r68s" "h68k" "e25"
+    "beikeyun" "l1pro" "r66s" "r68s" "h66k" "h68k" "e25"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "qemu"
     "diy"
@@ -59,6 +59,7 @@ SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
+SCRIPT_H66K_FILE="mk_rk3568_h66k.sh"
 SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
 SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
@@ -85,17 +86,11 @@ DISTRIB_REVISION_VALUE="R$(date +%Y.%m.%d)"
 DISTRIB_DESCRIPTION_VALUE="OpenWrt"
 
 # Set font color
-blue_font_prefix="\033[94m"
-purple_font_prefix="\033[95m"
-green_font_prefix="\033[92m"
-yellow_font_prefix="\033[93m"
-red_font_prefix="\033[91m"
-font_color_suffix="\033[0m"
-INFO="[${blue_font_prefix}INFO${font_color_suffix}]"
-STEPS="[${purple_font_prefix}STEPS${font_color_suffix}]"
-SUCCESS="[${green_font_prefix}SUCCESS${font_color_suffix}]"
-WARNING="[${yellow_font_prefix}WARNING${font_color_suffix}]"
-ERROR="[${red_font_prefix}ERROR${font_color_suffix}]"
+STEPS="[\033[95m STEPS \033[0m]"
+INFO="[\033[94m INFO \033[0m]"
+SUCCESS="[\033[92m SUCCESS \033[0m]"
+WARNING="[\033[93m WARNING \033[0m]"
+ERROR="[\033[91m ERROR \033[0m]"
 #
 #==============================================================================================
 
@@ -129,6 +124,7 @@ init_var() {
     [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
     [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
+    [[ -n "${SCRIPT_H66K}" ]] || SCRIPT_H66K="${SCRIPT_H66K_FILE}"
     [[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
     [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
@@ -174,15 +170,7 @@ init_var() {
     }
 
     # KERNEL_REPO_URL URL format conversion to support svn co
-    [[ -n "$(echo ${KERNEL_REPO_URL} | grep "tree")" ]] && {
-        # Left part
-        KERNEL_REPO_URL_LEFT="${KERNEL_REPO_URL%\/tree*}"
-        # Right part
-        KERNEL_REPO_URL_RIGHT="${KERNEL_REPO_URL#*tree\/}"
-        KERNEL_REPO_URL_RIGHT="${KERNEL_REPO_URL_RIGHT#*\/}"
-        KERNEL_REPO_URL="${KERNEL_REPO_URL_LEFT}/trunk/${KERNEL_REPO_URL_RIGHT}"
-    }
-
+    KERNEL_REPO_URL="${KERNEL_REPO_URL//tree\/main/trunk}"
     # Remove [ /kernel ] for breakings kernel repository
     [[ "${KERNEL_REPO_URL,,}" == *"github.com/breakings/openwrt/"* ]] && {
         KERNEL_REPO_URL="${KERNEL_REPO_URL//opt\/kernel/opt}"
@@ -405,6 +393,7 @@ EOF
                         l1pro)    [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
                         r66s)     [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
                         r68s)     [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
+                        h66k)     [[ -f "${SCRIPT_H66K}" ]] && sudo ./${SCRIPT_H66K} ;;
                         h68k)     [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
                         rock5b)   [[ -f "${SCRIPT_ROCK5B}" ]] && sudo ./${SCRIPT_ROCK5B} ;;
                         h88k)     [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} ;;
@@ -418,8 +407,7 @@ EOF
                         s922x-n2) [[ -f "${SCRIPT_S922X_N2}" ]] && sudo ./${SCRIPT_S922X_N2} ;;
                         qemu)     [[ -f "${SCRIPT_QEMU}" ]] && sudo ./${SCRIPT_QEMU} ;;
                         diy)      [[ -f "${SCRIPT_DIY}" ]] && sudo ./${SCRIPT_DIY} ;;
-                        *)        echo -e "${WARNING} Have no this SoC. Skipped."
-                                  continue ;;
+                        *)        echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
                     esac
 
                     # Generate compressed file
