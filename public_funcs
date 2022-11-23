@@ -1551,8 +1551,14 @@ function adjust_kernel_env() {
         fi    
 
 	if [ -n "${MODULES_HOME}" ] && [ -d "${MODULES_HOME}" ];then
-            echo "启用自定义的内核模块 ... "
+            echo "启用自定义的 soc 内核模块 ... "
 	    cp -v ${MODULES_HOME}/* ./etc/modules.d/
+            echo "完成"
+        fi
+
+	if [ -n "${BOARD_MODULES_HOME}" ] && [ -d "${BOARD_MODULES_HOME}" ];then
+            echo "启用自定义的 board 内核模块 ... "
+	    cp -v ${BOARD_MODULES_HOME}/* ./etc/modules.d/
             echo "完成"
         fi
 

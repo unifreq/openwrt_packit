@@ -108,7 +108,9 @@ SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ct
 # 20220927 add
 BOARD_HOME="${PWD}/files/rk3568/e25/board.d"
 # 20221001 add
-MODULES_HOME="${PWD}/files/rk3568/e25/modules.d"
+MODULES_HOME="${PWD}/files/rk3568/modules.d"
+# 20221123 add
+BOARD_MODULES_HOME="${PWD}/files/rk3568/e25/modules.d"
 # 20221013 add
 WIRELESS_CONFIG="${PWD}/files/rk3568/e25/wireless"
 # 20221101 add
