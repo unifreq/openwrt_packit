@@ -58,23 +58,37 @@ swap_interface()
 }
 
 # Swap eth0 & eth1
+gmac0_enabled="0"
+ext_pcie_eth="0"
 if [ -d "/sys/devices/platform/fe1b0000.ethernet" ];then
-    gmac0_exists=1
+    gmac0_enabled=1
     if [ -d "/sys/devices/platform/fe1b0000.ethernet/net/eth0" ];then
+        swap_interface "eth0" "eth1"
+    fi
+elif [ -d "/sys/class/pci_bus/0002:21/device/0002:21:00.0" ];then
+    pcie2_class=$(cat "/sys/class/pci_bus/0002:21/device/0002:21:00.0/class")
+    if [ "${pcie2_class}" == "0x020000" ];then
+        ext_pcie_eth="1"
         swap_interface "eth0" "eth1"
     fi
 fi
 
-# Init LAN and WAN
 json_is_a network object && exit 0
 
-if [ ${gmac0_exists} -eq 1 ];then
+# Init LAN and WAN
+LAN_MAC=$(generate_mac)
+if [ ${gmac0_enabled} -eq 1 ] || [ ${ext_pcie_eth} -eq 1 ];then
+    # if has two available nic
     ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
-else
+    if [ ${ext_pcie_eth} -eq 1 ];then
+        WAN_MAC=$(macaddr_add $LAN_MAC +1)
+        ucidef_set_interface_macaddr "wan" $WAN_MAC
+    fi
+else 
+    # only one nic
     ucidef_set_interfaces_lan_wan 'eth0'
 fi
 
-LAN_MAC=$(generate_mac)
 ucidef_set_interface_macaddr "lan" $LAN_MAC
 
 board_config_flush
