@@ -28,14 +28,17 @@ PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b" "h88k"
+    "r66s" "r68s" "h66k" "h68k" "e25"
+    "beikeyun" "l1pro"
     "vplus"
-    "beikeyun" "l1pro" "r66s" "r68s" "h66k" "h68k" "e25"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "qemu"
     "diy"
 )
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k")
+# Set the list of devices using the [ 6.0.y and above ] kernel
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -335,6 +338,20 @@ make_openwrt() {
             k="1"
             for KERNEL_VAR in ${build_kernel[*]}; do
                 {
+                   # Rockchip rk3568 series only support 6.0.y and above kernel
+                    [[ -n "$(echo "${PACKAGE_OPENWRT_KERNEL6[@]}" | grep -w "${PACKAGE_VAR}")" && "${KERNEL_VAR:0:1}" -ne "6" ]] && {
+                        echo -e "${STEPS} (${i}.${k}) ${WARNING} ${PACKAGE_VAR} cannot use ${KERNEL_VAR} kernel, skip."
+                        let k++
+                        continue
+                    }
+
+                    # Check the available size of server space
+                    now_remaining_space="$(df -Tk ${PWD} | grep '/dev/' | awk '{print $5}' | echo $(($(xargs) / 1024 / 1024)))"
+                    [[ "${now_remaining_space}" -le "3" ]] && {
+                        echo -e "${WARNING} If the remaining space is less than 3G, exit this packaging. \n"
+                        break
+                    }
+
                     cd /opt/kernel
 
                     # Copy the kernel to the packaging directory
@@ -346,6 +363,7 @@ make_openwrt() {
                     boot_kernel_file="${boot_kernel_file//.tar.gz/}"
                     [[ "${vb}" == "rk3588" ]] && rk3588_file="${boot_kernel_file}" || rk3588_file=""
                     echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel name: [ ${boot_kernel_file} ]"
+                    echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
 
                     cd /opt/${SELECT_PACKITPATH}
 
@@ -376,15 +394,6 @@ EOF
 
                     echo -e "${INFO} make.env file info:"
                     cat make.env
-
-                    # Check the available size of server space
-                    now_remaining_space="$(df -Tk ${PWD} | grep '/dev/' | awk '{print $5}' | echo $(($(xargs) / 1024 / 1024)))"
-                    if [[ "${now_remaining_space}" -le "3" ]]; then
-                        echo -e "${WARNING} If the remaining space is less than 3G, exit this packaging. \n"
-                        break 2
-                    else
-                        echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
-                    fi
 
                     # Select the corresponding packaging script
                     case "${PACKAGE_VAR}" in
