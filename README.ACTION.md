@@ -12,8 +12,9 @@
   uses: unifreq/openwrt_packit@master
   env:
     OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*rootfs.tar.gz
-    PACKAGE_SOC: s905d_s905x3_s922x_vplus_beikeyun_l1pro_qemu
+    PACKAGE_SOC: all
     KERNEL_VERSION_NAME: 5.15.50_6.0.1
+    GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 ```
 
@@ -41,7 +42,7 @@
 
 | 参数                   | 默认值                  | 说明                                            |
 |------------------------|------------------------|------------------------------------------------|
-| OPENWRT_ARMVIRT_PATH   | no                     | 必选项. 设置 `openwrt-armvirt-64-default-rootfs.tar.gz` 的文件路径，可以使用相对路径如 `openwrt/bin/targets/*/*/*.tar.gz` 或 网络文件下载地址如 `https://github.com/*/releases/*/*.tar.gz` |
+| OPENWRT_ARMVIRT_PATH   | 无                     | 必选项. 设置 `openwrt-armvirt-64-default-rootfs.tar.gz` 的文件路径，可以使用相对路径如 `openwrt/bin/targets/*/*/*.tar.gz` 或 网络文件下载地址如 `https://github.com/*/releases/*/*.tar.gz` |
 | KERNEL_REPO_URL        | [breakings/.../opt](openwrt_flippy.sh#L46) | 设置内核下载地址，默认从 breakings 维护的 [kernel](https://github.com/breakings/OpenWrt/tree/main/opt) 库里下载 Flippy 的内核。 |
 | KERNEL_VERSION_DIR     | kernel_rk3588          | 设置内核下载目录。通用内核目录_rk3588内核目录 |
 | KERNEL_VERSION_NAME    | 5.15.50_6.0.1        | 设置内核版本，[kernel](https://github.com/breakings/OpenWrt/tree/main/opt/kernel) 库里收藏了众多 Flippy 的原版内核，可以查看并选择指定。可指定单个内核如 `5.15.50` ，可选择多个内核用`_`连接如 `5.15.50_6.0.1` ，内核名称以 kernel 目录中的文件夹名称为准。 |
@@ -77,6 +78,7 @@
 | ENABLE_WIFI_K510       | 1                      | 设置 `make.env` 中 `ENABLE_WIFI_K510` 参数的值  |
 | DISTRIB_REVISION       | R$(date +%Y.%m.%d)     | 设置 `make.env` 中 `DISTRIB_REVISION` 参数的值  |
 | DISTRIB_DESCRIPTION    | OpenWrt                | 设置 `make.env` 中 `DISTRIB_DESCRIPTION` 参数的值  |
+| GH_TOKEN               | 无                     | 可选项。设置 ${{ secrets.GH_TOKEN }}，用于 [api.github.com](https://docs.github.com/en/rest/overview/resources-in-the-rest-api?apiVersion=2022-11-28#requests-from-personal-accounts) 查询。 |
 
 ## 输出参数说明
 
