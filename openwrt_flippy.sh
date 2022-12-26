@@ -88,9 +88,6 @@ ENABLE_WIFI_K510_VALUE="1"
 DISTRIB_REVISION_VALUE="R$(date +%Y.%m.%d)"
 DISTRIB_DESCRIPTION_VALUE="OpenWrt"
 
-# Get ${{ secrets.GH_TOKEN }} for api.github.com
-GH_TOKEN="${GH_TOKEN}"
-
 # Set font color
 STEPS="[\033[95m STEPS \033[0m]"
 INFO="[\033[94m INFO \033[0m]"
@@ -124,6 +121,7 @@ init_var() {
     [[ -n "${SELECT_PACKITPATH}" ]] || SELECT_PACKITPATH="${SELECT_PACKITPATH_VALUE}"
     [[ -n "${SELECT_OUTPUTPATH}" ]] || SELECT_OUTPUTPATH="${SELECT_OUTPUTPATH_VALUE}"
     [[ -n "${SAVE_OPENWRT_ARMVIRT}" ]] || SAVE_OPENWRT_ARMVIRT="${SAVE_OPENWRT_ARMVIRT_VALUE}"
+    [[ -n "${GH_TOKEN}" ]] && GH_TOKEN="${GH_TOKEN}" || GH_TOKEN=""
 
     # Specify the default packaging script
     [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
@@ -263,10 +261,10 @@ auto_kernel() {
                 # Check the version on the server (e.g LATEST_VERSION="125")
                 if [[ -n "${GH_TOKEN}" ]]; then
                     LATEST_VERSION="$(curl --header "authorization: Bearer ${GH_TOKEN}" -s "${SERVER_KERNEL_URL}/${vb}" | grep "name" | grep -oE "${MAIN_LINE}.[0-9]+" | sed -e "s/${MAIN_LINE}.//g" | sort -n | sed -n '$p')"
-                    query_api="authenticated"
+                    query_api="Authenticated user request"
                 else
                     LATEST_VERSION="$(curl -s "${SERVER_KERNEL_URL}/${vb}" | grep "name" | grep -oE "${MAIN_LINE}.[0-9]+" | sed -e "s/${MAIN_LINE}.//g" | sort -n | sed -n '$p')"
-                    query_api="unauthenticated"
+                    query_api="Unauthenticated user request"
                 fi
 
                 if [[ "$?" -eq "0" && -n "${LATEST_VERSION}" ]]; then
