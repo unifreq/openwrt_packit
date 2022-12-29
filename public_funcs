@@ -625,8 +625,11 @@ function extract_rootfs_files() {
        # wifi6 module AP6275S
        sed -e "s/macaddr=00:90:4c:12:d0:01/macaddr=${MACADDR}/" "brcmfmac4375-sdio.txt" > "brcmfmac4375-sdio.azw,gtking.txt"
        # Phicomm N1 采用 bcm43455 wifi/bluetooth 模块
-       get_random_mac
-       sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.phicomm,n1.txt"
+       if [ "$SOC" == "s905d" ] && [ "$BOARD" == "n1" ];then
+           get_random_mac
+           sed -e "s/macaddr=b8:27:eb:74:f2:6c/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.phicomm,n1.txt"
+           ln -s "brcmfmac43455-sdio.bin" "brcmfmac43455-sdio.phicomm,n1.bin"
+       fi
        # MXQ Pro+ 采用 AP6330(bcm4330) wifi/bluetooth 模块
        get_random_mac
        sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4330-sdio.txt" > "brcmfmac4330-sdio.crocon,mxq-pro-plus.txt"
