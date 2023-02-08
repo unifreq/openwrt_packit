@@ -37,7 +37,7 @@ PACKAGE_OPENWRT=(
 )
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k")
-# Set the list of devices using the [ 6.0.y and above ] kernel
+# Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
@@ -46,8 +46,8 @@ PACKAGE_SOC_VALUE="all"
 KERNEL_REPO_URL_VALUE="https://github.com/breakings/OpenWrt/tree/main/opt"
 # Common kernel directory, RK3588 kernel directory, [ rk3588 ] is the fixed name
 KERNEL_DIR=("kernel" "rk3588")
-COMMON_KERNEL=("6.0.1" "5.15.50")
-RK3588_KERNEL=("5.10.150")
+COMMON_KERNEL=("6.1.10" "5.15.50")
+RK3588_KERNEL=("5.10.110")
 KERNEL_AUTO_LATEST_VALUE="true"
 
 # Set the working directory under /opt
@@ -107,7 +107,7 @@ init_var() {
     echo -e "${STEPS} Start Initializing Variables..."
 
     # Install the compressed package
-    sudo apt-get -qq update && sudo apt-get -qq install -y p7zip p7zip-full zip unzip gzip xz-utils pigz zstd subversion git
+    sudo apt-get -qq update && sudo apt-get -qq install -y curl wget subversion git p7zip p7zip-full zip unzip gzip xz-utils pigz zstd
 
     # Specify the default value
     [[ -n "${SCRIPT_REPO_URL}" ]] || SCRIPT_REPO_URL="${SCRIPT_REPO_URL_VALUE}"
@@ -244,9 +244,9 @@ auto_kernel() {
         {
             # Select the corresponding kernel directory and list
             if [[ "${vb}" == "rk3588" ]]; then
-                down_kernel_list="${RK3588_KERNEL[*]}"
+                down_kernel_list=(${RK3588_KERNEL[*]})
             else
-                down_kernel_list="${COMMON_KERNEL[*]}"
+                down_kernel_list=(${COMMON_KERNEL[*]})
             fi
 
             # Query the name of the latest kernel version
@@ -273,7 +273,7 @@ auto_kernel() {
                     TMP_ARR_KERNELS[${i}]="${KERNEL_VAR}"
                 fi
 
-                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel(${query_api})."
+                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel (${query_api})."
 
                 let i++
             done
@@ -281,10 +281,10 @@ auto_kernel() {
             # Reset the kernel array to the latest kernel version
             if [[ "${vb}" == "rk3588" ]]; then
                 unset RK3588_KERNEL
-                RK3588_KERNEL="${TMP_ARR_KERNELS[*]}"
+                RK3588_KERNEL=(${TMP_ARR_KERNELS[*]})
             else
                 unset COMMON_KERNEL
-                COMMON_KERNEL="${TMP_ARR_KERNELS[*]}"
+                COMMON_KERNEL=(${TMP_ARR_KERNELS[*]})
             fi
 
             let x++
@@ -305,9 +305,9 @@ download_kernel() {
         {
             # Set the kernel download list
             if [[ "${vb}" == "rk3588" ]]; then
-                down_kernel_list="${RK3588_KERNEL[*]}"
+                down_kernel_list=(${RK3588_KERNEL[*]})
             else
-                down_kernel_list="${COMMON_KERNEL[*]}"
+                down_kernel_list=(${COMMON_KERNEL[*]})
             fi
 
             # Kernel storage directory
@@ -341,10 +341,10 @@ make_openwrt() {
         {
             # Distinguish between different OpenWrt and use different kernel
             if [[ -n "$(echo "${PACKAGE_OPENWRT_RK3588[@]}" | grep -w "${PACKAGE_VAR}")" ]]; then
-                build_kernel="${RK3588_KERNEL[*]}"
+                build_kernel=(${RK3588_KERNEL[*]})
                 vb="rk3588"
             else
-                build_kernel="${COMMON_KERNEL[*]}"
+                build_kernel=(${COMMON_KERNEL[*]})
                 vb="$(echo "${KERNEL_DIR[@]}" | sed -e "s|rk3588||" | xargs)"
             fi
 
@@ -381,7 +381,7 @@ make_openwrt() {
                     cd /opt/${SELECT_PACKITPATH}
 
                     # If flowoffload is turned on, then sfe is forced to be closed by default
-                    [[ "${SW_FLOWOFFLOAD}" -eq "1" ]] && SFE_FLOW=0
+                    [[ "${SW_FLOWOFFLOAD}" -eq "1" ]] && SFE_FLOW="0"
 
                     if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER}" == "auto" ]]; then
                         OPENWRT_VER="$(cat make.env | grep "OPENWRT_VER=\"" | cut -d '"' -f2)"
@@ -440,7 +440,7 @@ EOF
                         zip | .zip)    ls *.img | head -n 1 | xargs -I % sh -c 'zip %.zip %; rm -f %' ;;
                         zst | .zst)    zstd --rm *.img ;;
                         xz | .xz)      xz -z *.img ;;
-                        gz | .gz | *)  pigz -9f *.img ;;
+                        gz | .gz | *)  pigz -f *.img ;;
                     esac
 
                     echo -e "${SUCCESS} (${i}.${k}) OpenWrt packaging succeeded: [ ${PACKAGE_VAR} - ${vb} - ${KERNEL_VAR} ] \n"
@@ -471,9 +471,9 @@ out_github_env() {
         # Generate sha256sum check file
         sha256sum * >sha256sums && sync
 
-        echo "PACKAGED_OUTPUTPATH=${PWD}" >>$GITHUB_ENV
-        echo "PACKAGED_OUTPUTDATE=$(date +"%m.%d.%H%M")" >>$GITHUB_ENV
-        echo "PACKAGED_STATUS=success" >>$GITHUB_ENV
+        echo "PACKAGED_OUTPUTPATH=${PWD}" >>${GITHUB_ENV}
+        echo "PACKAGED_OUTPUTDATE=$(date +"%m.%d.%H%M")" >>${GITHUB_ENV}
+        echo "PACKAGED_STATUS=success" >>${GITHUB_ENV}
         echo -e "PACKAGED_OUTPUTPATH: ${PWD}"
         echo -e "PACKAGED_OUTPUTDATE: $(date +"%m.%d.%H%M")"
         echo -e "PACKAGED_STATUS: success"
@@ -481,7 +481,7 @@ out_github_env() {
         echo -e "$(ls /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} 2>/dev/null) \n"
     else
         echo -e "${ERROR} Packaging failed. \n"
-        echo "PACKAGED_STATUS=failure" >>$GITHUB_ENV
+        echo "PACKAGED_STATUS=failure" >>${GITHUB_ENV}
     fi
 }
 
@@ -491,14 +491,21 @@ echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | g
 echo -e "${INFO} Server memory usage: \n$(free -h) \n"
 echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}) \n"
 
-# Perform related operations in sequence
+# Initialize and download resources
 init_var
 init_packit_repo
 [[ "${KERNEL_AUTO_LATEST}" == "true" ]] && auto_kernel
 download_kernel
+#
+echo -e "${INFO} [ ${#PACKAGE_OPENWRT[*]} ] lists of OpenWrt board: [ $(echo ${PACKAGE_OPENWRT[*]} | xargs) ]"
+echo -e "${INFO} [ ${#COMMON_KERNEL[*]} ] lists of common kernel: [ $(echo ${COMMON_KERNEL[*]} | xargs) ]"
+echo -e "${INFO} [ ${#RK3588_KERNEL[*]} ] lists of rk3588 Kernel: [ $(echo ${RK3588_KERNEL[*]} | xargs) ]"
+echo -e "${INFO} Use the latest kernel version: [ ${KERNEL_AUTO_LATEST} ] \n"
+#
+# Loop to make OpenWrt
 make_openwrt
 out_github_env
-
+#
 # Display the remaining space on the server
 echo -e "${INFO} Server space usage after compilation:\n$(df -hT ${PWD}) \n"
 echo -e "${SUCCESS} The packaging process has been completed. \n"
