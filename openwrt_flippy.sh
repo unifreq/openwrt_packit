@@ -12,6 +12,7 @@
 # init_var          : Initialize all variables
 # init_packit_repo  : Initialize packit openwrt repo
 # auto_kernel       : Automatically use the latest kernel
+# check_kernel      : Check kernel files integrity
 # download_kernel   : Download the kernel
 # make_openwrt      : Loop to make OpenWrt files
 # out_github_env    : Output github.com variables
@@ -107,7 +108,8 @@ init_var() {
     echo -e "${STEPS} Start Initializing Variables..."
 
     # Install the compressed package
-    sudo apt-get -qq update && sudo apt-get -qq install -y curl wget subversion git p7zip p7zip-full zip unzip gzip xz-utils pigz zstd
+    sudo apt-get -qq update
+    sudo apt-get -qq install -y curl wget subversion git coreutils p7zip p7zip-full zip unzip gzip xz-utils pigz zstd
 
     # Specify the default value
     [[ -n "${SCRIPT_REPO_URL}" ]] || SCRIPT_REPO_URL="${SCRIPT_REPO_URL_VALUE}"
@@ -295,6 +297,24 @@ auto_kernel() {
     echo -e "${INFO} The latest version of the rk3588 kernel: [ ${RK3588_KERNEL[*]} ]"
 }
 
+check_kernel() {
+    [[ -n "${1}" ]] && check_path="${1}" || error_msg "Invalid kernel path to check."
+    check_files=($(cat "${check_path}/sha256sums" | awk '{print $2}'))
+    m="1"
+    for cf in ${check_files[*]}; do
+        {
+            # Check if file exists
+            [[ -s "${check_path}/${cf}" ]] || error_msg "The [ ${cf} ] file is missing."
+            # Check if the file sha256sum is correct
+            tmp_sha256sum="$(sha256sum "${check_path}/${cf}" | awk '{print $1}')"
+            tmp_checkcode="$(cat ${check_path}/sha256sums | grep ${cf} | awk '{print $1}')"
+            [[ "${tmp_sha256sum}" == "${tmp_checkcode}" ]] || error_msg "[ ${cf} ]: sha256sum verification failed."
+            let m++
+        }
+    done
+    echo -e "${INFO} All [ ${#check_files[*]} ] kernel files are sha256sum checked to be complete.\n"
+}
+
 download_kernel() {
     echo -e "${STEPS} Start downloading the kernel..."
 
@@ -324,6 +344,9 @@ download_kernel() {
                     echo -e "${INFO} (${i}) [ ${vb} - ${KERNEL_VAR} ] Kernel is in the local directory."
                 fi
 
+                # If the kernel contains the sha256sums file, check the files integrity
+                [[ -f "${kernel_path}/${KERNEL_VAR}/sha256sums" ]] && check_kernel "${kernel_path}/${KERNEL_VAR}"
+
                 let i++
             done
             sync
@@ -351,7 +374,7 @@ make_openwrt() {
             k="1"
             for KERNEL_VAR in ${build_kernel[*]}; do
                 {
-                   # Rockchip rk3568 series only support 6.0.y and above kernel
+                    # Rockchip rk3568 series only support 6.x.y and above kernel
                     [[ -n "$(echo "${PACKAGE_OPENWRT_KERNEL6[@]}" | grep -w "${PACKAGE_VAR}")" && "${KERNEL_VAR:0:1}" -ne "6" ]] && {
                         echo -e "${STEPS} (${i}.${k}) ${PROMPT} ${PACKAGE_VAR} cannot use ${KERNEL_VAR} kernel, skip."
                         let k++
