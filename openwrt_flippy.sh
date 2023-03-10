@@ -217,9 +217,11 @@ init_packit_repo() {
     if [[ "${OPENWRT_ARMVIRT}" == http* ]]; then
         echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
         wget ${OPENWRT_ARMVIRT} -q -O "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
+        [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file download failed."
     else
         echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
         cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}/${PACKAGE_FILE}
+        [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file copy failed."
     fi
 
     # Normal ${PACKAGE_FILE} file should not be less than 10MB
@@ -230,6 +232,21 @@ init_packit_repo() {
     else
         error_msg "The [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] failed to load."
     fi
+
+    # Add custom script
+    [[ -n "${SCRIPT_DIY_PATH}" ]] && {
+        if [[ "${SCRIPT_DIY_PATH}" == http* ]]; then
+            echo -e "${INFO} Use wget to download custom script file: [ ${SCRIPT_DIY_PATH} ]"
+            wget ${SCRIPT_DIY_PATH} -q -O "${SELECT_PACKITPATH}/${SCRIPT_DIY}"
+            [[ "${?}" -eq "0" ]] || error_msg "Custom script file download failed."
+        else
+            echo -e "${INFO} Copy custom script file: [ ${SCRIPT_DIY_PATH} ]"
+            cp -f ${GITHUB_WORKSPACE}/${SCRIPT_DIY_PATH} ${SELECT_PACKITPATH}/${SCRIPT_DIY}
+            [[ "${?}" -eq "0" ]] || error_msg "Custom script file copy failed."
+        fi
+        chmod +x ${SELECT_PACKITPATH}/${SCRIPT_DIY}
+        echo -e "List of [ ${SELECT_PACKITPATH} ] directory files:\n $(ls -l ${SELECT_PACKITPATH})"
+    }
 }
 
 auto_kernel() {
@@ -395,10 +412,9 @@ make_openwrt() {
                     cp -f ${vb}/${KERNEL_VAR}/* .
                     #
                     boot_kernel_file="$(ls boot-${KERNEL_VAR}* 2>/dev/null | head -n 1)"
-                    boot_kernel_file="${boot_kernel_file//boot-/}"
-                    boot_kernel_file="${boot_kernel_file//.tar.gz/}"
-                    [[ "${vb}" == "rk3588" ]] && rk3588_file="${boot_kernel_file}" || rk3588_file=""
-                    echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel name: [ ${boot_kernel_file} ]"
+                    KERNEL_VERSION="${boot_kernel_file:5:-7}"
+                    [[ "${vb}" == "rk3588" ]] && RK3588_KERNEL_VERSION="${KERNEL_VERSION}" || RK3588_KERNEL_VERSION=""
+                    echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel version: [ ${KERNEL_VERSION} ]"
                     echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
 
                     cd /opt/${SELECT_PACKITPATH}
@@ -416,8 +432,8 @@ make_openwrt() {
                     cat >make.env <<EOF
 WHOAMI="${WHOAMI}"
 OPENWRT_VER="${OPENWRT_VER}"
-RK3588_KERNEL_VERSION="${rk3588_file}"
-KERNEL_VERSION="${boot_kernel_file}"
+RK3588_KERNEL_VERSION="${RK3588_KERNEL_VERSION}"
+KERNEL_VERSION="${KERNEL_VERSION}"
 KERNEL_PKG_HOME="/opt/kernel"
 SW_FLOWOFFLOAD="${SW_FLOWOFFLOAD}"
 HW_FLOWOFFLOAD="${HW_FLOWOFFLOAD}"
@@ -508,27 +524,29 @@ out_github_env() {
     fi
 }
 
-# Show server free space
+# Show welcome message
 echo -e "${STEPS} Welcome to use the OpenWrt packaging tool! \n"
-echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
-echo -e "${INFO} Server memory usage: \n$(free -h) \n"
-echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}) \n"
 
 # Initialize and download resources
 init_var
 init_packit_repo
 [[ "${KERNEL_AUTO_LATEST}" == "true" ]] && auto_kernel
 download_kernel
-#
+
+# Show packit settings
 echo -e "${INFO} [ ${#PACKAGE_OPENWRT[*]} ] lists of OpenWrt board: [ $(echo ${PACKAGE_OPENWRT[*]} | xargs) ]"
 echo -e "${INFO} [ ${#COMMON_KERNEL[*]} ] lists of common kernel: [ $(echo ${COMMON_KERNEL[*]} | xargs) ]"
 echo -e "${INFO} [ ${#RK3588_KERNEL[*]} ] lists of rk3588 Kernel: [ $(echo ${RK3588_KERNEL[*]} | xargs) ]"
 echo -e "${INFO} Use the latest kernel version: [ ${KERNEL_AUTO_LATEST} ] \n"
-#
+# Show server start information
+echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
+echo -e "${INFO} Server memory usage: \n$(free -h) \n"
+echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}) \n"
+
 # Loop to make OpenWrt
 make_openwrt
 out_github_env
-#
-# Display the remaining space on the server
+
+# Show server end information
 echo -e "${INFO} Server space usage after compilation:\n$(df -hT ${PWD}) \n"
 echo -e "${SUCCESS} The packaging process has been completed. \n"
