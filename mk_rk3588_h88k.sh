@@ -8,6 +8,8 @@ init_work_env
 PLATFORM=rockchip
 SOC=rk3588
 BOARD=h88k
+
+# 新增参数：若SUBVER=25, 则表示此固件为双2.5G网卡(默认是2.5G+1G)
 SUBVER=$1
 
 if [ -n "$RK3588_KERNEL_VERSION" ];then
@@ -33,7 +35,7 @@ check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target Image
-TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}.img"
+TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}_${SUBVER}.img"
 
 # patches、scripts
 ####################################################################
@@ -132,6 +134,10 @@ cd $TGT_BOOT
 sed -e '/rootdev=/d' -i armbianEnv.txt
 sed -e '/rootfstype=/d' -i armbianEnv.txt
 sed -e '/rootflags=/d' -i armbianEnv.txt
+if [ "$SUBVER" == "25" ];then
+	echo "提示：此固件为双2.5g网卡版本！"
+	sed -e 's/overlays=/overlays=disable-gmac0/' -i armbianEnv.txt
+fi
 cat >> armbianEnv.txt <<EOF
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
