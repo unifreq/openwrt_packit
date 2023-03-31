@@ -136,7 +136,7 @@ sed -e '/rootfstype=/d' -i armbianEnv.txt
 sed -e '/rootflags=/d' -i armbianEnv.txt
 if [ "$SUBVER" == "25" ];then
 	echo "提示：此固件为双2.5g网卡版本！"
-	sed -e 's/overlays=/overlays=disable-gmac0/' -i armbianEnv.txt
+	sed -e 's/user_overlays=/user_overlays=disable-gmac0/' -i armbianEnv.txt
 fi
 cat >> armbianEnv.txt <<EOF
 rootdev=UUID=${ROOTFS_UUID}
