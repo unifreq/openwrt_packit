@@ -69,7 +69,9 @@ elif [ -d "/sys/class/pci_bus/0002:21/device/0002:21:00.0" ];then
     pcie2_class=$(cat "/sys/class/pci_bus/0002:21/device/0002:21:00.0/class")
     if [ "${pcie2_class}" == "0x020000" ];then
         ext_pcie_eth="1"
-        swap_interface "eth0" "eth1"
+        if [ -d "/sys/devices/platform/fe170000.pcie/pci0002:20/0002:20:00.0/0002:21:00.0/net/eth0" ];then
+            swap_interface "eth0" "eth1"
+        fi
     fi
 fi
 
