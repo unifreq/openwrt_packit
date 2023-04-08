@@ -1,5 +1,5 @@
---- a/etc/init.d/sysfixtime	2020-10-26 15:09:35.562417714 +0800
-+++ b/etc/init.d/sysfixtime	2020-10-26 15:10:39.134569379 +0800
+--- a/etc/init.d/sysfixtime	2023-04-08 21:57:58.707491705 +0800
++++ b/etc/init.d/sysfixtime	2023-04-08 21:57:06.599492680 +0800
 @@ -6,6 +6,7 @@ STOP=90
  
  RTC_DEV=/dev/rtc0
@@ -7,18 +7,25 @@
 +FIX_CPU_FREQ=/usr/sbin/fixcpufreq.pl
  
  boot() {
- 	start && exit 0
-@@ -16,7 +17,12 @@ boot() {
+ 	hwclock_load
+@@ -18,6 +19,7 @@ boot() {
  }
  
  start() {
--	[ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
 +	[ -x "$FIX_CPU_FREQ" ] && "$FIX_CPU_FREQ"
+ 	hwclock_load
+ }
+ 
+@@ -26,7 +28,11 @@ stop() {
+ }
+ 
+ hwclock_load() {
+-	[ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
 +	if ${HWCLOCK} | grep '1970' > /dev/null;then
-+	    return 1
++	    return
 +	else
 +	    [ -e "$RTC_DEV" ] && [ -e "$HWCLOCK" ] && $HWCLOCK -s -u -f $RTC_DEV
 +	fi
  }
  
- stop() {
+ hwclock_save(){
