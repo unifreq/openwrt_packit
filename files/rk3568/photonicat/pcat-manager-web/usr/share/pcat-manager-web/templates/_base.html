@@ -1,0 +1,153 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><title>photonicat 光影猫 - 配置</title> {% block html_head0 %}{% endblock %} <style type="text/css">
+      [x-cloak] {
+        display: none !important;
+      }
+    </style><script defer src="/static/alpine-3.10.2.js"></script><link rel="stylesheet" href="/static/app.css?v00029"> {% block html_head %}{% endblock %} </head><body class="bg-gray-100 font-sans leading-normal tracking-normal" x-data="{ user_menu_open: false, reboot_dlg_open : false, rebooting: false }"><div class="fixed top-0 z-10 w-full bg-white px-2 shadow sm:px-0"><div class="container mx-auto flex flex-wrap justify-between py-2 sm:py-2"><div class="flex"><a class="flex items-center font-title text-[14px] font-bold text-pcatgray no-underline hover:no-underline sm:text-xl truncate overflow-hidden" href="/"><img src="/static/logo.svg" class="mr-2 w-6 sm:w-10"> Photonicat </a></div><div class="flex flex-grow items-center justify-end text-sm text-gray-500"><a href="/advanced_admin" target="_blank" class="mr-4 flex items-center hover:underline focus:ring-2 focus:ring-blue-600"><svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg> OpenWRT </a><div class="mr-4 flex items-center" x-cloak x-show="$store.app.network_route_mode === 'mobile'"><span x-text="$store.app.mobile_signal_name" class="mr-2"></span><img :src="$store.app.mobile_signal_strength_img" class="mr-4"></div><div class="mr-4 flex items-center" x-cloak x-show="$store.app.firmware_exist"><div class="flex h-6 w-6 items-center text-center font-thin text-gray-700"><div class="grow border border-gray-700 bg-gray-100 text-[8px] leading-[0.6rem]" x-text="$store.app.charge_percent">0</div><div class="h-1.5 w-0.5 bg-gray-700"></div></div><svg x-show="$store.app.on_charging === 1" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><div class="relative float-right inline-block"><div class="relative text-sm"><button @click="user_menu_open = true" class="flex items-center focus:outline-none"><svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span class="hidden md:inline-block">root </span><svg class="h-2 pl-1" version="1.1" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 129 129" xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 129 129"><g><path d="m121.3,34.6c-1.6-1.6-4.2-1.6-5.8,0l-51,51.1-51.1-51.1c-1.6-1.6-4.2-1.6-5.8,0-1.6,1.6-1.6,4.2 0,5.8l53.9,53.9c0.8,0.8 1.8,1.2 2.9,1.2 1,0 2.1-0.4 2.9-1.2l53.9-53.9c1.7-1.6 1.7-4.2 0.1-5.8z"></path></g></svg><div x-cloak x-show="user_menu_open" @click.outside="user_menu_open = false" class="absolute top-0 right-0 z-30 mt-10 w-48 overflow-auto rounded border bg-white shadow-md sm:w-32"><ul class="list-reset"><li class="border-b border-gray-100"><a href="#" @click="reboot_dlg_open = true" class="flex items-center px-2 py-4 text-gray-500 no-underline hover:bg-gray-200 hover:no-underline sm:justify-start sm:py-2"><svg class="mr-2 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> {{locales["nav_reboot_device"]}} </a></li><li class="border-b border-gray-100"><a href="/switch_locale" title="{{locales['switch_to_locale_tip']}}" class="flex items-center px-2 py-4 text-gray-500 no-underline hover:bg-gray-200 hover:no-underline sm:justify-start sm:py-2"><svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg> {{locales["switch_to_locale"]}} </a></li><li class="border-b border-gray-100 block sm:hidden"><a href="https://photonicat.com/wiki/Main_Page" title="Wiki" target="_blank" class="flex items-center px-2 py-4 text-gray-500 no-underline hover:bg-gray-200 hover:no-underline sm:justify-start sm:py-2"><img src="/static/wiki24.png" class="mr-2 h-6 w-6 text-black"> Wiki </a></li><li class="border-b border-gray-100"><a href="/logout" class="flex items-center px-2 py-4 text-gray-500 no-underline hover:bg-gray-200 hover:no-underline sm:justify-start sm:py-2"><svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg> {{locales["nav_logout"]}} </a></li></ul></div></button> {% include "_reboot_confirm_modal.html" %} {% include "_rebooting_modal.html" %} </div></div></div></div><div class="container z-20 mx-auto hidden w-full flex-grow items-center bg-white sm:flex lg:w-auto" id="nav-content"><ul class="list-reset flex flex-1 items-center justify-between overflow-x-auto sm:justify-start sm:px-4 md:px-0"><li class="w-16 sm:w-24"><a class="flex items-center justify-center space-x-2" :class="$store.app.page == 'index' ? 'nav-active' : 'nav'" href="/"><svg xmlns="http://www.w3.org/2000/svg" class="mb-0 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></a></li><li class="w-16 sm:w-24"><a class="nav flex items-center justify-center space-x-2" :class="$store.app.page == 'settings' ? 'nav-active' : 'nav'" href="/device_control"><svg xmlns="http://www.w3.org/2000/svg" class="mb-0 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></a></li><li class="w-16 sm:w-24"><a class="nav flex items-center justify-center space-x-2" :class="$store.app.page == 'modem' ? 'nav-active' : 'nav'" href="/modem"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-0 h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg></a></li><li class="w-16 sm:w-24"><a class="nav flex items-center justify-center space-x-2" :class="$store.app.page == 'statistics' ? 'nav-active' : 'nav'" href="/statistics"><img src="/static/increasing.png" width="24" height="24"></a></li><li class="w-16 sm:w-24"><a class="nav flex items-center justify-center space-x-2" :class="$store.app.page == 'update' ? 'nav-active' : 'nav'" href="/update"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-0 h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></a></li></ul></div></div> {% block content %}{% endblock %} <div class="fixed bottom-0 z-20 flex w-full flex-grow items-center border-t border-gray-300 bg-gray-200 sm:hidden" id="bottom-nav-content"><ul class="list-reset flex flex-1 items-center justify-between overflow-x-auto"><li class="w-24"><a aria-current="page" class="flex items-center justify-center space-x-2 py-2" :class="$store.app.page == 'index' ? 'nav-active' : 'nav'" href="/"><svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></a></li><li class="w-24"><a class="nav flex items-center justify-center space-x-2 py-2" :class="$store.app.page == 'settings' ? 'nav-active' : 'nav'" href="/device_control"><svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></a></li><li class="w-24"><a class="nav flex items-center justify-center space-x-2 py-2" :class="$store.app.page == 'modem' ? 'nav-active' : 'nav'" href="/modem"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-1 h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg></a></li><li class="w-24"><a class="nav flex items-center justify-center space-x-2 py-2" :class="$store.app.page == 'statistics' ? 'nav-active' : 'nav'" href="/statistics"><img src="/static/increasing.png" width="24" height="24"></a></li><li class="w-24"><a class="nav flex items-center justify-center space-x-2 py-2" :class="$store.app.page == 'update' ? 'nav-active' : 'nav'" href="/update"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-0 h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></a></li></ul><div class="hidden sm:block"></div></div><footer class="fixed bottom-0 hidden w-full border-t border-gray-200 bg-white shadow sm:block"><div class="container mx-auto flex w-full justify-between px-4 py-4 sm:px-0"><div><ul class="flex gap-2 text-sm"><li class="text-pcatgray3" x-text="$store.app.date"></li><li class="text-pcatgray3">|</li><li class="text-pcatgray3" x-text="$store.app.time"></li><li class="text-pcatgray3">|</li><li class="text-pcatgray3">Powered by photonicat.com</li></ul></div><div class=""><a href="https://photonicat.com/wiki/Main_Page" target="_blank" class="inline-flex text-sm border-gray-200 border rounded-lg px-1 bg-gray-100 hover:bg-gray-200" title="Wiki"><img class="mr-2" src="/static/wiki.png"> WIKI</a></div></div></footer><script type="text/javascript">
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("app", {
+          fetchTips(){
+            fetch("https://api.photonicat.com/tips.php")
+              .then((response) => {
+                if (response.ok) {
+                  return response.json();
+                }
+                throw new Error('Failed to fetch tips');
+              })
+              .then((data) => {
+                this.tips_collection = data.tips;
+                let i = Math.floor(Math.random() * this.tips_collection.length);
+                this.tips = this.tips_collection[i];
+              }).catch((error) => {
+                this.tips_collection = [];
+                this.tips = "";
+              });
+              setInterval(() => {
+                this.tips = "";
+                setTimeout(()=>{
+                  let i = Math.floor(Math.random() * this.tips_collection.length);
+                  this.tips = this.tips_collection[i];
+                }, 500);
+                
+              }, 30000);
+          },
+
+          fetch_status() {
+            fetch("/api/v1/status2.json")
+              .then((response) => response.json())
+              .then((data) => {
+                this.on_charging = data.on_charging ? 1 : 0;
+
+                if (this.system_status === 0 && data.system_status === 20) {
+                  this.reboot_timer = setInterval(() => {
+                    this.reboot_timer_count = this.reboot_timer_count + 1;
+                  }, 1000);
+                }
+
+                this.system_status = data.system_status;
+
+                if (this.system_status === 0) {
+                  if (this.reboot_timer) {
+                    clearInterval(this.reboot_timer);
+                    this.reboot_timer = null;
+                    this.reboot_timer_count = 0;
+                  }
+                }
+
+                this.firmware_version = data.firmware_version;
+                this.charge_percent = data.charge_percent;
+                this.date = data.date;
+                this.time = data.time;
+                this.car_mode.enabled = data.carmode.enabled;
+                if (this.car_mode.enabled === "true") {
+                  if (this.car_mode.countdown !== data.carmode.countdown && data.carmode.countdown !== data.carmode.timeout) {
+                    //this.notifation_text = `${data.carmode.countdown}秒后关机`;
+                  }
+                  this.car_mode.timeout = parseInt(data.carmode.timeout / 60);
+                } else {
+                  if (data.carmode.timeout === 0) {
+                    this.car_mode.timeout = 10; // default
+                  } else {
+                    this.car_mode.timeout = parseInt(data.carmode.timeout / 60);
+                  }
+                }
+                if (data.carmode.countdown === data.carmode.timeout) {
+                  this.notifation_text = "";
+                }
+                this.car_mode.countdown = data.carmode.countdown;
+                this.network_route_mode = data.network_route_mode;
+                this.modem_mode = data.modem_mode;
+                this.sim_state = data.sim_state;
+                this.isp_name = data.isp_name;
+                this.modem_signal_strength = data.modem_signal_strength;
+              })
+              .catch((error) => {
+                if (this.system_status === 20) {
+                  this.system_status = 25;
+                }
+              });
+          },
+          init() {
+            this.fetch_status();
+            this.fetchTips();
+            setInterval(() => {
+              this.fetch_status();
+            }, 2000);
+          },
+          page: "index",
+          on_charging: 0,
+          firmware_version: "",
+          charge_percent: 0,
+          date: "",
+          time: "",
+          car_mode: { countdown: 0, enabled: "false", timeout: 0 },
+          network_route_mode: "",
+          sim_state: "",
+          modem_signal_strength: 0,
+          isp_name: "",
+          reboot_timer: null,
+          reboot_timer_count: 0,
+          tips_collection: [],
+          tips: "",
+
+          set_page(page) {
+            this.page = page;
+          },
+
+          get firmware_exist() {
+            return this.firmware_version !== "" && this.firmware_version !== null;
+          },
+
+          get isp_readable_name() {
+            if (this.isp_name === "China Unicom") {
+              return "中国联通";
+            } else if (this.isp_name === "China Mobile") {
+              return "中国移动";
+            } else if (this.isp_name === "China Telecom") {
+              return "中国电信";
+            } else if (this.isp_name !== "") {  
+              return this.isp_name;
+            } else {
+              return "无服务";
+            }
+          },
+
+          get mobile_signal_name() {
+            return this.isp_readable_name + " " + this.modem_mode;
+          },
+
+          get mobile_signal_strength_img() {
+            if (this.modem_signal_strength > 75) {
+              return "/static/signal-75-100.png";
+            } else if (this.modem_signal_strength > 50) {
+              return "/static/signal-50-75.png";
+            } else if (this.modem_signal_strength > 25) {
+              return "/static/signal-25-50.png";
+            } else {
+              return "/static/signal-0-25.png";
+            }
+          },
+
+          ////////
+        });
+      });
+    </script> {% block bottom %}{% endblock %} <div x-show="$store.app.notifation_text !== ''" class="border-blue-300 absolute top-[32px] right-[32px] z-50 hidden w-48 -translate-y-2 bg-blue-50 p-2 text-center shadow transition duration-500 ease-in-out" x-text="$store.app.notifation_text"></div></body></html>

@@ -5,9 +5,16 @@ source make.env
 source public_funcs
 init_work_env
 
+# 默认是否开启软件FLOWOFFLOAD
+SW_FLOWOFFLOAD=0
+# 默认是否开启硬件FLOWOFFLOAD
+HW_FLOWOFFLOAD=0
+# 默认是否开启SFE
+SFE_FLOW=1
+
 PLATFORM=rockchip
-SOC=rk3328
-BOARD=beikeyun
+SOC=rk3568
+BOARD=photonicat
 SUBVER=$1
 
 # Kernel image sources
@@ -36,14 +43,11 @@ CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 INDEX_PATCH_HOME="${PWD}/files/index.html.patches"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 KMOD="${PWD}/files/kmod"
-KMOD_BLACKLIST="${PWD}/files/kmod_blacklist"
+KMOD_BLACKLIST="${PWD}/files/rk3568/photonicat/kmod_blacklist"
 
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
-BOOT_CMD="${PWD}/files/boot.cmd"
-BOOT_SCR="${PWD}/files/boot.scr"
 
-PWM_FAN="${PWD}/files/pwm-fan.pllllllll"
-DAEMON_JSON="${PWD}/files/rk3328/daemon.json"
+DAEMON_JSON="${PWD}/files/rk3568/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
 FLIPPY="${PWD}/files/scripts_deprecated/flippy_cn"
@@ -67,11 +71,11 @@ SYSFIXTIME_PATCH="${PWD}/files/sysfixtime.patch"
 SSL_CNF_PATCH="${PWD}/files/openssl_engine.patch"
 
 # 20201212 add
-BAL_CONFIG="${PWD}/files/rk3328/balance_irq"
+BAL_CONFIG="${PWD}/files/rk3568/photonicat/balance_irq"
 
 # 20210307 add
 SS_LIB="${PWD}/files/ss-glibc/lib-glibc.tar.xz"
-SS_BIN="${PWD}/files/ss-glibc/armv8a_crypto/ss-bin-glibc.tar.xz"
+SS_BIN="${PWD}/files/ss-glibc/armv8.2a_crypto/ss-bin-glibc.tar.xz"
 JQ="${PWD}/files/jq"
 
 # 20210330 add
@@ -79,16 +83,16 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 
 # 20200416 add
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
-BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip/rk3328"
+BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip/rk3568/photonicat"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
-BOOTLOADER_IMG="${PWD}/files/rk3328/btld-rk3328.bin"
+BOOTLOADER_IMG="${PWD}/files/rk3568/photonicat/bootloader.bin"
 
 # 20210618 add
 DOCKER_README="${PWD}/files/DockerReadme.pdf"
 
 # 20210704 add
 SYSINFO_SCRIPT="${PWD}/files/30-sysinfo.sh"
-FORCE_REBOOT="${PWD}/files/rk3328/reboot"
+FORCE_REBOOT="${PWD}/files/rk3568/reboot"
 
 # 20210923 add
 OPENWRT_KERNEL="${PWD}/files/openwrt-kernel"
@@ -101,18 +105,28 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+# 20220927 add
+BOARD_HOME="${PWD}/files/rk3568/photonicat/board.d"
 # 20221001 add
-MODULES_HOME="${PWD}/files/rk3328/modules.d"
+MODULES_HOME="${PWD}/files/rk3568/modules.d"
+# 20221123 add
+BOARD_MODULES_HOME="${PWD}/files/rk3568/photonicat/modules.d"
+# 20221013 add
+WIRELESS_CONFIG="${PWD}/files/rk3568/photonicat/wireless"
+# 20230418 add
+PCAT_MANAGER_WEB_HOME="${PWD}/files/rk3568/photonicat/pcat-manager-web"
+UHTTPD_PORT="8080"
+UHTTPD_PORT_S="8443"
 ####################################################################
 
 check_depends
 
 SKIP_MB=16
 BOOT_MB=160
-ROOTFS_MB=720
-SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
+ROOTFS_MB=960
+SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
-create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
+create_partition "$TGT_DEV" "gpt" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
 make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd:${ZSTD_LEVEL}"
@@ -123,18 +137,13 @@ extract_rockchip_boot_files
 
 echo "修改引导分区相关配置 ... "
 cd $TGT_BOOT
-[ -f $BOOT_CMD ] && cp $BOOT_CMD boot.cmd
-[ -f $BOOT_SCR ] && cp $BOOT_SCR boot.scr
-ln -sf ./dtb-${KERNEL_VERSION}/rockchip/rk3328-beikeyun*.dtb .
-cat > armbianEnv.txt <<EOF
-verbosity=7
-overlay_prefix=rockchip
+sed -e '/rootdev=/d' -i armbianEnv.txt
+sed -e '/rootfstype=/d' -i armbianEnv.txt
+sed -e '/rootflags=/d' -i armbianEnv.txt
+cat >> armbianEnv.txt <<EOF
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
 rootflags=compress=zstd:${ZSTD_LEVEL}
-extraargs=usbcore.autosuspend=-1
-extraboardargs=
-fdtfile=/dtb/rockchip/rk3328-beikeyun-1296mhz.dtb
 EOF
 echo "armbianEnv.txt -->"
 echo "==============================================================================="
@@ -160,6 +169,26 @@ adjust_turboacc_config
 adjust_ntfs_config
 adjust_mosdns_config
 patch_admin_status_index_html
+
+echo "为光影猫进行自定义配置 ... "
+if [ -d "${PCAT_MANAGER_WEB_HOME}" ];then
+	echo "copy pcat-manager-web ... "
+	cp -a ${PCAT_MANAGER_WEB_HOME}/* .
+	echo "done"
+fi
+if [ -n "$UHTTPD_PORT" ];then
+	echo "change http port from 80 to ${UHTTPD_PORT}"
+	sed -e "s/:80/:${UHTTPD_PORT}/g" -i etc/config/uhttpd
+	echo "done"
+fi
+if [ -n "$UHTTPD_PORT_S" ];then
+	echo "change https port from 443 to ${UHTTPD_PORT_S}"
+	sed -e "s/:443/:${UHTTPD_PORT_S}/g" -i etc/config/uhttpd
+	echo "done"
+fi
+echo "自定义配置完成"
+echo
+
 adjust_kernel_env
 copy_uboot_to_fs
 write_release_info

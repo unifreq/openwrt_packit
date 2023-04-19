@@ -1,0 +1,154 @@
+{% extends '_base.html' %} {% block content %} <div class="container mx-auto w-full pt-14 pb-12 sm:pt-24 sm:pb-12 md:pt-28" x-data="adv_settings"><div class="flex items-center justify-between"><h1 class="px-3 py-4 font-bold uppercase text-gray-600">{{locales["nav_settings"]}}</h1><div x-cloak x-show="$store.app.tips !== ''" class="text-pcatgray3 hover:text-gray-500 text-sm flex items-center justify-end w-56 lg:w-[450px]"><strong class="font-semibold mr-2">Tips:</strong><p class="truncate overflow-hidden" x-text="$store.app.tips" x-bind:title="$store.app.tips"></p></div></div><div class="mb-4 flex w-full leading-normal text-gray-800"><div class="grow"><div class="border bg-white"><div class="border-b"><ul class="flex justify-between"> {% if stm32_firmware_exist %} <li class="basis-1/3 cursor-pointer border border-b-2 border-b-pcatblue text-center font-semibold hover:font-semibold"><a href="/device_control" class="block p-1 sm:p-3">{{locales["tab_device_control"]}}</a></li><li class="basis-1/3 cursor-pointer border text-center hover:font-semibold"><a href="/settings" class="block p-1 sm:p-3">Wi-Fi</a></li><li class="basis-1/3 cursor-pointer border text-center hover:font-semibold"><a href="/timer" class="block p-1 sm:p-3">{{locales["tab_timers"]}}</a></li> {% else %} <li class="grow cursor-pointer border border-b-2 border-b-pcatblue text-center font-semibold hover:font-semibold"><a href="/device_control" class="block p-1 sm:p-3">{{locales["tab_device_control"]}}</a></li><li class="grow cursor-pointer border text-center hover:font-semibold"><a href="/settings" class="block p-1 sm:p-3">Wi-Fi</a></li> {% endif %} </ul></div></div></div></div><div class="mb-8 grid w-full grid-cols-1 gap-4 px-2 leading-normal text-gray-800 md:grid-cols-2 sm:px-0"><div class="grow rounded border bg-white shadow"><div class="flex justify-between border-b "><h5 class="flex font-bold text-gray-600"><div class="flex items-stretch"><button @click="switch_tab('network_mode')" :class="tab_page === 'network_mode' ? 'border-b-2 border-b-pcatblue' : '' " class="flex items-center border-x px-4 hover:bg-gray-100 py-3">{{locales["card_network_mode"]}}</button></div><div class="flex items-stretch"><button @click="switch_tab('apn_setup')" :class="tab_page === 'apn_setup' ? 'border-b-2 border-b-pcatblue' : '' " class="flex items-center border-x px-4 hover:bg-gray-100 py-3">{{locales["apn_setup"]}}</button></div></h5></div><div class="p-5" x-show="tab_page === 'network_mode'"><div class="mb-6 flex space-x-2 items-end sm:space-x-4"><div class="flex flex-col flex-wrap"><div class="w-28 text-gray-700 mb-2">{{locales["wan_interface"]}}</div><label class="relative flex cursor-pointer items-center"><input class="peer sr-only" type="checkbox" x-model="wan_enabled"><div class="h-6 w-11 rounded-full border-2 border-gray-200 bg-gray-200 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:transition-all after:duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div><span class="ml-2 select-none text-base text-gray-400" x-text="wan_enabled ? '{{locales['common_enable']}}' : '{{locales['common_disable']}}'"></span></label></div><div class="ml-4 text-right text-sm text-gray-400">{{locales["wan_toggle_help_text"]}}</div></div><div class="mb-6 flex space-x-2 items-end sm:space-x-4"><div class="flex flex-col flex-wrap"><div class="w-28 text-gray-700 mb-2">{{locales["cellular_network"]}}</div><label class="relative flex cursor-pointer items-center"><input class="peer sr-only" type="checkbox" x-model="sim_enabled"><div class="h-6 w-11 rounded-full border-2 border-gray-200 bg-gray-200 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:transition-all after:duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div><span class="ml-2 select-none text-base text-gray-400" x-text="sim_enabled ? '{{locales['common_enable']}}' : '{{locales['common_disable']}}'"></span></label></div><div class="ml-4 text-right text-sm text-gray-400">{{locales["cellular_network_toggle_help_text"]}}</div></div><div class="mb-6 flex space-x-2 items-end sm:space-x-4"><div class="flex flex-col flex-wrap"><div class="w-28 text-gray-700 mb-2">{{locales["wifi_service"]}}</div><label class="relative flex cursor-pointer items-center"><input class="peer sr-only" type="checkbox" x-model="wifi_enabled"><div class="h-6 w-11 rounded-full border-2 border-gray-200 bg-gray-200 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:transition-all after:duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div><span class="ml-2 select-none text-base text-gray-400" x-text="wifi_enabled ? '{{locales['common_enable']}}' : '{{locales['common_disable']}}'"></span></label></div><div class="ml-4 text-right text-sm text-gray-400">{{locales["wifi_toggle_help_text"]}}</div></div><hr class="mb-4"><div class="mb-6 flex space-x-2 items-end sm:space-x-4"><div class="flex flex-col flex-wrap"><div class="w-28 text-gray-700 mb-2">Multi WAN</div><label class="relative flex cursor-pointer items-center"><input class="peer sr-only" type="checkbox" x-model="mutil_wan_enabled"><div class="h-6 w-11 rounded-full border-2 border-gray-200 bg-gray-200 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:transition-all after:duration-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div><span class="ml-2 select-none text-base text-gray-400" x-text="mutil_wan_enabled ? '{{locales['common_enable']}}' : '{{locales['common_disable']}}'"></span></label></div><div class="ml-4 text-right text-sm text-gray-400">{{locales["multiwan_toggle_help_text"]}}</div></div><button type="button" class="focus:ring-blue-300 mr-2 mb-2 w-full rounded-lg bg-pcatblue px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-pcatblue-400 focus:ring-4 sm:w-32" @click="request_set_network_mode">{{locales["common_save"]}}</button></div><div class="p-5 relative" x-show="tab_page === 'apn_setup'"><div class="mb-6 flex justify-center space-x-4"><label @click="mark_apn_auto_mode(true)" :class="apn_auto_mode == true ? 'border-blue-600' : ''" class="flex items-center space-x-4 rounded-lg border p-2"><span>{{locales["apn_auto_config"]}}</span></label><label @click="mark_apn_auto_mode(false)" :class="apn_auto_mode == false ? 'border-blue-600' : ''" class="flex items-center space-x-4 rounded-lg border p-2"><span>{{locales["apn_manu_config"]}}</span></label></div><div :class="apn_auto_mode == true ? 'opacity-25' : ''"><label class="block mb-4"><span class="text-gray-700">{{locales["apn_address"]}} *</span><input type="text" class="mt-1 block w-full" maxlength="128" x-model="apn_info.apn_addr"><span class="text-red-500"></span></label><label class="block mb-4"><span class="text-gray-700">{{locales["apn_user_name"]}}</span><input type="text" class="mt-1 block w-full" maxlength="64" x-model="apn_info.user"><span class="text-red-500"></span></label><label class="block mb-4"><span class="text-gray-700">{{locales["apn_password"]}}</span><input type="text" class="mt-1 block w-full" maxlength="64" x-model="apn_info.password"><span class="text-red-500"></span></label><label class="block mb-4"><span class="text-gray-700">{{locales["apn_auth_way"]}}</span><select class="mt-1 block w-full" x-model="apn_info.auth"><template x-for="option in apn_auth_options" :key="option"><option :value="option" x-text="option"></option></template></select><span class="text-red-500"></span></label></div><button type="button" class="focus:ring-blue-300 mr-2 mb-2 w-full rounded-lg bg-pcatblue px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-pcatblue-400 focus:ring-4 sm:w-32" @click="request_apn_setup" x-text="saving_apn_info ? '{{locales['common_save']}} ...' : '{{locales['common_save']}}'"></button></div></div><div class="grow rounded border bg-white shadow"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{locales["card_device_reset"]}}</h5></div><div class="p-5"><div class="container mx-auto mt-4 max-w-xl"><div class="mb-10 flex rounded bg-red-50 p-4"><svg xmlns="http://www.w3.org/2000/svg" class="mr-4 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> {{locales["reset_help_text"]}} </div><button type="button" class="mr-2 mb-2 w-full rounded-lg bg-red-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-red-800 focus:ring-4 focus:ring-red-300 sm:w-32" @click="modal_open = true">{{locales["device_reset"]}}</button></div><div class="modal" x-cloak x-show="modal_open"><section class="modal-main w-full sm:w-1/2" @click.outside="modal_open = false"><div class="flex items-start justify-between rounded-t border-b p-3"><h3 class="text-base font-semibold text-gray-900 lg:text-xl">{{locales["operation_tip"]}}</h3><button type="button" class="bg-transparent ml-auto inline-flex items-center rounded-lg p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900" @click="modal_open = false"><svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div><div class="space-y-6 p-6"><p>{{locales["are_you_sure_reset"]}}</p></div><div class="flex items-center justify-end space-x-4 rounded-b border-t border-gray-200 p-4"><button type="button" class="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:z-10 focus:ring-4 focus:ring-gray-300" @click="modal_open = false">取消</button><button type="button" class="hover:bg-blue-800 focus:ring-blue-300 rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4" @click="request_reset">确定</button></div></section></div><div class="modal" x-cloak x-show="resetting"><section class="modal-main w-full sm:w-1/2"><div class="flex items-start justify-between rounded-t border-b p-3"><h3 class="text-base font-semibold text-gray-900">{{locales["operation_tip"]}}</h3><button type="button" class="bg-transparent ml-auto inline-flex cursor-not-allowed items-center rounded-lg p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900"><svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div><div class="space-y-6 p-6"><p>{{locales["resetting_device"]}}</p></div><div class="flex items-center justify-end space-x-4 rounded-b border-t border-gray-200 p-4"><button data-modal-toggle="default-modal" type="button" class="cursor-not-allowed rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:z-10 focus:ring-4 focus:ring-gray-300">OK</button></div></section></div><div class="modal" x-cloak x-show="saving_network"><section class="modal-main w-full sm:w-1/2"><div class="flex items-start justify-between rounded-t border-b p-3"><h3 class="text-base font-semibold text-gray-900 lg:text-xl">{{locales["operation_tip"]}}</h3><button type="button" class="bg-transparent ml-auto inline-flex cursor-not-allowed items-center rounded-lg p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900"><svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div><div class="space-y-6 p-6"><p>{{locales["configuring_network"]}}</p></div><div class="flex items-center justify-center space-x-4 rounded-b border-t border-gray-200 p-4"><img src="/static/loading.gif"></div></section></div></div></div></div></div> {% endblock %} {% block bottom %} <script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("settings");
+
+    Alpine.data("adv_settings", () => ({
+      init() {
+        this.fetch_network_mode();
+        this.fetch_apn_settings();          
+      },
+      tab_page: "network_mode",
+      modal_open: false,
+      resetting: false,
+      saving_network: false,
+
+      mutil_wan_enabled: true,
+      wan_enabled: true,
+      sim_enabled: true,
+      wifi_enabled: true,
+
+      apn_auto_mode: true,
+      saving_apn_info: false,
+      apn_info: {
+        apn_addr: "",
+        user: "",
+        password: "",
+        auth: ""
+      },
+
+      apn_auth_options: ["", "pap", "chap", "MsChapV2"],
+
+      switch_tab(tab) {
+        this.tab_page = tab;
+        if(tab === "network_mode") {
+          this.fetch_network_mode();
+        } else if(tab === "apn_setup") {
+          this.fetch_apn_settings();
+        }
+      },
+
+      request_reset() {
+        this.modal_open = false;
+        const requestOptions = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "" }),
+        };
+        fetch("/system/reset", requestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "ok") {
+              this.resetting = true;
+            } else {
+              alert(data.message);
+            }
+          });
+      },
+
+      request_set_network_mode() {
+        this.modal_open = false;
+        post_data = {
+          mutil_wan: this.mutil_wan_enabled,
+          wan: this.wan_enabled,
+          sim: this.sim_enabled,
+          wifi: this.wifi_enabled,
+        };
+        const requestOptions = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(post_data),
+        };
+        fetch("/api/v1/network_interfaces.json", requestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "ok") {
+              this.saving_network = true;
+
+              setTimeout(() => {
+                this.saving_network = false;
+
+                setTimeout(() => {
+                  alert("{{locales['saved_succeed']}}");
+                }, 1);
+              }, 6000);
+            } else {
+              alert(data.message);
+            }
+          });
+      },
+
+      fetch_network_mode(){
+        fetch("/api/v1/network_interfaces.json")
+          .then((response) => response.json())
+          .then((data) => {
+            this.wan_enabled = data.wan_enabled;
+            this.sim_enabled = data.sim_enabled;
+            this.wifi_enabled = data.wifi_enabled;
+            this.mutil_wan_enabled = data.multi_wan;
+          });
+      },
+
+      mark_apn_auto_mode(is_auto) {
+        this.apn_auto_mode = is_auto;
+      },
+
+      fetch_apn_settings(){
+        fetch("/api/v1/apn_settings.json")
+        .then((response) => response.json())
+        .then((data) => {
+          this.apn_info.apn_addr = data.apn;
+          this.apn_info.user = data.user;
+          this.apn_info.password = data.password;
+          this.apn_info.auth = data.auth;
+          if(this.apn_info.apn_addr === "") {
+            this.apn_auto_mode = true;
+          }
+        });
+      },
+
+      request_apn_setup(){
+        if(this.apn_auto_mode) {
+          this.apn_info = { apn_addr: "", user: "", password: "", auth: "" }
+        } else {
+          if(this.apn_info.apn_addr === ""){
+            alert("{{locales['please_input_apn_addr']}}");
+            return false;
+          }
+        }
+        this.saving_apn_info = true;
+        const requestOptions = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.apn_info),
+        };
+        fetch("/api/v1/apn_settings.json", requestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+            setTimeout(() => {
+              this.saving_apn_info = false;
+              if (data.status == "ok") {
+                alert("{{locales['save_action_success_and_reboot']}}");
+              } else {
+                alert("{{locales['save_action_failed']}}");
+              }
+            }, 1000);
+
+            setTimeout(() => {
+              this.reboot_dlg_open = true;
+            }, 3000);
+          });
+      },
+
+    }));
+  });
+</script> {% endblock %} 

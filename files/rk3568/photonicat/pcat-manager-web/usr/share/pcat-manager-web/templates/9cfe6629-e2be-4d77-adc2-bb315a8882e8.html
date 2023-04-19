@@ -1,0 +1,97 @@
+{% extends '_base.html' %} {% block content %} <div class="container mx-auto w-full pt-14 pb-12 sm:pt-24 sm:pb-12 md:pt-28" x-data="statistics"><div class="flex items-center justify-between"><h1 class="px-3 py-4 font-bold uppercase text-gray-600">{{locales["nav_statistics"]}}</h1><div x-cloak x-show="$store.app.tips !== ''" class="text-pcatgray3 hover:text-gray-500 text-sm flex items-center justify-end w-56 lg:w-[450px]"><strong class="font-semibold mr-2">Tips:</strong><p class="truncate overflow-hidden" x-text="$store.app.tips" x-bind:title="$store.app.tips"></p></div></div><div class="mb-8 flex w-full flex-col space-y-4 px-2 leading-normal text-gray-800 lg:flex-row lg:space-y-0 lg:space-x-4 lg:px-0"><div class="grow"><div class="undefined rounded border bg-white shadow"><div class="border-b p-3"><h5 class="flex items-center font-bold text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg> {{locales["card_device_list"]}} </h5></div><div class="p-3"><table class="whitespace-no-wrap w-full"><thead class="text-sm"><tr><th class="text-left">{{locales["mac_address"]}}</th><th class="text-left">{{locales["ip_address"]}}</th><th class="text-left">{{locales["device_name"]}}</th></tr></thead><tbody class="divide-y bg-white"><template x-for="device in online_devices"><tr class="hover:bg-gray-100"><td class="py-3 text-left text-sm" x-text="device.mac"></td><td class="text-left text-sm" x-text="device.ip"></td><td class="text-left text-sm" x-text="device.name"></td></tr></template></tbody></table></div></div></div><div class="grow" x-data="{clear_btn_show: true}"><div class="undefined rounded border bg-white shadow"><div class="border-b"><h5 class="flex items-center justify-between px-3 font-bold text-gray-600"><div class="flex"><div class="mr-2 flex p-3"><svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{locales["card_traffic_stats"]}} </div><div class="flex items-stretch"><button :class="network_type === 'mobile' ? 'border-b-2 border-b-pcatblue' : '' " class="flex items-center border-x px-4 hover:bg-gray-100" @click="fetch_data_stats('mobile')">{{locales["network_type_mobile"]}}</button></div><div class="flex items-stretch"><button :class="network_type === 'wired' ? 'border-b-2 border-b-pcatblue' : '' " class="flex items-center border-x px-4 hover:bg-gray-100" @click="fetch_data_stats('wired')">{{locales["network_type_wired"]}}</button></div></div><button @click="reset_statics" x-show="clear_btn_show"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></h5></div><div class="p-3"><table class="whitespace-no-wrap w-full"><tbody class="divide-y bg-white"><tr class="hover:bg-gray-100"><td class="py-3 text-left text-sm">{{locales["today_used"]}}</td><td class="text-right text-sm" x-text="today_used_size"></td></tr><tr class="hover:bg-gray-100"><td class="py-3 text-left text-sm">{{locales["week_used"]}}</td><td class="text-right text-sm" x-text="week_used_size"></td></tr><tr class="hover:bg-gray-100"><td class="py-3 text-left text-sm">{{locales["month_used"]}}</td><td class="text-right text-sm" x-text="month_used_size"></td></tr><tr class="hover:bg-gray-100"><td class="py-3 text-left text-sm">{{locales["last_month_used"]}}</td><td class="text-right text-sm" x-text="last_month_used_size"></td></tr></tbody></table></div></div></div></div></div><script>
+  function humanFileSize(bytes, si = false, dp = 1) {
+    const thresh = si ? 1000 : 1024;
+    if (Math.abs(bytes) < 1024 * 1024) {
+      return "" + parseInt(bytes / 1024.0) + " kB";
+    }
+    const units = si ? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"] : ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+    let u = -1;
+    const r = 10 ** dp;
+    do {
+      bytes /= thresh;
+      ++u;
+    } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+    return bytes.toFixed(dp) + " " + units[u];
+  }
+
+  document.addEventListener("alpine:init", () => {
+    Alpine.data("statistics", () => ({
+      init() {
+        const fetch_clients = () => {
+          fetch("/api/v1/wifi_clients.json")
+            .then((response) => response.json())
+            .then((data) => {
+              this.online_devices = data.devices;
+            });
+        };
+
+        setInterval(() => {
+          fetch_clients();
+        }, 3000);
+
+        fetch_clients();
+        this.fetch_data_stats("mobile");
+      },
+
+      online_devices: [],
+      today_used: 0,
+      week_used: 0,
+      month_used: 0,
+      last_month_used: 0,
+      network_type: "",
+
+      fetch_data_stats(network_type) {
+        this.network_type = network_type;
+        fetch("/api/v1/data_stats.json?network_type=" + network_type)
+          .then((response) => response.json())
+          .then((data) => {
+            this.today_used = data.today_used;
+            this.week_used = data.week_used;
+            this.month_used = data.month_used;
+            this.last_month_used = data.last_month_used;
+          });
+      },
+
+      get today_used_size() {
+        return humanFileSize(this.today_used, true);
+      },
+
+      get week_used_size() {
+        return humanFileSize(this.week_used, true);
+      },
+
+      get month_used_size() {
+        return humanFileSize(this.month_used, true);
+      },
+
+      get last_month_used_size() {
+        return humanFileSize(this.last_month_used, true);
+      },
+
+      reset_statics() {
+        if (confirm("{{locales['statistics_reset_confirm']}}")) {
+          const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: "" }),
+          };
+          fetch("/statistics/reset", requestOptions)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "ok") {
+                this.today_used = 0;
+                this.week_used = 0;
+                this.month_used = 0;
+                this.last_month_used = 0;
+                alert("{{locales['statistics_reset_success']}}");
+              }
+            });
+        }
+      },
+    }));
+  });
+</script> {% endblock %} {% block bottom %} <script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("statistics");
+  });
+</script> {% endblock %} 

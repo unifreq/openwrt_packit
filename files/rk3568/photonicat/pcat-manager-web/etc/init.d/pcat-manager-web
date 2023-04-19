@@ -1,0 +1,25 @@
+#!/bin/sh /etc/rc.common
+
+START=59
+STOP=99
+
+PYTHON_MAIN="/usr/share/pcat-manager-web/pcat-manager-web-main.py"
+
+if [ -f '/usr/share/pcat-manager-web/pcat-manager-web-main.pyc' ]; then
+	PYTHON_MAIN="/usr/share/pcat-manager-web/pcat-manager-web-main.pyc"
+fi
+
+PID_FILE="/tmp/pcat-manager-web.pid"
+
+start() {
+	start-stop-daemon -bm -p ${PID_FILE} -S /usr/bin/python3 ${PYTHON_MAIN}
+}
+
+stop() {
+        start-stop-daemon -p ${PID_FILE} -K /usr/bin/python3 ${PYTHON_MAIN}
+	sleep 1
+}
+
+shutdown() {
+        stop
+}

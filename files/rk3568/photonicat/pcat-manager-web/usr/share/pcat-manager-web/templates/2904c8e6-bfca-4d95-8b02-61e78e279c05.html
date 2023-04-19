@@ -1,0 +1,176 @@
+{% extends '_base.html' %} {% block content %} <div class="container mx-auto w-full pt-14 pb-12 sm:pt-24 sm:pb-12 md:pt-28" x-data="adv_settings"><div class="flex items-center justify-between"><h1 class="px-3 py-4 font-bold uppercase text-gray-600">{{locales["nav_modem"]}}</h1><div x-cloak x-show="$store.app.tips !== ''" class="text-pcatgray3 hover:text-gray-500 text-sm flex items-center justify-end w-56 lg:w-[450px]"><strong class="font-semibold mr-2">Tips:</strong><p class="truncate overflow-hidden" x-text="$store.app.tips" x-bind:title="$store.app.tips"></p></div></div> {% include "_select_message_modal.html" %} {% include "_send_message_modal.html" %} {% include "_modem_config_modal.html" %} <div class="mb-8 w-full flex flex-col md:flex-row gap-4 px-2 leading-normal text-gray-800 md:px-0"><div class="grow rounded border bg-white shadow"><div class="flex items-center justify-between border-b "><h5 class="flex items-center font-bold text-gray-600"><div class="flex items-stretch"><button @click="switch_tab('msb_box')" :class="tab_page === 'msb_box' ? 'border-b-2 border-b-pcatblue' : '' " class="flex items-center border-x px-4 hover:bg-gray-100 py-3">{{locales["tab_msg_box"]}}</button></div><div class="flex items-stretch"><button @click="switch_tab('modem_basic')" :class="tab_page === 'modem_basic' ? 'border-b-2 border-b-pcatblue' : '' " class="flex items-center border-x px-4 hover:bg-gray-100 py-3">{{locales["tab_model_basic"]}}</button></div></h5><div class="mr-4 flex items-center"><div x-cloak x-show="querying"><img src="/static/loading.gif" class="h-4 w-4"></div><a @click="refresh_modem_info" href="#" x-show="sim_state === 'ready' && !querying && modem_valid"><svg class="h-4 w-4 text-gray-600 hover:text-black" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></a><a x-show="sim_state === 'ready'" @click="open_config_modal" href="#" class="ml-4 border rounded bg-gray-100 px-2 py-1 hover:bg-blue-700 hover:text-white"> 设置 </a></div></div><div x-cloak x-show="!modem_valid" class="rounded bg-red-50 text-gray-400 p-4"> {{locales["modem_invalid"]}} </div><div class="p-5" x-show="tab_page === 'modem_basic'"><div class="flex flex-col sm:flex-row gap-4"><table class="list-info w-full p-5 text-gray-700 mb-4"><tbody><tr><td>{{locales["modem_sim_number"]}}</td><td class="text-right font-semibold"><span class="" x-text="modem_sim_number"></span></td></tr><tr><td>{{locales["modem_imei_number"]}}</td><td class="text-right font-semibold"><span class="" x-text="modem_imei_number"></span></td></tr><tr><td>{{locales["modem_model"]}}</td><td class="text-right font-semibold"><span class="" x-text="modem_model"></span></td></tr><tr><td>{{locales["modem_firmware_version"]}}</td><td class="text-right font-semibold"><span class="" x-text="modem_firmware_version"></span></td></tr></tbody></table></div></div><div class="relative" x-show="tab_page === 'msb_box'"><ul x-show="modem_valid"><li class="border-b p-4 text-gray-500 cursor-pointer hover:bg-gray-100 relative" x-cloak x-show="sim_state === 'absent'"> 未检测到SIM卡 </li><li class="border-b p-4 text-gray-500 cursor-pointer hover:bg-gray-100 relative" x-cloak x-show="sim_state === 'ready' && modem_messages.length === 0"> No data. </li><template x-for="sms_message in modem_messages" :key="sms_message.storage+sms_message.id"><li x-show="sms_message.status != 'DELETED'" class="border-b p-4 cursor-pointer hover:bg-gray-100 relative" @click="select_message(sms_message)"><div class="flex justify-between"><div x-text="sms_message.from" class="font-semibold"></div><div x-text="sms_message.send_at" class="text-sm text-gray-500"></div></div><div x-text="sms_message.msg" class="mt-1"></div><div x-cloak x-show="sms_message.status==='REC UNREAD'" class="absolute rounded-full" style="width:8px;height:8px;top:40px;left:6px;background-color: burlywood;"></div></li></template></ul><button x-show="sim_state === 'ready'" @click="open_sendbox" class="my-10 ml-4 hover:bg-blue-800 focus:ring-blue-300 rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4">发短信</button></div></div></div></div> {% endblock %} {% block bottom %} <script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("modem");
+
+    Alpine.data("adv_settings", () => ({
+      init() {
+        this.fetch_modem_basic();
+        
+        setInterval(() => {
+          this.fetch_modem_basic();
+        }, 1000);
+        
+      },
+      tab_page: "msb_box",
+      modal_open: false,
+      sendbox_open: false,
+      modem_config_open: false,
+      sms_check_interval: 30,
+      sms_forward: false,
+      sms_forward_to: "",
+      
+      modem_valid: false,
+      querying: false,
+      sim_state: "",
+      modem_sim_number: "",
+      modem_imei_number: "",
+      modem_model: "",
+      modem_firmware_version: "",
+      modem_messages: [],
+      topic_messages: [],
+      selected_message: null,
+
+      sms_target: "",
+      sms_text: "",
+
+      switch_tab(tab) {
+        this.tab_page = tab;
+      },
+
+      fetch_modem_basic(){
+        fetch("/api/v1/modem/basic.json")
+          .then((response) => response.json())
+          .then((data) => {
+            this.modem_valid = data.modem_valid;
+            this.modem_sim_number = data.sim_number;
+            this.sim_state = data.sim_state;
+            this.modem_imei_number = data.imei_num;
+            this.modem_model  = data.modem_model;
+            this.modem_firmware_version = data.firmware_version;
+            this.modem_messages = data.messages;
+            this.querying = data.querying;
+          });
+      },
+
+      fetch_modem_config(){
+        fetch("/api/v1/modem/config.json")
+          .then((response) => response.json())
+          .then((data) => {
+            this.sms_check_interval = data.sms_check_interval;
+            this.sms_forward = data.sms_forward;
+            this.sms_forward_to = data.sms_forward_to;
+          });
+      },
+
+      refresh_modem_info(){
+        const requestOptions = {
+          body: JSON.stringify({refresh: this.tab_page}),
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        };
+        fetch("/api/v1/modem/basic.json", requestOptions)
+          .then((response) => response.json())
+          .then((data) => {});
+      },
+
+      open_sendbox(){
+        if(this.sim_state !== 'ready') {
+          alert("目前SIM卡不可用");
+          return;
+        }
+        this.sms_target = "";
+        this.sms_text = "";
+        this.sendbox_open = true;
+      },
+
+      open_config_modal() {
+        this.modem_config_open = true;
+        this.fetch_modem_config();
+      },
+
+      select_message(message) {
+        this.selected_message = message;
+        this.sms_target = message.from;
+        fetch('/api/v1/modem/sms/read.json', { body: JSON.stringify({hash_id: message.hash_id, topic: message.topic}), method: 'POST', headers: { 'Content-Type': 'application/json' }})
+          .then(response => response.json())
+          .then(data => {
+            this.topic_messages = data.topic_messages;
+          });
+      },
+
+      delete_sms(message) {
+        fetch('/api/v1/modem/sms/delete.json', { body: JSON.stringify({hash_id: message.hash_id, msg_id: message.id, storage: message.storage}), method: 'POST', headers: { 'Content-Type': 'application/json' }})
+          .then(response => response.json())
+          .then(data => {
+            if(data.status === 'ok') {
+              
+              setTimeout(() => {
+                this.selected_message = null;
+              }, 1500);
+            }
+        });
+      },
+
+      get sms_message_length_info() {
+        return `${this.sms_text.length} / 70`;
+      },
+
+      send_sms(){
+        const reg = /^\+?[0-9]{3,20}$/;
+        if(!this.sms_target.match(reg)) {
+          alert("Number invalid!");
+          return;
+        }
+        this.sms_text = this.sms_text.trim()
+        if(this.sms_text.length > 70) {
+          alert("Message too long!");
+          return;
+        }
+        const send_message_data = JSON.stringify({send_to: this.sms_target, msg: this.sms_text});
+        fetch('/api/v1/modem/sms/send.json', { body: send_message_data, method: 'POST', headers: { 'Content-Type': 'application/json' }})
+          .then(response => response.json())
+          .then(data => {
+            if(data.status === 'ok') {
+              setTimeout(() => {
+                this.sms_target = "";
+                this.sms_text = "";
+                this.sendbox_open = false;
+                this.selected_message = null;
+              }, 3000); 
+              
+            } else {
+              alert("Send failed");
+            }
+        });
+      },
+
+      save_modem_config(){
+        const reg = /^\+?[0-9]{3,20}$/;
+        if(this.sms_check_interval < 5) {
+          alert("Check interval invalid!");
+          return;
+        }
+        if(this.sms_forward) {
+          if(!this.sms_forward_to.match(reg)) {
+            alert("Number invalid!");
+            return;
+          }
+        }
+        
+        let config = JSON.stringify({sms_check_interval: this.sms_check_interval, sms_forward: this.sms_forward, sms_forward_to: this.sms_forward_to});
+        fetch('/api/v1/modem/config.json', { body: config, method: 'POST', headers: { 'Content-Type': 'application/json' }})
+          .then(response => response.json())
+          .then(data => {
+            if(data.status === 'ok') { 
+              alert("{{locales['save_action_success']}}");
+              this.modem_config_open = false;
+            } else {
+              alert(data.message);
+            }
+        });
+
+      }
+
+    }));
+  });
+</script> {% endblock %} 

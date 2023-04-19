@@ -1,0 +1,258 @@
+{% extends '_base.html' %} {% block content %} <div class="container mx-auto w-full pt-14 pb-12 sm:pt-24 sm:pb-12 md:pt-28" x-data="timer_settings"><div class="flex items-center justify-between"><h1 class="px-3 py-4 font-bold uppercase text-gray-600">{{locales["nav_settings"]}}</h1><div x-cloak x-show="$store.app.tips !== ''" class="text-pcatgray3 hover:text-gray-500 text-sm flex items-center justify-end w-56 lg:w-[450px]"><strong class="font-semibold mr-2">Tips:</strong><p class="truncate overflow-hidden" x-text="$store.app.tips" x-bind:title="$store.app.tips"></p></div></div><div class="mb-8 flex w-full leading-normal text-gray-800"><div class="grow"><div class="border bg-white shadow"><div class="border-b"><ul class="flex justify-between"> {% if stm32_firmware_exist %} <li class="basis-1/3 cursor-pointer border text-center hover:font-semibold"><a href="/device_control" class="block p-1 sm:p-3">{{locales["tab_device_control"]}}</a></li><li class="basis-1/3 cursor-pointer border text-center hover:font-semibold"><a href="/settings" class="block p-1 sm:p-3">Wi-Fi</a></li><li class="basis-1/3 cursor-pointer border border-b-2 border-b-pcatblue text-center font-semibold hover:font-semibold"><a href="" class="block p-1 sm:p-3">{{locales["tab_timers"]}}</a></li> {% else %} <li class="grow cursor-pointer border text-center hover:font-semibold"><a href="/device_control" class="block p-1 sm:p-3">{{locales["tab_device_control"]}}</a></li><li class="grow cursor-pointer border border-b-2 border-b-pcatblue text-center font-semibold hover:font-semibold"><a href="/settings" class="block p-1 sm:p-3">Wi-Fi</a></li> {% endif %} </ul></div><div class="p-5"><div class="container mx-auto max-w-3xl"><div class="mb-6 flex justify-center space-x-4"><label @click="mode_page = 'unknown_mode_page'" :class="mode_page === 'unknown_mode_page' ? 'border-blue-600' : ''" class="flex items-center space-x-4 rounded-lg border p-2"><span>{{locales["manu_mode"]}}</span></label><label @click="mode_page = 'car_mode_page'" :class="mode_page === 'car_mode_page' ? 'border-blue-600' : ''" class="flex items-center space-x-4 rounded-lg border p-2"><span>{{locales["car_mode"]}}</span></label><label @click="mode_page = 'timer_mode_page'" :class="mode_page === 'timer_mode_page' ? 'border-blue-600' : ''" class="flex items-center space-x-4 rounded-lg border p-2"><span>{{locales["timer_mode"]}}</span></label></div><div class="car_mode_page" x-cloak x-show="mode_page === 'car_mode_page'"><div class="space-y-4"><div class=""><label class="mt-4 block"><label x-cloak class="ml-4">{{locales["when_power_supply_disconnected"]}} <input x-model="car_mode_timeout" type="number" class="w-24 text-center" min="0" value="0"><span>{{locales["after_minutes"]}}</span> {{locales["device_auto_power_off"]}}</label></label></div><div class="mb-10 flex rounded bg-blue-50 p-4 text-black"><p> {{locales["car_mode_tip_1"]}} <br> {{locales["car_mode_tip_2"]}} </p></div></div><div class="mt-4 flex items-center"><button type="button" class="focus:ring-blue-300 w-full rounded-lg bg-pcatblue px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-pcatblue-400 focus:ring-4 sm:w-32" @click="save_carmode" x-text="saving_car_mode ? '{{locales['common_save']}} ...' : '{{locales['common_save']}}'"></button></div></div><div class="timer_mode_page" x-cloak x-show="mode_page === 'timer_mode_page'"><div class="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4"><div class="mr-6 flex"><div class="flex w-1/2 flex-col space-y-2"><div class="select-none font-semibold">{{locales["timer_action"]}}</div><div class="flex flex-col"><label class="flex items-center gap-2"><input type="radio" name="action_type" value="startup" x-model="action"> {{locales["power_on"]}}</label><label class="flex items-center gap-2"><input type="radio" name="action_type" value="shutdown" checked="" x-model="action"> {{locales["power_off"]}}</label></div></div><div class="flex w-1/2 flex-col space-y-2"><div class="select-none font-semibold">{{locales["timer_time"]}}</div><div class="flex" x-data="time_input"><input type="text" class="w-20 text-center" maxlength="5" value="" x-model.debounce.500ms="time" @input="handle_type" @click="handle_click" x-on:wheel="handle_wheel"><div class="ml-2 flex flex-col"><div class="hover:bg-gray-200"><svg @click="handle_add" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 cursor-pointer" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"></path></svg></div><div class="hover:bg-gray-200"><svg @click="handle_min" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 cursor-pointer" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg></div></div></div></div></div><div class="flex flex-col space-y-2"><div class="select-none font-semibold">{{locales["timer_days"]}}</div><div class="flex max-w-sm flex-wrap"><label class="mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_mon"]}}</span><input type="checkbox" value="1" x-model="days"></label><label class="mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_tue"]}}</span><input type="checkbox" value="2" x-model="days"></label><label class="mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_wed"]}}</span><input type="checkbox" value="3" x-model="days"></label><label class="mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_thu"]}}</span><input type="checkbox" value="4" x-model="days"></label><label class="mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_fri"]}}</span><input type="checkbox" value="5" x-model="days"></label><label class="mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_sat"]}}</span><input type="checkbox" value="6" x-model="days"></label><label class="col-span-3 mr-2 flex cursor-pointer select-none items-center space-x-2 py-2 sm:mr-0 sm:py-0 sm:px-2"><span>{{locales["timer_sun"]}}</span><input type="checkbox" value="0" x-model="days"></label></div></div><div class="flex flex-col justify-end"><button class="focus:ring-blue-300 flex w-32 transform items-center justify-center rounded-md bg-blue-600 py-3 text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring focus:ring-opacity-80 sm:w-20" @click="add_timer">{{locales["common_add"]}}</button></div></div><ul class="mt-4 border-t p-2"><template x-for="timer in timers" :key="timer.id"><li class="my-2 flex list-none items-center justify-between rounded border p-2 hover:border-gray-400"><div><span class="mr-2" x-text="timer.time"></span><span class="mr-2" x-text="timer.action == 'shutdown' ? '关机' : '开机' "></span><span class="mr-2" x-text="timer_days(timer.days)"></span></div><button class="ml-4 flex transform items-center rounded-md px-1 py-2 tracking-wide text-white text-red-600 transition-colors duration-200 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-80" @click="remove_timer(timer.id)"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewbox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button></li></template></ul><div class="mt-4 flex justify-between"><button type="button" class="focus:ring-blue-300 mb-2 w-full rounded-lg bg-pcatblue py-2.5 text-center text-sm font-medium text-white hover:bg-pcatblue-400 focus:ring-4 sm:w-32 sm:px-5" @click="save_timers" x-text="saving_timers ? '{{locales['common_save']}} ...' : '{{locales['common_save']}}'"></button></div></div><div class="unknown_mode_page" x-cloak x-show="mode_page === 'unknown_mode_page'"><div class="mt-4 flex items-center justify-center"><button type="button" class="focus:ring-blue-300 w-full rounded-lg bg-pcatblue px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-pcatblue-400 focus:ring-4 sm:w-32" @click="save_manu_mode" x-text="saving_car_mode ? '{{locales['common_save']}} ...' : '{{locales['common_save']}}'"></button></div><div class="mt-4 text-center text-gray-600">{{locales["no_configuration_for_swtich_strategy"]}}</div></div></div></div></div></div></div></div> {% endblock %} {% block bottom %} <script>
+  function padLeadingZeros(num, size) {
+    var s = num + "";
+    while (s.length < size) s = "0" + s;
+    return s;
+  }
+
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("settings");
+
+    Alpine.data("time_input", () => ({
+      init() {
+        this.display_time();
+        this.$watch("hour", (value) => {
+          if (value > 23) {
+            this.hour = 0;
+          } else if (value < 0) {
+            this.hour = 23;
+          }
+          this.display_time();
+        });
+        this.$watch("minute", (value) => {
+          console.log("Detect minute changed");
+          if (value > 59) {
+            this.minute = 0;
+          } else if (value < 0) {
+            this.minute = 59;
+          }
+          this.display_time();
+        });
+      },
+      display_time() {
+        // time in parent x-data;
+        this.time = padLeadingZeros(this.hour, 2) + ":" + padLeadingZeros(this.minute, 2);
+      },
+      hour: 0,
+      minute: 0,
+      type_position: 0,
+      type_timer: undefined,
+      handle_click(e) {
+        this.type_position = e.target.selectionStart;
+        console.log("type posion", this.type_position);
+      },
+      handle_type(e) {
+        console.log(e.target.value);
+        if (this.type_timer) {
+          console.log("clear old timer");
+          clearTimeout(this.type_timer);
+        }
+        this.type_timer = setTimeout(() => {
+          console.log("timer work.");
+          let text = this.time.split(":");
+          if (text.length != 2) {
+            this.display_time();
+          } else {
+            let h = parseInt(text[0]);
+            let m = parseInt(text[1]);
+            let invalid = false;
+            if (h < 0 || h >= 24 || isNaN(h)) {
+              console.log("Invalid hour");
+              h = this.hour;
+              invalid = true;
+            }
+            if (m < 0 || m >= 60 || isNaN(m)) {
+              console.log("Invalid minute", this.minute);
+              m = this.minute;
+              invalid = true;
+            }
+            if (invalid) {
+              this.display_time();
+            } else {
+              // watch will work to display time;
+              this.hour = h;
+              this.minute = m;
+            }
+          }
+          this.type_timer = undefined;
+        }, 2000);
+      },
+      handle_wheel(e) {
+        console.log("type position", this.type_position, e.deltaY);
+        if (e.deltaY < 0) {
+          this.handle_add();
+        } else {
+          this.handle_min();
+        }
+      },
+      handle_add() {
+        if (this.type_position < 3) {
+          this.hour++;
+        } else {
+          this.minute++;
+        }
+      },
+      handle_min() {
+        if (this.type_position < 3) {
+          this.hour--;
+        } else {
+          this.minute--;
+        }
+      },
+    }));
+
+    Alpine.data("timer_settings", () => ({
+      init() {
+        fetch("/api/v1/timers.json")
+          .then((response) => response.json())
+          .then((data) => {
+            this.timers = data.events;
+          });
+
+        Alpine.effect(() => {
+          console.log("!!!! Detect car mode changed", Alpine.store("app").car_mode.enabled);
+          this.car_mode_enabled = Alpine.store("app").car_mode.enabled;
+          this.car_mode_timeout = Alpine.store("app").car_mode.timeout;
+        });
+      },
+      mode_page: "{{mode_page}}",
+      car_mode_enabled: "false",
+      car_mode_timeout: 0, // unit: minutes
+      saving_car_mode: false,
+
+      action: "startup",
+      time: "00:00",
+      days: [], // eg: [0, 1, 2, 3, 4, 5, 6] 0 weekend
+      timers: [],
+      saving_timers: false,
+      save_manu_mode() {
+        this.saving_car_mode = true;
+        const form_data = {
+          carmode: false,
+          timeout: 0,
+        };
+
+        fetch("/api/v1/carbootmode.json", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(form_data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setTimeout(() => {
+              this.saving_car_mode = false;
+              if (data.status == "ok") {
+                alert("{{locales['save_action_success_and_reboot']}}");
+              } else {
+                alert("{{locales['save_action_failed']}}");
+              }
+            }, 1000);
+
+            setTimeout(() => {
+              this.reboot_dlg_open = true;
+            }, 3000);
+          });
+      },
+      save_carmode() {
+        if (this.car_mode_timeout > 180) {
+          this.car_mode_timeout = 180;
+          alert("{{locales['car_timeout_invalid']}}");
+          return;
+        }
+        this.saving_car_mode = true;
+        this.car_mode_enabled = "true";
+        const form_data = {
+          carmode: this.car_mode_enabled,
+          timeout: this.car_mode_timeout * 60,
+        };
+
+        fetch("/api/v1/carbootmode.json", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(form_data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setTimeout(() => {
+              this.saving_car_mode = false;
+              if (data.status == "ok") {
+                alert("{{locales['save_action_success_carmode_tip']}}");
+              } else {
+                alert("{{locales['save_action_failed']}}");
+              }
+            }, 1000);
+          });
+      },
+
+      timer_days(days) {
+        return days
+          .map((d_i) => {
+            let d_in = parseInt(d_i);
+            return ["{{locales['timer_sun']}}", "{{locales['timer_mon']}}", "{{locales['timer_tue']}}", "{{locales['timer_wed']}}", "{{locales['timer_thu']}}", "{{locales['timer_fri']}}", "{{locales['timer_sat']}}"][d_in];
+          })
+          .join(", ");
+      },
+
+      add_timer() {
+        if (this.days.length === 0) {
+          alert("{{locales['please_select_days']}}");
+          return;
+        }
+        if (this.timers.length >= 6) {
+          alert("{{locales['no_more_timers_support']}}");
+          return;
+        }
+        let form_data = {
+          id: Date.now(),
+          time: this.time,
+          action: this.action,
+          days: this.days,
+        };
+        for (let i = 0; i < this.timers.length; i++) {
+          let t = this.timers[i];
+          if (t.time === form_data.time && t.action === form_data.action && t.days === form_data.days) {
+            alert("{{locales['same_timer_exist']}}");
+            return;
+          }
+        }
+        let updatedList = [...this.timers, form_data];
+        this.timers = updatedList;
+      },
+
+      remove_timer(timer_id) {
+        let filteredArray = this.timers.filter((item) => item.id !== timer_id);
+        this.timers = filteredArray;
+        //console.log("new timers", this.timers);
+      },
+
+      save_timers() {
+        this.saving_timers = true;
+        fetch("/api/v1/timers.json", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(this.timers),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setTimeout(() => {
+              this.saving_timers = false;
+              if (data.status == "ok") {
+                alert("{{locales['save_action_success']}}");
+              } else {
+                alert("{{locales['save_action_failed']}}");
+              }
+            }, 1000);
+          });
+      },
+    }));
+  });
+</script> {% endblock %} 

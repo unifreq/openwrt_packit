@@ -1,0 +1,8 @@
+<div id="reboot_dlg" class="modal" x-cloak x-data="{rebooting:false}" x-show="reboot_dlg_open" tabindex="-1"><section class="modal-main w-full sm:w-1/2" @click.outside="reboot_dlg_open = false"><div class="p-6"><p class="text-xl font-semibold">{{locales["need_reboot_device_now"]}}</p></div><div class="flex items-center justify-end space-x-4 rounded-b border-t border-gray-200 p-4"><button type="button" class="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:z-10 focus:ring-4 focus:ring-gray-300" @click="reboot_dlg_open = false">{{locales["common_reboot_later"]}}</button><button @click="fetch('/system/reboot', { method: 'POST', headers: { 'Content-Type': 'application/json' }})
+          .then(response => response.json())
+          .then(data => {
+            if(data.status === 'ok') { 
+              reboot_dlg_open = false;
+            }
+      });
+      " type="button" class="hover:bg-blue-800 focus:ring-blue-300 rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4"> {{locales["common_reboot"]}} </button></div></section></div>

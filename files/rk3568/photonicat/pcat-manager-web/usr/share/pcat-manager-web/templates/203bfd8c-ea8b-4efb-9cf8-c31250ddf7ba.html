@@ -1,0 +1,174 @@
+{% extends '_base.html' %} {% block content %} <div class="container mx-auto w-full pt-14 pb-12 sm:pt-24 sm:pb-12 md:pt-28"><div class="flex items-center justify-between"><h1 class="px-3 py-4 font-bold uppercase text-gray-600">{{locales["nav_dashboard"]}}</h1><div x-cloak x-show="$store.app.tips !== ''" class="text-pcatgray3 hover:text-gray-500 text-sm flex items-center justify-end w-56 lg:w-[450px]"><strong class="font-semibold mr-2">Tips:</strong><p class="truncate overflow-hidden" x-text="$store.app.tips" x-bind:title="$store.app.tips"></p></div></div><div x-data="dashboard" class="mb-8 grid w-full grid-cols-1 gap-4 px-2 leading-normal text-gray-800 md:grid-cols-2 md:px-0"><div class="grow rounded border bg-white shadow"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{locales["card_main_status"]}}</h5></div><div class="p-5"><table class="list-info w-full p-5 text-gray-700"><tbody><tr><td width="120">{{locales["connection"]}}</td><td class="text-right font-semibold text-green-600"><span class="mr-2" x-text="connection_name"></span><span class="" x-text="carrier_name"></span></td></tr><tr><td>{{locales["dl_up_speed"]}}</td><td class="text-right"><div class="flex items-center justify-end gap-2 font-semibold text-xs sm:text-base"><span class="text-blue-700">▼</span><span x-text="down_speed_value"></span><span> / </span><span class="text-red-600">▲</span><span x-text="up_speed_value"></span></div></td></tr><tr><td>{{locales["uptime"]}}</td><td class="text-right font-semibold" x-text="uptime"></td></tr></tbody></table></div></div><div class="grow rounded border bg-white shadow"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{locales["card_system"]}}</h5></div><div class="p-5"><table class="list-info w-full p-5 text-gray-700"><tbody><tr><td width="100">{{locales["hostname"]}}</td><td class="text-right font-semibold" x-text="hostname"></td></tr><tr><td>{{locales["model"]}}</td><td class="text-right font-semibold text-xs sm:text-base"><div class="flex justify-end"><div x-text="model"></div><div x-show="modem_model !== ''" class="ml-2">(<span x-text="modem_model"></span>)</div></div></td></tr><tr><td>{{locales["firmware_version"]}}</td><td class="text-right font-semibold" x-text="firmware_version"></td></tr><tr><td>{{locales["kernel_version"]}}</td><td class="text-right font-semibold text-xs sm:text-base" x-text="kernel"></td></tr></tbody></table></div></div><div class="grow rounded border bg-white shadow"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{locales["card_connection"]}}</h5></div><div class="p-5"><table class="list-info w-full p-5 text-gray-700"><tbody><tr><td>{{locales["ip_address"]}}</td><td class="text-right font-semibold" x-text="wan_ip"></td></tr><tr><td>{{locales["dhcp_clients"]}}</td><td class="text-right font-semibold" x-text="dhcp_clients_count"></td></tr><tr><td>{{locales["wifi_clients"]}}</td><td class="text-right font-semibold" x-text="wifi_clients_count"></td></tr><template x-for="wifi_interface in wifi_interfaces"><tr><td><span x-text="wifi_interface.device_type"></span> Wi-Fi</td><td class="text-right font-semibold text-gray-400"><div class="flex items-center justify-end"><span x-text="wifi_interface.ssid"></span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 ml-2"><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 00-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg></div></td></tr></template></tbody></table></div></div><div class="grow rounded border bg-white shadow"><div class="flex justify-between border-b p-3"><h5 class="font-bold text-gray-600">{{locales["card_hardware"]}}</h5></div><div class="p-5"><table class="list-info w-full p-5 text-gray-700"><tbody><tr><td>{{locales["battery_status"]}}</td><td class="flex justify-end text-right font-semibold text-red-600"><div x-html="charge_percent_status"></div><div class="ml-2" x-html="battery_charging_status"></div></td></tr><tr><td>{{locales["battery_voltage"]}}</td><td x-cloak class="text-right font-semibold" x-text="voltage_status"></td></tr><tr><td>{{locales["charge_voltage"]}}</td><td x-cloak class="text-right font-semibold" x-text="charge_voltage_status"></td></tr><tr><td>{{locales["board_temperature"]}}</td><td class="text-right font-semibold" x-text="board_temperature == null ? 'N/A' : `${board_temperature} °C`"></td></tr><tr><td>{{locales["sd_card"]}}</td><td class="text-right font-semibold text-gray-400"><div x-cloak x-show="sd_state === 0" class="flex justify-end">{{locales["sd_not_exist"]}}</div><div x-cloak x-show="sd_state === 1" class="flex justify-end">{{locales["sd_exist"]}}</div></td></tr><tr><td>{{locales["sim_card"]}}</td><td class="text-right font-semibold text-gray-400"><div x-cloak x-show="sim_state === 'absent'" class="flex justify-end">{{locales["sd_not_exist"]}}</div><div x-show="sim_state !== 'absent'"><span x-text="isp_readable_name"></span></div></td></tr></tbody></table></div></div></div></div> {% endblock %} {% block bottom %} <script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("app").set_page("index");
+    Alpine.data("dashboard", () => ({
+      fetchStatus() {
+        fetch("/api/v1/dashboard.json")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            this.connection = data.connection;
+            this.server_location = data.server_location;
+            this.down_speed = data.down_speed;
+            this.up_speed = data.up_speed;
+            this.uptime = data.uptime;
+
+            this.hostname = data.hostname;
+            this.model = data.model;
+            this.firmware_version = data.firmware_version;
+            this.kernel = data.kernel;
+            this.modem_model = data.modem_model;
+
+            this.wan_ip = data.wan_ip;
+            this.carrier = data.carrier;
+            this.dhcp_clients_count = data.dhcp_clients_count;
+            this.wifi_clients_count = data.wifi_clients_count;
+            this.wifi_interfaces = data.wifi_interfaces;
+
+            this.on_charging = data.on_charging;
+            this.charge_percent = data.charge_percent;
+            this.voltage = data.voltage;
+            this.charge_voltage = data.charge_voltage;
+            this.board_temperature = data.board_temperature;
+            this.sd_state = data.sd_state;
+            this.sim_state = data.sim_state;
+            this.isp_name = data.isp_name;
+            this.modem_signal_strength = data.modem_signal_strength;
+          });
+      },
+      init() {
+        //console.log("Dashboard data init.");
+        this.fetchStatus();
+        setInterval(() => {
+          this.fetchStatus();
+        }, 4000);
+      },
+      connection: "",
+      server_location: "",
+      down_speed: 0,
+      up_speed: 0,
+      uptime: "",
+
+      hostname: "",
+      model: "",
+      firmware_version: "",
+      kernel: "",
+      modem_model: "",
+
+      wan_ip: "",
+      carrier: "",
+      dhcp_clients_count: 0,
+      wifi_clients_count: 0,
+      wifi_interfaces: [],
+
+      on_charging: false,
+      charge_percent: 0,
+      voltage: null,
+      charge_voltage: "",
+      board_temperature: null,
+      sd_state: "",
+      sim_state: "",
+      modem_signal_strength: 0,
+      isp_name: "",
+      pcie_wifi: null,
+
+      get connection_name() {
+        if (this.connection === "unknown") {
+          return '';
+        } else if (this.connection === "mobile") {
+          return '{{locales["connection_mobile"]}}';
+        } else if (this.connection === "wired") {
+          return '{{locales["connection_wired"]}}';
+        } else if (this.connection === "none") {
+          return '';
+        }
+      },
+
+      get carrier_name() {
+        if (this.sim_state === 'absent'){ return; }
+        if (this.connection === "wired" && (this.carrier === "3G" || this.carrier === "4G" || this.carrier === "5G") ) {
+          return "";
+        } else {
+          return this.carrier;
+        }
+      },
+
+      get up_speed_value() {
+        if (this.up_speed > 1048576) {
+          return `${(this.up_speed / 1048576.0).toFixed(2)} M/S`;
+        } else {
+          return `${(this.up_speed / 1024.0).toFixed(0)} KB/S`;
+        }
+      },
+
+      get down_speed_value() {
+        if (this.down_speed > 1048576) {
+          return `${(this.down_speed / 1048576.0).toFixed(2)} M/S`;
+        } else {
+          return `${(this.down_speed / 1024.0).toFixed(0)} KB/S`;
+        }
+      },
+
+      get charge_percent_status() {
+        if (!Alpine.store("app").firmware_exist) {
+          return "N/A";
+        } else {
+          if (this.charge_percent > 20) {
+            return `<span class='text-green-600'>${this.charge_percent}%</span>`;
+          } else {
+            return `<span class='text-red-600'>${this.charge_percent}%</span>`;
+          }
+        }
+      },
+
+      get battery_charging_status() {
+        if(this.on_charging) {
+          if (this.charge_percent > 20) {
+            return `<span class='text-green-600'>{{locales["battery_charging"]}}</span>`;
+          } else {
+            return `<span class='text-red-600'>{{locales["battery_charging"]}}</span>`;
+          }
+        } else {
+          if (this.charge_percent > 20) {
+            return `<span class='text-green-600'>{{locales["battery_discharging"]}}</span>`;
+          } else {
+            return `<span class='text-red-600'>{{locales["battery_discharging"]}}</span>`;
+          }
+        }
+      },
+
+      get voltage_status() {
+        if (!Alpine.store("app").firmware_exist) {
+          return "";
+        }
+        if(this.voltage === null) {
+          return "";
+        }
+        return `${this.voltage} mv`;
+      },
+
+      get charge_voltage_status() {
+        if (!Alpine.store("app").firmware_exist) {
+          return "N/A";
+        }
+        if (this.on_charging) {
+          return `${this.charge_voltage} mv`;
+        } else {
+          return "N/A";
+        }
+      },
+
+      get isp_readable_name() {
+        if (this.isp_name === "China Unicom") {
+          return "中国联通";
+        } else if (this.isp_name === "China Mobile") {
+          return "中国移动";
+        } else if (this.isp_name === "China Telecom") {
+          return "中国电信";
+        } else {
+          return this.isp_name;
+        }
+      },
+    }));
+  });
+</script> {% endblock %} 
