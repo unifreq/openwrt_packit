@@ -29,7 +29,7 @@ PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b" "h88k"
-    "r66s" "r68s" "h66k" "h68k" "e25"
+    "r66s" "r68s" "h66k" "h68k" "e25" "photonicat"
     "beikeyun" "l1pro"
     "vplus"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
@@ -39,7 +39,7 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25" "photonicat")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -66,6 +66,7 @@ SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_H66K_FILE="mk_rk3568_h66k.sh"
 SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
 SCRIPT_E25_FILE="mk_rk3568_e25.sh"
+SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
 SCRIPT_H88K_FILE="mk_rk3588_h88k.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
@@ -133,6 +134,7 @@ init_var() {
     [[ -n "${SCRIPT_H66K}" ]] || SCRIPT_H66K="${SCRIPT_H66K_FILE}"
     [[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
     [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
+    [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
     [[ -n "${SCRIPT_H88K}" ]] || SCRIPT_H88K="${SCRIPT_H88K_FILE}"
     [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
@@ -189,7 +191,7 @@ init_packit_repo() {
 
     # clone ${SELECT_PACKITPATH} repo
     echo -e "${STEPS} Start cloning repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into [ ${SELECT_PACKITPATH} ]"
-    git clone --depth 1 ${SCRIPT_REPO_URL} -b ${SCRIPT_REPO_BRANCH} ${SELECT_PACKITPATH}
+    git clone -q --single-branch --depth=1 --branch=${SCRIPT_REPO_BRANCH} ${SCRIPT_REPO_URL} ${SELECT_PACKITPATH}
 
     # Check the *rootfs.tar.gz package
     [[ -z "${OPENWRT_ARMVIRT}" ]] && error_msg "The [ OPENWRT_ARMVIRT ] variable must be specified."
@@ -448,26 +450,27 @@ EOF
 
                     # Select the corresponding packaging script
                     case "${PACKAGE_VAR}" in
-                        vplus)    [[ -f "${SCRIPT_VPLUS}" ]] && sudo ./${SCRIPT_VPLUS} ;;
-                        beikeyun) [[ -f "${SCRIPT_BEIKEYUN}" ]] && sudo ./${SCRIPT_BEIKEYUN} ;;
-                        l1pro)    [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
-                        r66s)     [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
-                        r68s)     [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
-                        h66k)     [[ -f "${SCRIPT_H66K}" ]] && sudo ./${SCRIPT_H66K} ;;
-                        h68k)     [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
-                        rock5b)   [[ -f "${SCRIPT_ROCK5B}" ]] && sudo ./${SCRIPT_ROCK5B} ;;
-                        h88k)     [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} ;;
-                        e25)      [[ -f "${SCRIPT_E25}" ]] && sudo ./${SCRIPT_E25} ;;
-                        s905)     [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
-                        s905d)    [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
-                        s905x2)   [[ -f "${SCRIPT_S905X2}" ]] && sudo ./${SCRIPT_S905X2} ;;
-                        s905x3)   [[ -f "${SCRIPT_S905X3}" ]] && sudo ./${SCRIPT_S905X3} ;;
-                        s912)     [[ -f "${SCRIPT_S912}" ]] && sudo ./${SCRIPT_S912} ;;
-                        s922x)    [[ -f "${SCRIPT_S922X}" ]] && sudo ./${SCRIPT_S922X} ;;
-                        s922x-n2) [[ -f "${SCRIPT_S922X_N2}" ]] && sudo ./${SCRIPT_S922X_N2} ;;
-                        qemu)     [[ -f "${SCRIPT_QEMU}" ]] && sudo ./${SCRIPT_QEMU} ;;
-                        diy)      [[ -f "${SCRIPT_DIY}" ]] && sudo ./${SCRIPT_DIY} ;;
-                        *)        echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
+                        vplus)      [[ -f "${SCRIPT_VPLUS}" ]] && sudo ./${SCRIPT_VPLUS} ;;
+                        beikeyun)   [[ -f "${SCRIPT_BEIKEYUN}" ]] && sudo ./${SCRIPT_BEIKEYUN} ;;
+                        l1pro)      [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
+                        r66s)       [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
+                        r68s)       [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
+                        h66k)       [[ -f "${SCRIPT_H66K}" ]] && sudo ./${SCRIPT_H66K} ;;
+                        h68k)       [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
+                        rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]] && sudo ./${SCRIPT_ROCK5B} ;;
+                        h88k)       [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} ;;
+                        e25)        [[ -f "${SCRIPT_E25}" ]] && sudo ./${SCRIPT_E25} ;;
+                        photonicat) [[ -f "${SCRIPT_PHOTONICAT}" ]] && sudo ./${SCRIPT_PHOTONICAT} ;;
+                        s905)       [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
+                        s905d)      [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
+                        s905x2)     [[ -f "${SCRIPT_S905X2}" ]] && sudo ./${SCRIPT_S905X2} ;;
+                        s905x3)     [[ -f "${SCRIPT_S905X3}" ]] && sudo ./${SCRIPT_S905X3} ;;
+                        s912)       [[ -f "${SCRIPT_S912}" ]] && sudo ./${SCRIPT_S912} ;;
+                        s922x)      [[ -f "${SCRIPT_S922X}" ]] && sudo ./${SCRIPT_S922X} ;;
+                        s922x-n2)   [[ -f "${SCRIPT_S922X_N2}" ]] && sudo ./${SCRIPT_S922X_N2} ;;
+                        qemu)       [[ -f "${SCRIPT_QEMU}" ]] && sudo ./${SCRIPT_QEMU} ;;
+                        diy)        [[ -f "${SCRIPT_DIY}" ]] && sudo ./${SCRIPT_DIY} ;;
+                        *)          echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
                     esac
 
                     # Generate compressed file
