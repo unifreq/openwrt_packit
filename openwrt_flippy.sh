@@ -458,7 +458,7 @@ EOF
                         h66k)       [[ -f "${SCRIPT_H66K}" ]] && sudo ./${SCRIPT_H66K} ;;
                         h68k)       [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
                         rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]] && sudo ./${SCRIPT_ROCK5B} ;;
-                        h88k)       [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} ;;
+                        h88k)       [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} && sudo ./${SCRIPT_H88K} "25" ;;
                         e25)        [[ -f "${SCRIPT_E25}" ]] && sudo ./${SCRIPT_E25} ;;
                         photonicat) [[ -f "${SCRIPT_PHOTONICAT}" ]] && sudo ./${SCRIPT_PHOTONICAT} ;;
                         s905)       [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
