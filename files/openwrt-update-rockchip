@@ -96,7 +96,7 @@ elif [[ "$(echo ${MYDEVICE_NAME} | grep "HINLINK OWL H88K")" != "" ]]; then
     else
         MYDTB_FDTFILE="rk3588-hinlink-h88k.dtb"
     fi
-    SOC="h88k"
+    SOC="ak88/h88k"
 else
     echo "Unknown device: [ ${MYDEVICE_NAME} ], Not supported."
     exit 1
