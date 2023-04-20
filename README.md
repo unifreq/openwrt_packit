@@ -67,7 +67,21 @@
                                  -> wpa-cli
                                  -> wpad-basic
                  ->  iw
+                 
+        * 光影猫(Photonicat) 依赖包：
+            *  (必选, required，如果不选的话开机一分钟内会自动关机，与硬件内置的看门狗有关)
+            Utilities -> pcat-manager
        
+            * 可选，optional, 如果不选的话，官方个性化主页无效
+            Languages -> Python -> Python3-flask
+                                   Python3-flask-httpauth
+                                   Python3-flask-login
+                                   Python3-flask-seasurf
+                                   Python3-flask-session
+                                   Python3-flask-socketio
+                                   Python3-passlib
+                                   Python3-pyserial
+                                   Python3-requests
     
     除上述必选项以外的软件包可以按需自主选择。
 
