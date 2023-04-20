@@ -192,8 +192,10 @@ function check_opkg_requires() {
 		shift
 		if [ -n "$control" ];then
 		       	if [ ! -f "./usr/lib/opkg/info/$control" ];then
-				echo "$control 不存在！"
-				break
+				if [ "$ok" == "ok" ];then
+					ok="The following packages do not exist:"
+				fi
+				ok="$ok $control"
 			fi
 		else
 			break
