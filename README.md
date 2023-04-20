@@ -81,6 +81,8 @@
                                    Python3-flask-socketio
                                    Python3-passlib
                                    Python3-pyserial
+                                   Python3-sqlite3
+                                   Python3-xml
                                    Python3-requests
     
     除上述必选项以外的软件包可以按需自主选择。
