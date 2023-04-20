@@ -117,6 +117,21 @@ WIRELESS_CONFIG="${PWD}/files/rk3568/photonicat/wireless"
 PCAT_MANAGER_WEB_HOME="${PWD}/files/rk3568/photonicat/pcat-manager-web"
 UHTTPD_PORT="8080"
 UHTTPD_PORT_S="8443"
+# 20230420 add
+PCAT_MANAGER_CONF="${PWD}/files/rk3568/photonicat/pcat-manager.conf"
+PCAT_MANAGER_WEB_REQUIRES="
+python3-flask.control
+python3-flask-httpauth.control
+python3-flask-login.control
+python3-flask-seasurf.control
+python3-flask-session.control
+python3-flask-socketio.control
+python3-passlib.control
+python3-pyserial.control
+python3-requests.control
+python3-sqlite3.control
+python3-xml.control
+"
 ####################################################################
 
 check_depends
@@ -170,24 +185,48 @@ adjust_ntfs_config
 adjust_mosdns_config
 patch_admin_status_index_html
 
-echo "为光影猫进行自定义配置 ... "
-if [ -d "${PCAT_MANAGER_WEB_HOME}" ];then
-	echo "copy pcat-manager-web ... "
-	cp -a ${PCAT_MANAGER_WEB_HOME}/* .
-	echo "done"
+function check_opkg_requires() {
+	local ok="ok"
+	while :;do
+		local control=$1
+		shift
+		if [ -n "$control" ];then
+		       	if [ ! -f "./usr/lib/opkg/info/$control" ];then
+				echo "$control 不存在！"
+				break
+			fi
+		else
+			break
+		fi
+	done
+	echo $ok
+}
+
+if [ -n "${PCAT_MANAGER_CONF}" ] && [ -f "${PCAT_MANAGER_CONF}" ];then
+	cp -v "${PCAT_MANAGER_CONF}" ./etc/pcat-manager.conf
 fi
-if [ -n "$UHTTPD_PORT" ];then
-	echo "change http port from 80 to ${UHTTPD_PORT}"
-	sed -e "s/:80/:${UHTTPD_PORT}/g" -i etc/config/uhttpd
-	echo "done"
+ret=$(check_opkg_requires ${PCAT_MANAGER_WEB_REQUIRES})
+if [ "$ret" == "ok" ];then
+	echo "为光影猫添加个性化主页 ... "
+	if [ -d "${PCAT_MANAGER_WEB_HOME}" ];then
+		echo "copy pcat-manager-web files ... "
+		cp -a ${PCAT_MANAGER_WEB_HOME}/* .
+	fi
+	if [ -n "$UHTTPD_PORT" ];then
+		echo "change http port from 80 to ${UHTTPD_PORT}"
+		sed -e "s/:80/:${UHTTPD_PORT}/g" -i etc/config/uhttpd
+	fi
+	if [ -n "$UHTTPD_PORT_S" ];then
+		echo "change https port from 443 to ${UHTTPD_PORT_S}"
+		sed -e "s/:443/:${UHTTPD_PORT_S}/g" -i etc/config/uhttpd
+	fi
+	echo "个性化主页配置完成"
+	echo
+else
+	echo "未满足前置条件，采用默认主页, 原因："
+	echo $ret
+	echo
 fi
-if [ -n "$UHTTPD_PORT_S" ];then
-	echo "change https port from 443 to ${UHTTPD_PORT_S}"
-	sed -e "s/:443/:${UHTTPD_PORT_S}/g" -i etc/config/uhttpd
-	echo "done"
-fi
-echo "自定义配置完成"
-echo
 
 adjust_kernel_env
 copy_uboot_to_fs
