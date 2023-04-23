@@ -1008,6 +1008,12 @@ EOF
 	if [ "${SOC}" == "rk3588" ];then
             echo "LOCK_KERNEL=${LOCK_KERNEL}" >> ./etc/flippy-openwrt-release
         fi
+
+        # only photonic need pcat-manager service
+        if [ "${BOARD}" != "photonicat" ];then
+            rm -f ./etc/rc.d/[SK]??pcat-manager 2>/dev/null
+            rm -f ./etc/init.d/pcat-manager 2>/dev/null
+        fi
     )
     cat $TGT_ROOT/etc/flippy-openwrt-release
     echo 
