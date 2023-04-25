@@ -24,8 +24,12 @@ WORKDIR=${PWD}
 
 if [ -f ${WORKDIR}/src2/openwrt-armvirt-64-default-rootfs.tar.gz ];then
     SRC_IMG=${WORKDIR}/src2/openwrt-armvirt-64-default-rootfs.tar.gz
-else
+elif [ -f ${WORKDIR}/openwrt-armvirt-64-default-rootfs.tar.gz ];then
     SRC_IMG=${WORKDIR}/openwrt-armvirt-64-default-rootfs.tar.gz
+elif [ -f ${WORKDIR}/src2/openwrt-armvirt-64-generic-rootfs.tar.gz ];then
+    SRC_IMG=${WORKDIR}/src2/openwrt-armvirt-64-generic-rootfs.tar.gz
+elif [ -f ${WORKDIR}/openwrt-armvirt-64-generic-rootfs.tar.gz ];then
+    SRC_IMG=${WORKDIR}/openwrt-armvirt-64-generic-rootfs.tar.gz
 fi
 
 if [ ! -f ${SRC_IMG} ];then

@@ -29,8 +29,7 @@ export K510
 ###########################################################################
 
 # Openwrt root 源文件
-OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
-OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
+OPWRT_ROOTFS_GZ=$(get_openwrt_rootfs_archive ${PWD})
 check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 

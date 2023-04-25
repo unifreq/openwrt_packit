@@ -16,7 +16,7 @@ check_file ${BOOT_TGZ}
 
 # Openwrt
 ###################################################################
-OPWRT_ROOTFS_GZ="${WORK_HOME}/${OP_ROOT_TGZ}"
+OPWRT_ROOTFS_GZ=$(get_openwrt_rootfs_archive ${PWD})
 check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 ###################################################################
