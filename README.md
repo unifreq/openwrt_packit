@@ -2,7 +2,7 @@
 
 一、制作材料：
 1. Flippy预编译好的 Arm64 内核 (在 https://t.me/openwrt_flippy  及 https://pan.baidu.com/s/1tY_-l-Se2qGJ0eKl7FZBuQ 提取码：846l)
-2. 自己编译的 openwrt rootfs tar.gz 包： openwrt-armvirt-64-default-rootfs.tar.gz , openwrt的源码仓库首选 (https://github.com/coolsnowwolf/lede)  ，当然也可以采用其它第三方源，例如 (https://github.com/Lienol/openwrt) , 也可以采用 openwrt 官方源： (https://github.com/openwrt/openwrt)。
+2. 自己编译的 openwrt rootfs tar.gz 包： openwrt-armvirt-64-generic-rootfs.tar.gz , openwrt的源码仓库首选 (https://github.com/coolsnowwolf/lede)  ，当然也可以采用其它第三方源，例如 (https://github.com/Lienol/openwrt) , 也可以采用 openwrt 官方源： (https://github.com/openwrt/openwrt)。
 
 二、环境准备
 1. 需要一台 linux 主机， 可以是 x86或arm64架构，可以是物理机或虚拟机（但不支持win10自带的linux环境），需要具备root权限， 并且具备以下基本命令（只列出命令名，不列出命令所在的包名，因不同linux发行版的软件包名、软件包安装命令各有不同，请自己查询)： 
@@ -11,7 +11,7 @@
 2. 需要把 Flippy预编译好的 Arm64 内核上传至 /opt/kernel目录（目录需要自己创建）
 3. cd  /opt   
    git clone https://github.com/unifreq/openwrt_packit     
-4. 把编译好的 openwrt-armvirt-64-default-rootfs.tar.gz 上传至 /opt/openwrt_packit目录中
+4. 把编译好的 openwrt-armvirt-64-generic-rootfs.tar.gz 上传至 /opt/openwrt_packit目录中
 5. cd /opt/openwrt_packit
 
    ./mk_xxx.sh  # xxx指代你想要生成的固件类别，例如： ./mk_s905d_n1.sh 表示生成 Phicomm N1所用的固件
@@ -37,7 +37,7 @@
 
        Target System  ->  QEMU ARM Virtual Machine 
        Subtarget ->  QEMU ARMv8 Virtual Machine (cortex-a53)
-       Target Profile  ->  Default
+       Target Profile  ->  generic
        Target Images  ->   tar.gz
        *** 必选软件包(基础依赖包，仅保证打出的包可以写入EMMC,可以在EMMC上在线升级，不包含具体的应用)： 
        Languages -> Perl               
