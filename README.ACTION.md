@@ -93,5 +93,5 @@
 
 ## OpenWrt 固件个性化定制说明
 
-此 `Actions` 仅提供 OpenWrt 打包服务，你需要自己编译 `openwrt-armvirt-64-default-rootfs.tar.gz`。编译方法可以参考 https://github.com/breakings/OpenWrt
+此 `Actions` 仅提供 OpenWrt 打包服务，你需要自己编译 `openwrt-armvirt-64-generic-rootfs.tar.gz`。编译方法可以参考 https://github.com/breakings/OpenWrt
 
