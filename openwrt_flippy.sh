@@ -24,7 +24,7 @@ SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
 
 # Set the *rootfs.tar.gz package save name
-PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
+PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 
 # Set the list of supported device
 PACKAGE_OPENWRT=(
@@ -196,7 +196,7 @@ init_packit_repo() {
     # Check the *rootfs.tar.gz package
     [[ -z "${OPENWRT_ARMVIRT}" ]] && error_msg "The [ OPENWRT_ARMVIRT ] variable must be specified."
 
-    # Load *-armvirt-64-default-rootfs.tar.gz
+    # Load *-armvirt-64-generic-rootfs.tar.gz
     if [[ "${OPENWRT_ARMVIRT}" == http* ]]; then
         echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
         wget ${OPENWRT_ARMVIRT} -q -O "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
