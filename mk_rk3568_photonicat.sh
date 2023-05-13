@@ -17,6 +17,9 @@ SOC=rk3568
 BOARD=photonicat
 SUBVER=$1
 
+# 锁定内核版本： 因 6.1.28 回退了rk3568的sgmii补丁，故光影猫最高只能采用6.1.27内核
+KERNEL_VERSION=6.1.27-flippy-83+
+
 # Kernel image sources
 ###################################################################
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
