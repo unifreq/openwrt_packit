@@ -510,8 +510,8 @@ out_github_env() {
             cp -f ../${PACKAGE_FILE} .
         fi
 
-        # Generate sha256sum check file
-        sha256sum * >sha256sums && sync
+        # Generate a sha256sum verification file for each OpenWrt file
+        for file in *; do [[ ! -d "${file}" ]] && sha256sum "${file}" >"${file}.sha"; done
 
         echo "PACKAGED_OUTPUTPATH=${PWD}" >>${GITHUB_ENV}
         echo "PACKAGED_OUTPUTDATE=$(date +"%m.%d.%H%M")" >>${GITHUB_ENV}
