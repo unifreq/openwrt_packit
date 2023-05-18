@@ -1681,7 +1681,7 @@ function adjust_kernel_env() {
             echo "完成"
         fi
 
-        if [ "$SOC" == "rk3568" ];then
+        if [ "$SOC" == "rk3568" ] || [ "$SOC" == "rk3566" ];then
             echo -n "启用 GPU 驱动 ... "
             echo "panfrost" > ./etc/modules.d/panfrost
             echo "完成"
