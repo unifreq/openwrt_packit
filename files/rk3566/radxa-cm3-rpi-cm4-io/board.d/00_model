@@ -5,8 +5,8 @@
 
 board_config_update
 
-ucidef_set_board_id "radxa,e25"
-ucidef_set_model_name "Radxa E25"
+ucidef_set_board_id "radxa,cm3-rpi-cm4-io"
+ucidef_set_model_name "Radxa CM3 RPI CM4 IO"
 
 board_config_flush
 
