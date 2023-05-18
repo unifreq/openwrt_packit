@@ -9,13 +9,16 @@
 18:W95:s905w:meson-gxl-s905w-p281.dtb:u-boot-s905x-s912.bin:::2GB-RAM,16GB-ROM,100Mb-Nic
 19:X96-Mini:s905w:meson-gxl-s905w-x96-mini.dtb:u-boot-s905x-s912.bin:::100Mb-Nic
 1a:TX9:s905x:meson-gxl-s905x-tx9.dtb:u-boot-s905x-s912.bin:::100Mb-Nic,rtl8723cs-WLAN
-1b:M302A/M304A:s905l3b:meson-gxl-s905l3b-m302a.dtb:u-boot-s905x-s912.bin:::2+8G,100Mb-Nic
+1b:M302A/M304A/CM211-1/CM311-1:s905l3b:meson-gxl-s905l3b-m302a.dtb:u-boot-s905x-s912.bin:::2+8G,100Mb-Nic
 1c:MGV2000/MGV3000:s905l2:meson-gxl-s905l2-x7-5g.dtb:u-boot-s905x-s912.bin:::2+8G,100Mb-Nic
 1d:Wojia-TV-IPBS9505:s905l2:meson-gxl-s905l2-ipbs9505.dtb:u-boot-s905x-s912.bin:::2+8G,100Mb-Nic
 1e:Q96-mini:s905l-b:meson-gxl-s905x-p212.dtb:u-boot-s905x-s912.bin:::1G/8G,100Mb-Nic
 1f:CM311-1/HG680-LC/M401A:s905l3:meson-gxl-s905l2-x7-5g.dtb:u-boot-p212.bin:::2+8G,100Mb-Nic
 1g:E900V22E:s905l3b:meson-gxl-s905l3b-e900v22e.dtb:u-boot-s905x-s912.bin:::2+8G,100Mb-Nic
 1h:X96W/FunTV:s905w:meson-gxl-s905w-x96w.dtb:u-boot-s905x-s912.bin:::2GB-RAM,16GB-ROM,100Mb-Nic,AP6255-wifi/BT
+1i:E900V22D:s905l3b:meson-gxl-s905l2-x7-5g.dtb:u-boot-s905x-s912.bin:NA:NA:2+8G,100Mb-Nic
+1j:IP103H,TY1608:s905l3b:meson-gxl-s905l3b-m302a.dtb:u-boot-s905x-s912.bin:NA:NA:2+8G,100Mb-Nic
+1k:CM211-1:s905l3:meson-gxl-s905l3b-m302a.dtb:u-boot-p212.bin:NA:NA:2+8G,100Mb-Nic
 
 # Amlogic GXM Family
 21:Octopus Planet:s912:meson-gxm-octopus-planet.dtb:u-boot-zyxq.bin:NA:NA:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
@@ -73,6 +76,7 @@
 5k:A95XF3-Air-1Gb:s905x3:meson-sm1-a95xf3-air-gbit.dtb:u-boot-x96maxplus.bin:::2GB-Mem,1Gb-Nic,Wifi
 5l:A95XF3-Air-100Mb:s905x3:meson-sm1-a95xf3-air.dtb:u-boot-x96maxplus.bin:::2GB-Mem,100Mb-Nic,Wifi
 5m:X96-Max+_2101:s905x3:meson-sm1-x96-max-plus-2101.dtb:u-boot-x96maxplus.bin:::4GB-Mem,32G-Rom,Wifi/BT,1Gb-Nic(JL2xx1)
+5n:Whale:s905x3:meson-sm1-x96-max-plus-oc.dtb:u-boot-x96maxplus.bin:/lib/u-boot/x96maxplus-u-boot.bin.sd.bin:/lib/u-boot/hk1box-bootloader.img:4C@2208Mhz,4GB Mem,64GB ROM,1Gb Nic
 
 # Other
 0:Other::NA:NA:NA:NA:Enter the dtb file name of your box
