@@ -29,7 +29,7 @@ PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b" "h88k" "ak88"
-    "r66s" "r68s" "h66k" "h68k" "e25" "photonicat"
+    "r66s" "r68s" "h66k" "h68k" "e25" "photonicat" "cm3"
     "beikeyun" "l1pro"
     "vplus"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
@@ -39,7 +39,7 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "ak88")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25" "photonicat")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -61,6 +61,7 @@ SAVE_OPENWRT_ARMVIRT_VALUE="true"
 SCRIPT_VPLUS_FILE="mk_h6_vplus.sh"
 SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
+SCRIPT_CM3_FILE="mk_rk3566_radxa-cm3-rpi-cm4-io.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_H66K_FILE="mk_rk3568_h66k.sh"
@@ -129,6 +130,7 @@ init_var() {
     [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
     [[ -n "${SCRIPT_BEIKEYUN}" ]] || SCRIPT_BEIKEYUN="${SCRIPT_BEIKEYUN_FILE}"
     [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
+    [[ -n "${SCRIPT_CM3}" ]] || SCRIPT_CM3="${SCRIPT_CM3_FILE}"
     [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
     [[ -n "${SCRIPT_H66K}" ]] || SCRIPT_H66K="${SCRIPT_H66K_FILE}"
@@ -450,27 +452,28 @@ EOF
 
                     # Select the corresponding packaging script
                     case "${PACKAGE_VAR}" in
-                        vplus)      [[ -f "${SCRIPT_VPLUS}" ]] && sudo ./${SCRIPT_VPLUS} ;;
-                        beikeyun)   [[ -f "${SCRIPT_BEIKEYUN}" ]] && sudo ./${SCRIPT_BEIKEYUN} ;;
-                        l1pro)      [[ -f "${SCRIPT_L1PRO}" ]] && sudo ./${SCRIPT_L1PRO} ;;
-                        r66s)       [[ -f "${SCRIPT_R66S}" ]] && sudo ./${SCRIPT_R66S} ;;
-                        r68s)       [[ -f "${SCRIPT_R68S}" ]] && sudo ./${SCRIPT_R68S} ;;
-                        h66k)       [[ -f "${SCRIPT_H66K}" ]] && sudo ./${SCRIPT_H66K} ;;
-                        h68k)       [[ -f "${SCRIPT_H68K}" ]] && sudo ./${SCRIPT_H68K} ;;
-                        rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]] && sudo ./${SCRIPT_ROCK5B} ;;
-                        ak88)       [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} ;;
-                        h88k)       [[ -f "${SCRIPT_H88K}" ]] && sudo ./${SCRIPT_H88K} "25" ;;
-                        e25)        [[ -f "${SCRIPT_E25}" ]] && sudo ./${SCRIPT_E25} ;;
+                        vplus)      [[ -f "${SCRIPT_VPLUS}" ]]      && sudo ./${SCRIPT_VPLUS} ;;
+                        beikeyun)   [[ -f "${SCRIPT_BEIKEYUN}" ]]   && sudo ./${SCRIPT_BEIKEYUN} ;;
+                        l1pro)      [[ -f "${SCRIPT_L1PRO}" ]]      && sudo ./${SCRIPT_L1PRO} ;;
+                        cm3)        [[ -f "${SCRIPT_CM3}" ]]        && sudo ./${SCRIPT_CM3} ;;
+                        r66s)       [[ -f "${SCRIPT_R66S}" ]]       && sudo ./${SCRIPT_R66S} ;;
+                        r68s)       [[ -f "${SCRIPT_R68S}" ]]       && sudo ./${SCRIPT_R68S} ;;
+                        h66k)       [[ -f "${SCRIPT_H66K}" ]]       && sudo ./${SCRIPT_H66K} ;;
+                        h68k)       [[ -f "${SCRIPT_H68K}" ]]       && sudo ./${SCRIPT_H68K} ;;
+                        rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]]     && sudo ./${SCRIPT_ROCK5B} ;;
+                        ak88)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} ;;
+                        h88k)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} "25" ;;
+                        e25)        [[ -f "${SCRIPT_E25}" ]]        && sudo ./${SCRIPT_E25} ;;
                         photonicat) [[ -f "${SCRIPT_PHOTONICAT}" ]] && sudo ./${SCRIPT_PHOTONICAT} ;;
-                        s905)       [[ -f "${SCRIPT_S905}" ]] && sudo ./${SCRIPT_S905} ;;
-                        s905d)      [[ -f "${SCRIPT_S905D}" ]] && sudo ./${SCRIPT_S905D} ;;
-                        s905x2)     [[ -f "${SCRIPT_S905X2}" ]] && sudo ./${SCRIPT_S905X2} ;;
-                        s905x3)     [[ -f "${SCRIPT_S905X3}" ]] && sudo ./${SCRIPT_S905X3} ;;
-                        s912)       [[ -f "${SCRIPT_S912}" ]] && sudo ./${SCRIPT_S912} ;;
-                        s922x)      [[ -f "${SCRIPT_S922X}" ]] && sudo ./${SCRIPT_S922X} ;;
-                        s922x-n2)   [[ -f "${SCRIPT_S922X_N2}" ]] && sudo ./${SCRIPT_S922X_N2} ;;
-                        qemu)       [[ -f "${SCRIPT_QEMU}" ]] && sudo ./${SCRIPT_QEMU} ;;
-                        diy)        [[ -f "${SCRIPT_DIY}" ]] && sudo ./${SCRIPT_DIY} ;;
+                        s905)       [[ -f "${SCRIPT_S905}" ]]       && sudo ./${SCRIPT_S905} ;;
+                        s905d)      [[ -f "${SCRIPT_S905D}" ]]      && sudo ./${SCRIPT_S905D} ;;
+                        s905x2)     [[ -f "${SCRIPT_S905X2}" ]]     && sudo ./${SCRIPT_S905X2} ;;
+                        s905x3)     [[ -f "${SCRIPT_S905X3}" ]]     && sudo ./${SCRIPT_S905X3} ;;
+                        s912)       [[ -f "${SCRIPT_S912}" ]]       && sudo ./${SCRIPT_S912} ;;
+                        s922x)      [[ -f "${SCRIPT_S922X}" ]]      && sudo ./${SCRIPT_S922X} ;;
+                        s922x-n2)   [[ -f "${SCRIPT_S922X_N2}" ]]   && sudo ./${SCRIPT_S922X_N2} ;;
+                        qemu)       [[ -f "${SCRIPT_QEMU}" ]]       && sudo ./${SCRIPT_QEMU} ;;
+                        diy)        [[ -f "${SCRIPT_DIY}" ]]        && sudo ./${SCRIPT_DIY} ;;
                         *)          echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
                     esac
 
