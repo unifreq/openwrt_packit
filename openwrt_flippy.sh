@@ -45,10 +45,10 @@ PACKAGE_SOC_VALUE="all"
 
 # Set the default packaged kernel download repository
 KERNEL_REPO_URL_VALUE="breakings/OpenWrt"
-# Common releases kernel tag: kernel_stable, kernel_rk3588
-KERNEL_DIR=("stable" "rk3588")
-COMMON_KERNEL=("6.1.1" "5.15.1")
-RK3588_KERNEL=("5.10.1")
+# Set kernel tag: kernel_stable, kernel_rk3588
+KERNEL_TAGS=("stable" "rk3588")
+STABLE_KERNEL=("6.1.1" "5.15.1")
+RK3588_KERNEL=("5.10.110")
 KERNEL_AUTO_LATEST_VALUE="true"
 
 # Set the working directory under /opt
@@ -163,29 +163,42 @@ init_var() {
     # Confirm package object
     [[ "${PACKAGE_SOC}" != "all" ]] && {
         unset PACKAGE_OPENWRT
-        oldIFS=$IFS
-        IFS=_
+        oldIFS="${IFS}"
+        IFS="_"
         PACKAGE_OPENWRT=(${PACKAGE_SOC})
-        IFS=$oldIFS
+        IFS="${oldIFS}"
+
+        # Reset required kernel tags
+        KERNEL_TAGS_TMP=()
+        for kt in "${PACKAGE_OPENWRT[@]}"; do
+            if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
+                KERNEL_TAGS_TMP+=("rk3588")
+            else
+                KERNEL_TAGS_TMP+=("stable")
+            fi
+        done
+        # Remove duplicate kernel tags
+        KERNEL_TAGS=()
+        KERNEL_TAGS=($(echo "${KERNEL_TAGS_TMP[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
     }
-    echo -e "${INFO} Package OpenWrt List: [ ${PACKAGE_OPENWRT[*]} ]"
+    echo -e "${INFO} Package SoC: [ $(echo ${PACKAGE_OPENWRT[@]} | xargs) ]"
+    echo -e "${INFO} Kernel tags: [ $(echo ${KERNEL_TAGS[@]} | xargs) ]"
+
+    # Reset STABLE_KERNEL options
+    [[ -n "${KERNEL_VERSION_NAME}" && " ${KERNEL_TAGS[@]} " =~ " stable " ]] && {
+        unset STABLE_KERNEL
+        oldIFS="${IFS}"
+        IFS="_"
+        STABLE_KERNEL=(${KERNEL_VERSION_NAME})
+        IFS="${oldIFS}"
+        echo -e "${INFO} Stable kernel: [ $(echo ${STABLE_KERNEL[@]} | xargs) ]"
+    }
 
     # Convert kernel library address to api format
     echo -e "${INFO} Kernel download repository: [ ${KERNEL_REPO_URL} ]"
     [[ "${KERNEL_REPO_URL}" =~ ^https: ]] && KERNEL_REPO_URL="$(echo ${KERNEL_REPO_URL} | awk -F'/' '{print $4"/"$5}')"
     kernel_api="https://api.github.com/repos/${KERNEL_REPO_URL}"
     echo -e "${INFO} Kernel Query API: [ ${kernel_api} ]"
-
-    # Reset COMMON_KERNEL options
-    [[ -n "${KERNEL_VERSION_NAME}" ]] && {
-        unset COMMON_KERNEL
-        oldIFS=$IFS
-        IFS=_
-        COMMON_KERNEL=(${KERNEL_VERSION_NAME})
-        IFS=$oldIFS
-    }
-    echo -e "${INFO} Common Kernel List: [ ${COMMON_KERNEL[*]} ]"
-    echo -e "${INFO} RK3588 Kernel List: [ ${RK3588_KERNEL[*]} ]"
 }
 
 init_packit_repo() {
@@ -199,9 +212,10 @@ init_packit_repo() {
     [[ -z "${OPENWRT_ARMVIRT}" ]] && error_msg "The [ OPENWRT_ARMVIRT ] variable must be specified."
 
     # Load *-armvirt-64-default-rootfs.tar.gz
+    rm -f ${SELECT_PACKITPATH}/${PACKAGE_FILE}
     if [[ "${OPENWRT_ARMVIRT}" == http* ]]; then
         echo -e "${STEPS} wget [ ${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
-        wget ${OPENWRT_ARMVIRT} -q -O "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
+        wget ${OPENWRT_ARMVIRT} -q -O ${SELECT_PACKITPATH}/${PACKAGE_FILE}
         [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file download failed."
     else
         echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
@@ -220,9 +234,10 @@ init_packit_repo() {
 
     # Add custom script
     [[ -n "${SCRIPT_DIY_PATH}" ]] && {
+        rm -f ${SELECT_PACKITPATH}/${SCRIPT_DIY}
         if [[ "${SCRIPT_DIY_PATH}" == http* ]]; then
             echo -e "${INFO} Use wget to download custom script file: [ ${SCRIPT_DIY_PATH} ]"
-            wget ${SCRIPT_DIY_PATH} -q -O "${SELECT_PACKITPATH}/${SCRIPT_DIY}"
+            wget ${SCRIPT_DIY_PATH} -q -O ${SELECT_PACKITPATH}/${SCRIPT_DIY}
             [[ "${?}" -eq "0" ]] || error_msg "Custom script file download failed."
         else
             echo -e "${INFO} Copy custom script file: [ ${SCRIPT_DIY_PATH} ]"
@@ -239,19 +254,19 @@ auto_kernel() {
 
     # Check the version on the kernel library
     x="1"
-    for vb in ${KERNEL_DIR[*]}; do
+    for vb in ${KERNEL_TAGS[@]}; do
         {
             # Select the corresponding kernel directory and list
             if [[ "${vb}" == "rk3588" ]]; then
-                down_kernel_list=(${RK3588_KERNEL[*]})
+                down_kernel_list=(${RK3588_KERNEL[@]})
             else
-                down_kernel_list=(${COMMON_KERNEL[*]})
+                down_kernel_list=(${STABLE_KERNEL[@]})
             fi
 
             # Query the name of the latest kernel version
             TMP_ARR_KERNELS=()
             i=1
-            for kernel_var in ${down_kernel_list[*]}; do
+            for kernel_var in ${down_kernel_list[@]}; do
                 echo -e "${INFO} (${i}) Auto query the latest kernel version of the same series for [ ${vb} - ${kernel_var} ]"
 
                 # Identify the kernel <VERSION> and <PATCHLEVEL>, such as [ 6.1 ]
@@ -294,25 +309,24 @@ auto_kernel() {
             # Reset the kernel array to the latest kernel version
             if [[ "${vb}" == "rk3588" ]]; then
                 unset RK3588_KERNEL
-                RK3588_KERNEL=(${TMP_ARR_KERNELS[*]})
+                RK3588_KERNEL=(${TMP_ARR_KERNELS[@]})
+                echo -e "${INFO} The latest version of the rk3588 kernel: [ ${RK3588_KERNEL[@]} ]"
             else
-                unset COMMON_KERNEL
-                COMMON_KERNEL=(${TMP_ARR_KERNELS[*]})
+                unset STABLE_KERNEL
+                STABLE_KERNEL=(${TMP_ARR_KERNELS[@]})
+                echo -e "${INFO} The latest version of the stable kernel: [ ${STABLE_KERNEL[@]} ]"
             fi
 
             let x++
         }
     done
-
-    echo -e "${INFO} The latest version of the common kernel: [ ${COMMON_KERNEL[*]} ]"
-    echo -e "${INFO} The latest version of the rk3588 kernel: [ ${RK3588_KERNEL[*]} ]"
 }
 
 check_kernel() {
     [[ -n "${1}" ]] && check_path="${1}" || error_msg "Invalid kernel path to check."
     check_files=($(cat "${check_path}/sha256sums" | awk '{print $2}'))
     m="1"
-    for cf in ${check_files[*]}; do
+    for cf in ${check_files[@]}; do
         {
             # Check if file exists
             [[ -s "${check_path}/${cf}" ]] || error_msg "The [ ${cf} ] file is missing."
@@ -323,7 +337,7 @@ check_kernel() {
             let m++
         }
     done
-    echo -e "${INFO} All [ ${#check_files[*]} ] kernel files are sha256sum checked to be complete.\n"
+    echo -e "${INFO} All [ ${#check_files[@]} ] kernel files are sha256sum checked to be complete.\n"
 }
 
 download_kernel() {
@@ -332,13 +346,13 @@ download_kernel() {
     cd /opt
 
     x="1"
-    for vb in ${KERNEL_DIR[*]}; do
+    for vb in ${KERNEL_TAGS[@]}; do
         {
             # Set the kernel download list
             if [[ "${vb}" == "rk3588" ]]; then
-                down_kernel_list=(${RK3588_KERNEL[*]})
+                down_kernel_list=(${RK3588_KERNEL[@]})
             else
-                down_kernel_list=(${COMMON_KERNEL[*]})
+                down_kernel_list=(${STABLE_KERNEL[@]})
             fi
 
             # Kernel storage directory
@@ -347,7 +361,7 @@ download_kernel() {
 
             # Download the kernel to the storage directory
             i="1"
-            for kernel_var in ${down_kernel_list[*]}; do
+            for kernel_var in ${down_kernel_list[@]}; do
                 if [[ ! -d "${kernel_path}/${kernel_var}" ]]; then
                     kernel_down_from="https://github.com/${KERNEL_REPO_URL}/releases/download/kernel_${vb}/${kernel_var}.tar.gz"
                     echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel download from [ ${kernel_down_from} ]"
@@ -380,19 +394,19 @@ make_openwrt() {
     echo -e "${STEPS} Start packaging OpenWrt..."
 
     i="1"
-    for PACKAGE_VAR in ${PACKAGE_OPENWRT[*]}; do
+    for PACKAGE_VAR in ${PACKAGE_OPENWRT[@]}; do
         {
             # Distinguish between different OpenWrt and use different kernel
             if [[ -n "$(echo "${PACKAGE_OPENWRT_RK3588[@]}" | grep -w "${PACKAGE_VAR}")" ]]; then
-                build_kernel=(${RK3588_KERNEL[*]})
+                build_kernel=(${RK3588_KERNEL[@]})
                 vb="rk3588"
             else
-                build_kernel=(${COMMON_KERNEL[*]})
-                vb="$(echo "${KERNEL_DIR[@]}" | sed -e "s|rk3588||" | xargs)"
+                build_kernel=(${STABLE_KERNEL[@]})
+                vb="$(echo "${KERNEL_TAGS[@]}" | sed -e "s|rk3588||" | xargs)"
             fi
 
             k="1"
-            for kernel_var in ${build_kernel[*]}; do
+            for kernel_var in ${build_kernel[@]}; do
                 {
                     # Rockchip rk3568 series only support 6.x.y and above kernel
                     [[ -n "$(echo "${PACKAGE_OPENWRT_KERNEL6[@]}" | grep -w "${PACKAGE_VAR}")" && "${kernel_var:0:1}" -ne "6" ]] && {
@@ -532,24 +546,14 @@ out_github_env() {
 
 # Show welcome message
 echo -e "${STEPS} Welcome to use the OpenWrt packaging tool! \n"
+echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
+echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}) \n"
 
-# Initialize and download resources
+# Packit OpenWrt
 init_var
 init_packit_repo
 [[ "${KERNEL_AUTO_LATEST}" == "true" ]] && auto_kernel
 download_kernel
-
-# Show packit settings
-echo -e "${INFO} [ ${#PACKAGE_OPENWRT[*]} ] lists of OpenWrt board: [ $(echo ${PACKAGE_OPENWRT[*]} | xargs) ]"
-echo -e "${INFO} [ ${#COMMON_KERNEL[*]} ] lists of common kernel: [ $(echo ${COMMON_KERNEL[*]} | xargs) ]"
-echo -e "${INFO} [ ${#RK3588_KERNEL[*]} ] lists of rk3588 Kernel: [ $(echo ${RK3588_KERNEL[*]} | xargs) ]"
-echo -e "${INFO} Use the latest kernel version: [ ${KERNEL_AUTO_LATEST} ] \n"
-# Show server start information
-echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
-echo -e "${INFO} Server memory usage: \n$(free -h) \n"
-echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}) \n"
-
-# Loop to make OpenWrt
 make_openwrt
 out_github_env
 
