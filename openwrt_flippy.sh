@@ -11,7 +11,7 @@
 # error_msg         : Output error message
 # init_var          : Initialize all variables
 # init_packit_repo  : Initialize packit openwrt repo
-# auto_kernel       : Automatically use the latest kernel
+# query_kernel      : Query the latest kernel version
 # check_kernel      : Check kernel files integrity
 # download_kernel   : Download the kernel
 # make_openwrt      : Loop to make OpenWrt files
@@ -24,12 +24,12 @@ SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
 
 # Set the *rootfs.tar.gz package save name
-PACKAGE_FILE="openwrt-armvirt-64-default-rootfs.tar.gz"
+PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b" "h88k" "ak88"
-    "r66s" "r68s" "h66k" "h68k" "e25" "photonicat" "cm3"
+    "r66s" "r68s" "h66k" "h68k" "h69k" "e25" "photonicat" "cm3"
     "beikeyun" "l1pro"
     "vplus"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
@@ -39,7 +39,7 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "ak88")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "e25" "photonicat" "cm3")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "h69k" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -66,6 +66,7 @@ SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_H66K_FILE="mk_rk3568_h66k.sh"
 SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
+SCRIPT_H69K_FILE="mk_rk3568_h69k.sh"
 SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
@@ -135,6 +136,7 @@ init_var() {
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
     [[ -n "${SCRIPT_H66K}" ]] || SCRIPT_H66K="${SCRIPT_H66K_FILE}"
     [[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
+    [[ -n "${SCRIPT_H69K}" ]] || SCRIPT_H69K="${SCRIPT_H69K_FILE}"
     [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
     [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
@@ -249,7 +251,7 @@ init_packit_repo() {
     }
 }
 
-auto_kernel() {
+query_kernel() {
     echo -e "${STEPS} Start querying the latest kernel..."
 
     # Check the version on the kernel library
@@ -369,7 +371,7 @@ download_kernel() {
                     wget "${kernel_down_from}" -q -P "${kernel_path}"
                     [[ "${?}" -ne "0" ]] && error_msg "Failed to download the kernel files from the server."
 
-                    tar -xf "${kernel_path}/${kernel_var}.tar.gz" -C "${kernel_path}"
+                    tar -mxf "${kernel_path}/${kernel_var}.tar.gz" -C "${kernel_path}"
                     [[ "${?}" -ne "0" ]] && error_msg "[ ${kernel_var} ] kernel decompression failed."
                 else
                     echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel is in the local directory."
@@ -474,6 +476,7 @@ EOF
                         r68s)       [[ -f "${SCRIPT_R68S}" ]]       && sudo ./${SCRIPT_R68S} ;;
                         h66k)       [[ -f "${SCRIPT_H66K}" ]]       && sudo ./${SCRIPT_H66K} ;;
                         h68k)       [[ -f "${SCRIPT_H68K}" ]]       && sudo ./${SCRIPT_H68K} ;;
+                        h69k)       [[ -f "${SCRIPT_H69K}" ]]       && sudo ./${SCRIPT_H69K} ;;
                         rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]]     && sudo ./${SCRIPT_ROCK5B} ;;
                         ak88)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} ;;
                         h88k)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} "25" ;;
@@ -552,7 +555,7 @@ echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT ${PWD}
 # Packit OpenWrt
 init_var
 init_packit_repo
-[[ "${KERNEL_AUTO_LATEST}" == "true" ]] && auto_kernel
+[[ "${KERNEL_AUTO_LATEST}" == "true" ]] && query_kernel
 download_kernel
 make_openwrt
 out_github_env
