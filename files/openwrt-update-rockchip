@@ -97,6 +97,13 @@ elif [[ "$(echo ${MYDEVICE_NAME} | grep "Ariaboard Photonicat")" != "" ]]; then
         MYDTB_FDTFILE="rk3568-photonicat.dtb"
     fi
     SOC="photonicat"
+elif [[ "$(echo ${MYDEVICE_NAME} | grep "Watermelon Pi")" != "" ]]; then
+    if [ -n "${CURRENT_FDTFILE}" ]; then
+        MYDTB_FDTFILE="${CURRENT_FDTFILE}"
+    else
+        MYDTB_FDTFILE="rk3568-watermelon-pi.dtb"
+    fi
+    SOC="watermelon-pi"
 elif [[ "$(echo ${MYDEVICE_NAME} | grep "Radxa ROCK 5B")" != "" ]]; then
     if [ -n "${CURRENT_FDTFILE}" ]; then
         MYDTB_FDTFILE="${CURRENT_FDTFILE}"
