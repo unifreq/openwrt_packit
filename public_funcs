@@ -162,7 +162,7 @@ function check_depends() {
     lsblk_version=$(lsblk --version|awk '{print $NF}' 2>/dev/null)
     if [ "$lsblk_version" != "" ];then
         m_v=$(echo ${lsblk_version} | cut -d '.' -f1)
-        s_v=$(echo ${lsblk_version} | cut -d '.' -f2 | grep -oE '^[0-9]+')
+        s_v=$(echo ${lsblk_version} | cut -d '.' -f2 | tr -d '[a-zA-Z]|-')
         if [ $m_v -gt 2 ] || [ $m_v -eq 2 ] && [ $s_v -ge 33 ];then
             echo "check lsblk ok"
         else
