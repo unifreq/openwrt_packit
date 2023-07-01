@@ -33,6 +33,16 @@ check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target Image
+case $SUBVER in
+	# The H69K-MAX version only has three ethernet ports
+	# gmac0 is disabled
+	# while the other H69K versions has four ethernet ports
+	max*|MAX*)  DISABLE_GMAC0=1
+		  BOARD=h69k-max
+		  ;;
+	      *)  DISABLE_GMAC0=0
+		  ;;
+esac
 TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}.img"
 
 # patches、scripts
@@ -137,6 +147,16 @@ cd $TGT_BOOT
 sed -e '/rootdev=/d' -i armbianEnv.txt
 sed -e '/rootfstype=/d' -i armbianEnv.txt
 sed -e '/rootflags=/d' -i armbianEnv.txt
+if [ $DISABLE_GMAC0 -eq 1 ];then
+	old_overlays=$(grep -e "^overlays=" armbianEnv.txt | awk -F '=' '{print $2}')
+	if [ "$old_overlays" != "" ];then
+		overlays="disable-gmac0 $old_overlays"
+	else
+		overlays="disable-gmac0"
+	fi
+	sed -e '/^overlays=/d' -i armbianEnv.txt
+	echo "overlays=${overlays}" >> armbianEnv.txt
+fi
 cat >> armbianEnv.txt <<EOF
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
