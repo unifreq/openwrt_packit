@@ -43,7 +43,7 @@ case $SUBVER in
 	      *)  DISABLE_GMAC0=0
 		  ;;
 esac
-TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}${SUBVER}.img"
+TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}.img"
 
 # patches、scripts
 ####################################################################
