@@ -29,7 +29,7 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b" "h88k" "ak88"
-    "r66s" "r68s" "h66k" "h68k" "h69k" "e25" "photonicat" "cm3"
+    "r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3"
     "beikeyun" "l1pro"
     "vplus"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
@@ -39,7 +39,7 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "ak88")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "h69k" "e25" "photonicat" "cm3")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -274,28 +274,19 @@ query_kernel() {
                 # Identify the kernel <VERSION> and <PATCHLEVEL>, such as [ 6.1 ]
                 kernel_verpatch="$(echo ${kernel_var} | awk -F '.' '{print $1"."$2}')"
 
-                if [[ -n "${GH_TOKEN}" ]]; then
-                    latest_version="$(
-                        curl -s \
-                            -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer ${GH_TOKEN}" \
-                            ${kernel_api}/releases/tags/kernel_${vb} |
-                            jq -r '.assets[].name' |
-                            grep -oE "${kernel_verpatch}\.[0-9]+" |
-                            sort -rV | head -n 1
-                    )"
-                    query_api="Authenticated user request"
-                else
-                    latest_version="$(
-                        curl -s \
-                            -H "Accept: application/vnd.github+json" \
-                            ${kernel_api}/releases/tags/kernel_${vb} |
-                            jq -r '.assets[].name' |
-                            grep -oE "${kernel_verpatch}\.[0-9]+" |
-                            sort -rV | head -n 1
-                    )"
-                    query_api="Unauthenticated user request"
-                fi
+                # Set the token for api.github.com
+                [[ -n "${GH_TOKEN}" ]] && ght="-H \"Authorization: Bearer ${GH_TOKEN}\"" || ght=""
+
+                # Query the latest kernel version
+                latest_version="$(
+                    curl -s \
+                        -H "Accept: application/vnd.github+json" \
+                        ${ght} \
+                        ${kernel_api}/releases/tags/kernel_${vb} |
+                        jq -r '.assets[].name' |
+                        grep -oE "${kernel_verpatch}\.[0-9]+" |
+                        sort -rV | head -n 1
+                )"
 
                 if [[ "$?" -eq "0" && -n "${latest_version}" ]]; then
                     TMP_ARR_KERNELS[${i}]="${latest_version}"
@@ -303,7 +294,7 @@ query_kernel() {
                     TMP_ARR_KERNELS[${i}]="${kernel_var}"
                 fi
 
-                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel (${query_api})."
+                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel."
 
                 let i++
             done
@@ -477,6 +468,7 @@ EOF
                         h66k)       [[ -f "${SCRIPT_H66K}" ]]       && sudo ./${SCRIPT_H66K} ;;
                         h68k)       [[ -f "${SCRIPT_H68K}" ]]       && sudo ./${SCRIPT_H68K} ;;
                         h69k)       [[ -f "${SCRIPT_H69K}" ]]       && sudo ./${SCRIPT_H69K} ;;
+                        h69k-max)   [[ -f "${SCRIPT_H69K}" ]]       && sudo ./${SCRIPT_H69K} "max" ;;
                         rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]]     && sudo ./${SCRIPT_ROCK5B} ;;
                         ak88)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} ;;
                         h88k)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} "25" ;;
