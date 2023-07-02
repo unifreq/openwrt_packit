@@ -274,28 +274,19 @@ query_kernel() {
                 # Identify the kernel <VERSION> and <PATCHLEVEL>, such as [ 6.1 ]
                 kernel_verpatch="$(echo ${kernel_var} | awk -F '.' '{print $1"."$2}')"
 
-                if [[ -n "${GH_TOKEN}" ]]; then
-                    latest_version="$(
-                        curl -s \
-                            -H "Accept: application/vnd.github+json" \
-                            -H "Authorization: Bearer ${GH_TOKEN}" \
-                            ${kernel_api}/releases/tags/kernel_${vb} |
-                            jq -r '.assets[].name' |
-                            grep -oE "${kernel_verpatch}\.[0-9]+" |
-                            sort -rV | head -n 1
-                    )"
-                    query_api="Authenticated user request"
-                else
-                    latest_version="$(
-                        curl -s \
-                            -H "Accept: application/vnd.github+json" \
-                            ${kernel_api}/releases/tags/kernel_${vb} |
-                            jq -r '.assets[].name' |
-                            grep -oE "${kernel_verpatch}\.[0-9]+" |
-                            sort -rV | head -n 1
-                    )"
-                    query_api="Unauthenticated user request"
-                fi
+                # Set the token for api.github.com
+                [[ -n "${GH_TOKEN}" ]] && ght="-H \"Authorization: Bearer ${GH_TOKEN}\"" || ght=""
+
+                # Query the latest kernel version
+                latest_version="$(
+                    curl -s \
+                        -H "Accept: application/vnd.github+json" \
+                        ${ght} \
+                        ${kernel_api}/releases/tags/kernel_${vb} |
+                        jq -r '.assets[].name' |
+                        grep -oE "${kernel_verpatch}\.[0-9]+" |
+                        sort -rV | head -n 1
+                )"
 
                 if [[ "$?" -eq "0" && -n "${latest_version}" ]]; then
                     TMP_ARR_KERNELS[${i}]="${latest_version}"
@@ -303,7 +294,7 @@ query_kernel() {
                     TMP_ARR_KERNELS[${i}]="${kernel_var}"
                 fi
 
-                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel (${query_api})."
+                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel."
 
                 let i++
             done
