@@ -28,7 +28,7 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 
 # Set the list of supported device
 PACKAGE_OPENWRT=(
-    "rock5b" "h88k" "ak88"
+    "rock5b" "h88k" "h88k-v3" "ak88"
     "r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3"
     "beikeyun" "l1pro"
     "vplus"
@@ -37,7 +37,7 @@ PACKAGE_OPENWRT=(
     "diy"
 )
 # Set the list of devices using the [ rk3588 ] kernel
-PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "ak88")
+PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "h88k-v3" "ak88")
 # Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
@@ -71,6 +71,7 @@ SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
 SCRIPT_H88K_FILE="mk_rk3588_h88k.sh"
+SCRIPT_H88KV3_FILE="mk_rk3588_h88k-v3.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
@@ -141,6 +142,7 @@ init_var() {
     [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
     [[ -n "${SCRIPT_H88K}" ]] || SCRIPT_H88K="${SCRIPT_H88K_FILE}"
+    [[ -n "${SCRIPT_H88KV3}" ]] || SCRIPT_H88KV3="${SCRIPT_H88KV3_FILE}"
     [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
     [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
     [[ -n "${SCRIPT_S905X2}" ]] || SCRIPT_S905X2="${SCRIPT_S905X2_FILE}"
@@ -472,6 +474,7 @@ EOF
                         rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]]     && sudo ./${SCRIPT_ROCK5B} ;;
                         ak88)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} ;;
                         h88k)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} "25" ;;
+                        h88k-v3)    [[ -f "${SCRIPT_H88KV3}" ]]     && sudo ./${SCRIPT_H88KV3} ;;
                         e25)        [[ -f "${SCRIPT_E25}" ]]        && sudo ./${SCRIPT_E25} ;;
                         photonicat) [[ -f "${SCRIPT_PHOTONICAT}" ]] && sudo ./${SCRIPT_PHOTONICAT} ;;
                         s905)       [[ -f "${SCRIPT_S905}" ]]       && sudo ./${SCRIPT_S905} ;;
