@@ -108,6 +108,12 @@ PWM_FAN="${PWD}/files/rk3588/h88k-v3/pwm-fan.pl"
 MODULES_HOME="${PWD}/files/rk3588/modules.d"
 # 20221022
 BOARD_HOME="${PWD}/files/rk3588/h88k-v3/board.d"
+# 20230801 add
+WIRELESS_CONFIG="${PWD}/files/rk3588/h88k-v3/wireless"
+# 20230801 add
+BOARD_MODULES_HOME="${PWD}/files/rk3588/h88k-v3/modules.d"
+# 20230801 add
+NETWORK_SERVICE_PATCH="${PWD}/files/rk3588/h88k-v3/network.patch"
 ####################################################################
 
 check_depends
