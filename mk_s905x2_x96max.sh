@@ -56,7 +56,6 @@ SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 COREMARK="${PWD}/files/coremark.sh"
 
 # 20200930 add
-SND_MOD="${PWD}/files/s905x2/snd-meson-g12"
 DAEMON_JSON="${PWD}/files/s905x2/daemon.json"
 
 # 20201006 add
@@ -120,6 +119,9 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+
+# 20230829 add
+MODULES_HOME="${PWD}/files/s905x2/modules.d"
 ###########################################################################
 
 check_depends

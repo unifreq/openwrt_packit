@@ -56,7 +56,6 @@ SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 COREMARK="${PWD}/files/coremark.sh"
 
 # 20200930 add
-SND_MOD="${PWD}/files/s905x3/snd-meson-g12"
 BTLD_BIN="${PWD}/files/s905x3/hk1box-bootloader.img"
 DAEMON_JSON="${PWD}/files/s905x3/daemon.json"
 
@@ -121,6 +120,9 @@ DDBR="${PWD}/files/openwrt-ddbr"
 # 20220225 add
 SSH_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,chacha20-poly1305@openssh.com"
 SSHD_CIPHERS="aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+
+# 20230829 add
+MODULES_HOME="${PWD}/files/s905x3/modules.d"
 ###########################################################################
 
 check_depends
