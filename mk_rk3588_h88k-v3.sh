@@ -114,6 +114,9 @@ WIRELESS_CONFIG="${PWD}/files/rk3588/h88k-v3/wireless"
 BOARD_MODULES_HOME="${PWD}/files/rk3588/h88k-v3/modules.d"
 # 20230801 add
 NETWORK_SERVICE_PATCH="${PWD}/files/rk3588/h88k-v3/network.patch"
+
+# 20230903 add
+DC_VOLTAGE_PATCH="${PWD}/files/rk3588/h88k/dc_voltage.patch"
 ####################################################################
 
 check_depends

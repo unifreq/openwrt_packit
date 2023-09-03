@@ -988,9 +988,14 @@ function patch_admin_status_index_html() {
 		   if [ $ret -eq 0 ];then
                         echo "补丁成功"
 			rm -f ./usr/lib/lua/luci/view/admin_status/index.htm.bak
+			if [ -n "${DC_VOLTAGE_PATCH}" ] && [ -f "${DC_VOLTAGE_PATCH}" ];then
+				echo "发现 DC 电压监控补丁，开始打补丁 ..."
+				patch -p1 < "${DC_VOLTAGE_PATCH}" && echo "完成"
+			fi
 		   fi
                 fi
                 echo "完成"
+
             fi
             echo
         )

@@ -322,6 +322,45 @@ sub get_boardinfo() {
     return $ret;
 }
 
+sub get_dc_voltage() {
+    my $precision = shift;
+    my $board = &get_boardinfo;
+    my $up_res = 0;
+    my $down_res = 0;
+    my $iio_channel;
+    my $ret = 0;
+    my $fh;
+    if($board =~ m/HINLINK OWL H88K/) {
+	$up_res = 500;
+	$down_res = 27;
+	$iio_channel = 6;
+    } elsif($board =~ m/HINLINK OPC-H6\dK Board/) {
+	$up_res = 300;
+	$down_res = 27;
+	$iio_channel = 4;
+	$ret = 12;
+    }
+
+    if($up_res && $down_res) {
+        my $voltage_raw = 0;
+        my $voltage_scale = 0;
+	open $fh, "<", "/sys/bus/iio/devices/iio:device0/in_voltage_scale" or die;
+	read $fh, $voltage_scale, 40;
+	close $fh;
+
+	open $fh, "<", "/sys/bus/iio/devices/iio:device0/in_voltage${iio_channel}_raw" or die;
+	read $fh, $voltage_raw, 40;
+	close $fh;
+
+        if($voltage_raw && $voltage_scale) {
+	    $precision = 0 unless $precision;
+	    my $fmt = "%0.${precision}f";
+            $ret = sprintf $fmt, $voltage_raw * $voltage_scale * ($up_res + $down_res) / $down_res / 1000.0;
+	}
+    }
+    return $ret;
+}
+
 #####   main program #####
 my $argc = scalar( @ARGV );
 if($argc == 0) {
@@ -348,4 +387,6 @@ if($argc == 0) {
     print &get_ethcount, "\n";
 } elsif($ARGV[0] eq "-b") {
     print &get_boardinfo, "\n";
+} elsif($ARGV[0] =~ m/-V(\d{0,1})/) {
+    print &get_dc_voltage($1), "\n";
 }

@@ -1,0 +1,38 @@
+--- a/usr/lib/lua/luci/view/admin_status/index.htm
++++ b/usr/lib/lua/luci/view/admin_status/index.htm
+@@ -59,6 +59,7 @@
+ 		local cpu_stat = luci.sys.exec("/usr/bin/cpustat 2>/dev/null") or { }
+ 		local eth_info = luci.sys.exec("/usr/bin/cpustat -e 2>/dev/null")
+ 		local eth_cnt  = luci.sys.exec("/usr/bin/cpustat -ec 2>/dev/null")
++		local dc_voltage = luci.sys.exec("/usr/bin/cpustat -V2 2>/dev/null")
+ 
+ 		local rv = {
+ 			cpuusage    = cpu_usage,
+@@ -76,7 +77,8 @@
+ 			leases     = stat.dhcp_leases(),
+ 			leases6    = stat.dhcp6_leases(),
+ 			wifinets   = stat.wifi_networks(),
+-			cpustat    = cpu_stat
++			cpustat    = cpu_stat,
++			dcvoltage  = dc_voltage .. 'V'
+ 		}
+ 
+ 		if wan then
+@@ -687,6 +689,9 @@
+ 			if (e = document.getElementById('cpuusage'))
+ 				e.innerHTML = info.cpuusage;
+ 
++			if (e = document.getElementById('dcvoltage'))
++				e.innerHTML = info.dcvoltage;
++
+ 			if (e = document.getElementById('loadavg'))
+ 				e.innerHTML = String.format(
+ 					'%.02f, %.02f, %.02f',
+@@ -745,6 +750,7 @@
+ 		<tr><td width="33%"><%:CPU状态%></td><td id="cpustat">-</td></tr>
+ 		<tr><td width="33%"><%:Load Average%></td><td id="loadavg">-</td></tr>
+ 		<tr><td width="33%"><%:CPU usage (%)%></td><td id="cpuusage">-</td></tr>
++		<tr><td width="33%"><%:DC voltage (V)%></td><td id="dcvoltage">-</td></tr>
+ 	</table>
+ </fieldset>
+ 
