@@ -335,15 +335,17 @@ sub get_dc_voltage() {
 	$up_res = 510;
 	$down_res = 27;
 	$iio_channel = 6;
+	$ret = "(Probably) 12";
     } elsif($board =~ m/HINLINK OPC-H6\dK Board/) {
 	$up_res = 300;
 	$down_res = 27;
 	$iio_channel = 4;
-	$ret = 12;
+	$ret = "(Probably) 12";
     } elsif($board =~ m/Radxa ROCK 5B/) {
 	$up_res = 100;
 	$down_res = 8.2;
 	$iio_channel = 6;
+	$ret = "(Probably) 12";
     }
 
     if($up_res && $down_res) {
@@ -357,7 +359,7 @@ sub get_dc_voltage() {
 	read $fh, $voltage_raw, 40;
 	close $fh;
 
-        if($voltage_raw && $voltage_scale) {
+        if($voltage_raw && $voltage_scale && (($voltage_raw + 1) * $voltage_scale < 1800)) {
 	    $precision = 0 unless $precision;
 	    my $fmt = "%0.${precision}f";
             $ret = sprintf $fmt, $voltage_raw * $voltage_scale * ($up_res + $down_res) / $down_res / 1000.0;
