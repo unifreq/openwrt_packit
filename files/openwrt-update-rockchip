@@ -125,10 +125,24 @@ elif [[ "$(echo ${MYDEVICE_NAME} | grep "HINLINK OWL H88K")" != "" ]]; then
         MYDTB_FDTFILE="rk3588-hinlink-h88k.dtb"
     fi
     SOC="ak88/h88k"
+elif [[ -f "/etc/flippy-openwrt-release" ]]; then
+    source /etc/flippy-openwrt-release 2>/dev/null
+    if [ -n "${CURRENT_FDTFILE}" ]; then
+        MYDTB_FDTFILE="${CURRENT_FDTFILE}"
+    else
+        MYDTB_FDTFILE="${FDTFILE}"
+    fi
+    SOC="${SOC}"
 else
     echo "Unknown device: [ ${MYDEVICE_NAME} ], Not supported."
     exit 1
 fi
+
+[[ -z "${MYDTB_FDTFILE}" || -z "${SOC}" ]] && {
+    echo "Invalid FDTFILE or SOC: [ ${MYDTB_FDTFILE} / ${SOC} ]"
+    exit 1
+}
+
 echo -e "Current device: ${MYDEVICE_NAME} [ ${SOC} ]"
 sleep 3
 
