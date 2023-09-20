@@ -125,6 +125,13 @@ elif [[ "$(echo ${MYDEVICE_NAME} | grep "HINLINK OWL H88K")" != "" ]]; then
         MYDTB_FDTFILE="rk3588-hinlink-h88k.dtb"
     fi
     SOC="ak88/h88k"
+elif [[ "$(echo ${MYDEVICE_NAME} | grep "Hlink H28K")" != "" ]]; then
+    if [ -n "${CURRENT_FDTFILE}" ]; then
+        MYDTB_FDTFILE="${CURRENT_FDTFILE}"
+    else
+        MYDTB_FDTFILE="rk3528-hlink-h28k.dtb"
+    fi
+    SOC="h28k"
 elif [[ -f "/etc/flippy-openwrt-release" ]]; then
     source /etc/flippy-openwrt-release 2>/dev/null
     if [ -n "${CURRENT_FDTFILE}" ]; then
@@ -595,7 +602,7 @@ cat >>./etc/crontabs/root <<EOF
 EOF
 
 sed -e 's/ttyAMA0/ttyS2/' -i ./etc/inittab
-sed -e 's/ttyS0/tty1/' -i ./etc/inittab
+[ "${SOC}" != "h28k" ] && $sed -e 's/ttyS0/tty1/' -i ./etc/inittab
 sss=$(date +%s)
 ddd=$((sss / 86400))
 sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow

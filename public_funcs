@@ -1355,12 +1355,21 @@ tty1::askfirst:/usr/libexec/login.sh
 ttyS2::askfirst:/usr/libexec/login.sh
 ttyFIQ0::askfirst:/usr/libexec/login.sh
 EOF
+                         elif [ "${SOC}" == rk3528 ] && [ "${BOARD}" == h28k ];then
+                             cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+tty1::askfirst:/usr/libexec/login.sh
+ttyS0::askfirst:/usr/libexec/login.sh
+ttyFIQ0::askfirst:/usr/libexec/login.sh
+EOF
                          else
                              cat > ./etc/inittab <<EOF
 ::sysinit:/etc/init.d/rcS S boot
 ::shutdown:/etc/init.d/rcS K shutdown
 tty1::askfirst:/usr/libexec/login.sh
 ttyS2::askfirst:/usr/libexec/login.sh
+ttyFIQ0::askfirst:/usr/libexec/login.sh
 EOF
                          fi
                          echo "完成"
