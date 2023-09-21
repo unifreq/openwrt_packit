@@ -124,6 +124,9 @@ BOARD_MODULES_HOME="${PWD}/files/rk3568/h69k/modules.d"
 WIRELESS_CONFIG="${PWD}/files/rk3568/h69k/wireless"
 # 20230622 add
 NETWORK_SERVICE_PATCH="${PWD}/files/rk3568/h69k/network.patch"
+
+# 20230921 add
+DC_VOLTAGE_PATCH="${PWD}/files/rk3568/h69k/dc_voltage.patch"
 ####################################################################
 
 check_depends
