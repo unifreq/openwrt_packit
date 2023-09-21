@@ -17,7 +17,11 @@ SOC=rk3528
 BOARD=h28k
 SUBVER=$1
 
-KERNEL_VERSION="5.10.160-rk35xx-flippy-2309a"
+if [ -n "$RK3588_KERNEL_VERSION" ];then
+    # lock the kernel version
+    KERNEL_VERSION=$RK3588_KERNEL_VERSION
+    LOCK_KERNEL=${KERNEL_VERSION}
+fi
 
 # Kernel image sources
 ###################################################################
