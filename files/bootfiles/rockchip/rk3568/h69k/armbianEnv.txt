@@ -1,6 +1,6 @@
 verbosity=7
 bootlogo=true
-fdtfile=rockchip/rk3568-opc-h69k.dtb
+fdtfile=rockchip/rk3568-hlink-h69k.dtb
 rootdev=/dev/mmcblk0p2
 rootfstype=btrfs 
 rootflags=compress=zstd:6
