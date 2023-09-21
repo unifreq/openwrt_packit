@@ -28,7 +28,7 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 
 # Set the list of supported device
 PACKAGE_OPENWRT=(
-    "rock5b" "h88k" "h88k-v3" "ak88"
+    "rock5b" "h88k" "h88k-v3" "ak88" "h28k"
     "r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3"
     "beikeyun" "l1pro"
     "vplus"
@@ -37,7 +37,7 @@ PACKAGE_OPENWRT=(
     "diy"
 )
 # Set the list of devices using the [ rk3588 ] kernel
-PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "h88k-v3" "ak88")
+PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "h88k-v3" "ak88" "h28k")
 # Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
@@ -64,6 +64,7 @@ SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
 SCRIPT_CM3_FILE="mk_rk3566_radxa-cm3-rpi-cm4-io.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
+SCRIPT_H28K_FILE="mk_rk3528_h28k.sh"
 SCRIPT_H66K_FILE="mk_rk3568_h66k.sh"
 SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
 SCRIPT_H69K_FILE="mk_rk3568_h69k.sh"
@@ -135,6 +136,7 @@ init_var() {
     [[ -n "${SCRIPT_CM3}" ]] || SCRIPT_CM3="${SCRIPT_CM3_FILE}"
     [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
+    [[ -n "${SCRIPT_H28K}" ]] || SCRIPT_H28K="${SCRIPT_H28K_FILE}"
     [[ -n "${SCRIPT_H66K}" ]] || SCRIPT_H66K="${SCRIPT_H66K_FILE}"
     [[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
     [[ -n "${SCRIPT_H69K}" ]] || SCRIPT_H69K="${SCRIPT_H69K_FILE}"
@@ -467,6 +469,7 @@ EOF
                         cm3)        [[ -f "${SCRIPT_CM3}" ]]        && sudo ./${SCRIPT_CM3} ;;
                         r66s)       [[ -f "${SCRIPT_R66S}" ]]       && sudo ./${SCRIPT_R66S} ;;
                         r68s)       [[ -f "${SCRIPT_R68S}" ]]       && sudo ./${SCRIPT_R68S} ;;
+                        h28k)       [[ -f "${SCRIPT_H28K}" ]]       && sudo ./${SCRIPT_H28K} ;;
                         h66k)       [[ -f "${SCRIPT_H66K}" ]]       && sudo ./${SCRIPT_H66K} ;;
                         h68k)       [[ -f "${SCRIPT_H68K}" ]]       && sudo ./${SCRIPT_H68K} ;;
                         h69k)       [[ -f "${SCRIPT_H69K}" ]]       && sudo ./${SCRIPT_H69K} ;;
