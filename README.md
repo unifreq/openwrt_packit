@@ -84,10 +84,23 @@
                                    Python3-sqlite3
                                    Python3-xml
                                    Python3-requests
+
+        * DM路由监视器依赖包： https://hiwbb.com/2021/10/openwrt-netdata-show-temperature/
+            *  (必选, required)
+            Applications -> luci-app-netdata
+       
+            * 二选一：建议首先python方式
+            Languages -> Python -> Python3-logging
+                                   Python3-ctypes
+                                   Python3-yaml
+            Utilities -> lm-sensors
+
+            * 或者(OR)   
+            Utilities -> coreutils -> coreutils-timeout
     
     除上述必选项以外的软件包可以按需自主选择。
 
-7. OpenWrt 在 KVM 虚拟机中的使用说明：
+8. OpenWrt 在 KVM 虚拟机中的使用说明：
 
 对于性能过剩的盒子，可以先安装 Armbian 系统，再安装 KVM 虚拟机实现多系统使用。其中 `OpenWrt` 系统的编译可以使用本仓库的 [mk_qemu-aarch64_img.sh](mk_qemu-aarch64_img.sh) 脚本进行制作，其安装与使用说明详见 [qemu-aarch64-readme.md](https://github.com/unifreq/openwrt_packit/blob/master/files/qemu-aarch64/qemu-aarch64-readme.md) 文档，更多系统如 Debian、Ubuntu、OpenSUSE、ArchLinux、Centos、Gentoo、KyLin、UOS 等可在相关网站查阅安装与使用说明。
 
