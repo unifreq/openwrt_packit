@@ -3,6 +3,9 @@
 # the default zstd compress level is 3
 export ZSTD_LEVEL=6
 
+# global vars
+NETDATA_PATCH="${PWD}/files/netdata.patch"
+
 get_random_mac ()
 {
     # MAC地址第一段可在 02 06 0A 0E 中任选一个
@@ -1119,6 +1122,7 @@ function copy_supplement_files() {
         [ -n "$FIX_CPU_FREQ" ] && [ -f $FIX_CPU_FREQ ] && cp -v $FIX_CPU_FREQ ./usr/sbin && chmod 755 ./usr/sbin/fixcpufreq.pl
         [ -n "$SYSFIXTIME_PATCH" ] && [ -f $SYSFIXTIME_PATCH ] && patch -p1 < $SYSFIXTIME_PATCH
         [ -n "$NETWORK_SERVICE_PATCH" ] && [ -f $NETWORK_SERVICE_PATCH ] && patch -p1 < $NETWORK_SERVICE_PATCH
+	[ -n "$NETDATA_PATCH" ] && [ -d etc/netdata ] && patch -p1 < $NETDATA_PATCH
         [ -n "$FORCE_REBOOT" ] && [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/ 
 
         [ -n "$GET_RANDOM_MAC" ] && [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} ./usr/bin/

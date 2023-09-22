@@ -61,10 +61,10 @@
 +++ b/etc/netdata/netdata.conf
 @@ -20,7 +20,7 @@
  [plugins]
-        cgroups = no
-        apps = no
--       charts.d = no
-+       charts.d = yes
-        fping = no
-        node.d = no
-        python.d = no
+ 	cgroups = no
+ 	apps = no
+-	charts.d = no
++	charts.d = yes
+ 	fping = no
+ 	node.d = no
+ 	python.d = no
