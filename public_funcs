@@ -4,7 +4,7 @@
 export ZSTD_LEVEL=6
 
 # global vars
-NETDATA_PATCH="${PWD}/files/netdata.patch"
+NETDATA_PATCH_HOME="${PWD}/files/netdata_patches"
 
 get_random_mac ()
 {
@@ -573,6 +573,71 @@ function mount_fs() {
     fi
 }
 
+# 检查opkg依赖包
+function check_opkg_requires() {
+	(
+		cd ${TGT_ROOT}
+		local ok="ok"
+		while :;do
+			local pkgname=$1
+			shift
+			if [ -n "${pkgname}" ];then
+				if [ ! -f "./usr/lib/opkg/info/${pkgname}.control" ];then
+					if [ "$ok" == "ok" ];then
+						ok="The following packages do not exist:"
+					fi
+					ok="$ok $pkgname"
+				fi
+			else
+				break
+			fi
+		done
+		echo $ok
+	)
+}
+
+# 若安装了netdata，则选择性打补丁，以支持温度监控功能
+# 若有python依赖，则首选python.d, 否则选charts.d
+function patch_netdata() {
+	local common_required="netdata"
+	local charts_d_required="coreutils-timeout"
+	local python_d_required="python3-logging python3-ctypes python3-yaml lm-sensors"
+	local daemon="none"
+	local ret
+
+	ret=$(check_opkg_requires ${common_required})
+	if [ "$ret" != "ok" ];then
+		echo
+		return
+	fi
+
+	ret=$(check_opkg_requires ${python_d_required})
+	if [ "$ret" == "ok" ];then
+		daemon="python.d"
+	else
+		ret=$(check_opkg_requires ${charts_d_required})
+		if [ "$ret" == "ok" ];then
+			daemon="charts.d"
+		fi
+	fi
+
+	if [ -n "$NETDATA_PATCH_HOME" ] && [ -d "$NETDATA_PATCH_HOME" ] && [ "$daemon" != "none" ];then
+		(
+			echo
+			echo "为 netdata 打补丁以支持更多监控功能 ..."
+			cd ${TGT_ROOT}
+			for p in "${NETDATA_PATCH_HOME}/common/*.patch";do
+				patch -p1 < $p
+			done
+			for p in "${NETDATA_PATCH_HOME}/${daemon}/*.patch";do
+				patch -p1 < $p
+			done
+			echo "完成"
+			echo
+		)
+	fi
+}
+
 function extract_rootfs_files() {
    echo -n "释放 Openwrt rootfs 压缩包 ... "
    (
@@ -1122,7 +1187,7 @@ function copy_supplement_files() {
         [ -n "$FIX_CPU_FREQ" ] && [ -f $FIX_CPU_FREQ ] && cp -v $FIX_CPU_FREQ ./usr/sbin && chmod 755 ./usr/sbin/fixcpufreq.pl
         [ -n "$SYSFIXTIME_PATCH" ] && [ -f $SYSFIXTIME_PATCH ] && patch -p1 < $SYSFIXTIME_PATCH
         [ -n "$NETWORK_SERVICE_PATCH" ] && [ -f $NETWORK_SERVICE_PATCH ] && patch -p1 < $NETWORK_SERVICE_PATCH
-	[ -n "$NETDATA_PATCH" ] && [ -d etc/netdata ] && patch -p1 < $NETDATA_PATCH
+	patch_netdata
         [ -n "$FORCE_REBOOT" ] && [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/ 
 
         [ -n "$GET_RANDOM_MAC" ] && [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} ./usr/bin/

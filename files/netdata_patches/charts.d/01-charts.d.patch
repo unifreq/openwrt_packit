@@ -49,14 +49,6 @@
 +# Just an example charts.d plugin you can use as a template.
 +# example=force
 +sensors=force
---- a/etc/netdata/edit-config
-+++ b/etc/netdata/edit-config
-@@ -1,4 +1,4 @@
--#!/usr/bin/env sh
-+#!/usr/bin/env bash
- 
- [ -f /etc/profile ] && . /etc/profile
- 
 --- a/etc/netdata/netdata.conf
 +++ b/etc/netdata/netdata.conf
 @@ -20,7 +20,7 @@
