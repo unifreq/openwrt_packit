@@ -29,6 +29,7 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b" "h88k" "h88k-v3" "ak88"
+    "h28k"
     "r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3"
     "beikeyun" "l1pro"
     "vplus"
@@ -38,6 +39,8 @@ PACKAGE_OPENWRT=(
 )
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("rock5b" "h88k" "h88k-v3" "ak88")
+# Set the list of devices using the [ rk35xx ] kernel
+PACKAGE_OPENWRT_RK35XX=("h28k")
 # Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "h66k" "h68k" "h69k" "h69k-max" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
@@ -45,10 +48,11 @@ PACKAGE_SOC_VALUE="all"
 
 # Set the default packaged kernel download repository
 KERNEL_REPO_URL_VALUE="breakings/OpenWrt"
-# Set kernel tag: kernel_stable, kernel_rk3588
-KERNEL_TAGS=("stable" "rk3588")
+# Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx
+KERNEL_TAGS=("stable" "rk3588" "rk35xx")
 STABLE_KERNEL=("6.1.1" "5.15.1")
-RK3588_KERNEL=("5.10.110")
+RK3588_KERNEL=("5.10.160")
+RK35XX_KERNEL=("5.10.160")
 KERNEL_AUTO_LATEST_VALUE="true"
 
 # Set the working directory under /opt
@@ -72,6 +76,7 @@ SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
 SCRIPT_H88K_FILE="mk_rk3588_h88k.sh"
 SCRIPT_H88KV3_FILE="mk_rk3588_h88k-v3.sh"
+SCRIPT_H28K_FILE="mk_rk3528_h28k.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
@@ -143,6 +148,7 @@ init_var() {
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
     [[ -n "${SCRIPT_H88K}" ]] || SCRIPT_H88K="${SCRIPT_H88K_FILE}"
     [[ -n "${SCRIPT_H88KV3}" ]] || SCRIPT_H88KV3="${SCRIPT_H88KV3_FILE}"
+    [[ -n "${SCRIPT_H28K}" ]] || SCRIPT_H28K="${SCRIPT_H28K_FILE}"
     [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
     [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
     [[ -n "${SCRIPT_S905X2}" ]] || SCRIPT_S905X2="${SCRIPT_S905X2_FILE}"
@@ -177,6 +183,8 @@ init_var() {
         for kt in "${PACKAGE_OPENWRT[@]}"; do
             if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
                 KERNEL_TAGS_TMP+=("rk3588")
+            elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " ]]; then
+                KERNEL_TAGS_TMP+=("rk35xx")
             else
                 KERNEL_TAGS_TMP+=("stable")
             fi
@@ -263,6 +271,8 @@ query_kernel() {
             # Select the corresponding kernel directory and list
             if [[ "${vb}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
+            elif [[ "${vb}" == "rk35xx" ]]; then
+                down_kernel_list=(${RK35XX_KERNEL[@]})
             else
                 down_kernel_list=(${STABLE_KERNEL[@]})
             fi
@@ -303,11 +313,12 @@ query_kernel() {
 
             # Reset the kernel array to the latest kernel version
             if [[ "${vb}" == "rk3588" ]]; then
-                unset RK3588_KERNEL
                 RK3588_KERNEL=(${TMP_ARR_KERNELS[@]})
                 echo -e "${INFO} The latest version of the rk3588 kernel: [ ${RK3588_KERNEL[@]} ]"
+            elif [[ "${vb}" == "rk35xx" ]]; then
+                RK35XX_KERNEL=(${TMP_ARR_KERNELS[@]})
+                echo -e "${INFO} The latest version of the rk35xx kernel: [ ${RK35XX_KERNEL[@]} ]"
             else
-                unset STABLE_KERNEL
                 STABLE_KERNEL=(${TMP_ARR_KERNELS[@]})
                 echo -e "${INFO} The latest version of the stable kernel: [ ${STABLE_KERNEL[@]} ]"
             fi
@@ -346,6 +357,8 @@ download_kernel() {
             # Set the kernel download list
             if [[ "${vb}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
+            elif [[ "${vb}" == "rk35xx" ]]; then
+                down_kernel_list=(${RK35XX_KERNEL[@]})
             else
                 down_kernel_list=(${STABLE_KERNEL[@]})
             fi
@@ -395,9 +408,12 @@ make_openwrt() {
             if [[ -n "$(echo "${PACKAGE_OPENWRT_RK3588[@]}" | grep -w "${PACKAGE_VAR}")" ]]; then
                 build_kernel=(${RK3588_KERNEL[@]})
                 vb="rk3588"
+            elif [[ -n "$(echo "${PACKAGE_OPENWRT_RK35XX[@]}" | grep -w "${PACKAGE_VAR}")" ]]; then
+                build_kernel=(${RK35XX_KERNEL[@]})
+                vb="rk35xx"
             else
                 build_kernel=(${STABLE_KERNEL[@]})
-                vb="$(echo "${KERNEL_TAGS[@]}" | sed -e "s|rk3588||" | xargs)"
+                vb="stable"
             fi
 
             k="1"
@@ -426,6 +442,7 @@ make_openwrt() {
                     boot_kernel_file="$(ls boot-${kernel_var}* 2>/dev/null | head -n 1)"
                     KERNEL_VERSION="${boot_kernel_file:5:-7}"
                     [[ "${vb}" == "rk3588" ]] && RK3588_KERNEL_VERSION="${KERNEL_VERSION}" || RK3588_KERNEL_VERSION=""
+                    [[ "${vb}" == "rk35xx" ]] && RK35XX_KERNEL_VERSION="${KERNEL_VERSION}" || RK35XX_KERNEL_VERSION=""
                     echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel version: [ ${KERNEL_VERSION} ]"
                     echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
 
@@ -445,6 +462,7 @@ make_openwrt() {
 WHOAMI="${WHOAMI}"
 OPENWRT_VER="${OPENWRT_VER}"
 RK3588_KERNEL_VERSION="${RK3588_KERNEL_VERSION}"
+RK35XX_KERNEL_VERSION="${RK35XX_KERNEL_VERSION}"
 KERNEL_VERSION="${KERNEL_VERSION}"
 KERNEL_PKG_HOME="/opt/kernel"
 SW_FLOWOFFLOAD="${SW_FLOWOFFLOAD}"
@@ -475,6 +493,7 @@ EOF
                         ak88)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} ;;
                         h88k)       [[ -f "${SCRIPT_H88K}" ]]       && sudo ./${SCRIPT_H88K} "25" ;;
                         h88k-v3)    [[ -f "${SCRIPT_H88KV3}" ]]     && sudo ./${SCRIPT_H88KV3} ;;
+                        h28k)       [[ -f "${SCRIPT_H28K}" ]]       && sudo ./${SCRIPT_H28K} ;;
                         e25)        [[ -f "${SCRIPT_E25}" ]]        && sudo ./${SCRIPT_E25} ;;
                         photonicat) [[ -f "${SCRIPT_PHOTONICAT}" ]] && sudo ./${SCRIPT_PHOTONICAT} ;;
                         s905)       [[ -f "${SCRIPT_S905}" ]]       && sudo ./${SCRIPT_S905} ;;
