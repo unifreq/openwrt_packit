@@ -126,7 +126,7 @@ WIRELESS_CONFIG="${PWD}/files/rk3568/h69k/wireless"
 NETWORK_SERVICE_PATCH="${PWD}/files/rk3568/h69k/network.patch"
 
 # 20230921 add
-DC_VOLTAGE_PATCH="${PWD}/files/rk3568/h69k/dc_voltage.patch"
+#DC_VOLTAGE_PATCH="${PWD}/files/rk3568/h69k/dc_voltage.patch"
 ####################################################################
 
 check_depends
