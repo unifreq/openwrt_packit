@@ -688,7 +688,7 @@ function extract_rootfs_files() {
    echo "完成"
 
    echo -n "释放 Armbian firmware 压缩包 ... "
-   ( cd ${TGT_ROOT} && tar xJf "$FIRMWARE_TXZ" && sync )
+   ( cd ${TGT_ROOT}/lib/firmware && tar xJf "$FIRMWARE_TXZ" && sync )
    if [ $? -ne 0 ];then
         echo "失败！"
         detach_loopdev
