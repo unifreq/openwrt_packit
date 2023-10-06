@@ -1,1 +1,0 @@
-openwrt-update-rockchip
