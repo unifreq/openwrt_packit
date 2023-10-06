@@ -237,10 +237,6 @@ sub get_ethlist() {
     my $board = &get_boardinfo;
     if($board eq "FastRhino R66S") {
 	return reverse sort (</sys/class/net/e[tn]*>);
-    } elsif($board eq "HLink H68K") {
-	return reverse sort (</sys/class/net/e[tn]*>);
-    } elsif($board eq "Hlink H88K-V3") {
-	return reverse sort (</sys/class/net/e[tn]*>);
     } else {
      	return sort (</sys/class/net/e[tn]*>);   
     }
@@ -330,18 +326,7 @@ sub get_dc_voltage() {
     my $iio_channel;
     my $ret = 0;
     my $fh;
-    if($board =~ m/Hlink H88K/) {
-	# 如果显示值与测量值偏差较大，可适当调整 $up_res 及 $down_res 的值
-	$up_res = 510;
-	$down_res = 27;
-	$iio_channel = 6;
-	$ret = "(Probably) 12";
-    } elsif($board =~ m/Hlink H6[689]K/) {
-	$up_res = 300;
-	$down_res = 27;
-	$iio_channel = 4;
-	$ret = "(Probably) 12";
-    } elsif($board =~ m/Radxa ROCK 5B/) {
+    if($board =~ m/Radxa ROCK 5B/) {
 	$up_res = 100;
 	$down_res = 8.2;
 	$iio_channel = 6;

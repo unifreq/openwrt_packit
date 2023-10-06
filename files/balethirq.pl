@@ -224,14 +224,6 @@ sub board_special_config() {
         &optimize_eth_parameters("eth0","eth1");
     } elsif($board eq "Radxa ROCK 5B") {
         &optimize_eth_parameters("eth0","eth1");
-    } elsif($board eq "Hlink H28K") {
-        &optimize_eth_parameters("eth0", "eth1");
-    } elsif($board eq "Hlink H66K") {
-        &optimize_eth_parameters("eth0","eth1","eth2");
-    } elsif($board eq "Hlink H68K") {
-        &optimize_eth_parameters("eth0","eth1","eth2","eth3");
-    } elsif($board eq "Hlink H69K") {
-        &optimize_eth_parameters("eth0","eth1","eth2","eth3");
     }
 }
 
