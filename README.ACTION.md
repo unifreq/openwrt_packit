@@ -14,7 +14,6 @@
     OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*rootfs.tar.gz
     PACKAGE_SOC: all
     KERNEL_VERSION_NAME: 5.15.95_6.1.15
-    GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 ```
 
@@ -78,7 +77,6 @@
 | ENABLE_WIFI_K510       | 1                      | 设置 `make.env` 中 `ENABLE_WIFI_K510` 参数的值  |
 | DISTRIB_REVISION       | R$(date +%Y.%m.%d)     | 设置 `make.env` 中 `DISTRIB_REVISION` 参数的值  |
 | DISTRIB_DESCRIPTION    | OpenWrt                | 设置 `make.env` 中 `DISTRIB_DESCRIPTION` 参数的值  |
-| GH_TOKEN               | 无                     | 可选项。设置 ${{ secrets.GH_TOKEN }}，用于 [api.github.com](https://docs.github.com/en/rest/overview/resources-in-the-rest-api?apiVersion=2022-11-28#requests-from-personal-accounts) 查询。 |
 
 ## 输出参数说明
 

@@ -126,7 +126,6 @@ init_var() {
     [[ -n "${SELECT_PACKITPATH}" ]] || SELECT_PACKITPATH="${SELECT_PACKITPATH_VALUE}"
     [[ -n "${SELECT_OUTPUTPATH}" ]] || SELECT_OUTPUTPATH="${SELECT_OUTPUTPATH_VALUE}"
     [[ -n "${SAVE_OPENWRT_ARMVIRT}" ]] || SAVE_OPENWRT_ARMVIRT="${SAVE_OPENWRT_ARMVIRT_VALUE}"
-    [[ -n "${GH_TOKEN}" ]] && GH_TOKEN="${GH_TOKEN}" || GH_TOKEN=""
 
     # Specify the default packaging script
     [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
@@ -198,7 +197,7 @@ init_var() {
     # Convert kernel library address to api format
     echo -e "${INFO} Kernel download repository: [ ${KERNEL_REPO_URL} ]"
     [[ "${KERNEL_REPO_URL}" =~ ^https: ]] && KERNEL_REPO_URL="$(echo ${KERNEL_REPO_URL} | awk -F'/' '{print $4"/"$5}')"
-    kernel_api="https://api.github.com/repos/${KERNEL_REPO_URL}"
+    kernel_api="https://github.com/${KERNEL_REPO_URL}"
     echo -e "${INFO} Kernel Query API: [ ${kernel_api} ]"
 }
 
@@ -275,18 +274,11 @@ query_kernel() {
                 # Identify the kernel <VERSION> and <PATCHLEVEL>, such as [ 6.1 ]
                 kernel_verpatch="$(echo ${kernel_var} | awk -F '.' '{print $1"."$2}')"
 
-                # Set the token for api.github.com
-                [[ -n "${GH_TOKEN}" ]] && ght="-H \"Authorization: Bearer ${GH_TOKEN}\"" || ght=""
-
                 # Query the latest kernel version
                 latest_version="$(
-                    curl -s \
-                        -H "Accept: application/vnd.github+json" \
-                        ${ght} \
-                        ${kernel_api}/releases/tags/kernel_${vb} |
-                        jq -r '.assets[].name' |
-                        grep -oE "${kernel_verpatch}\.[0-9]+" |
-                        sort -rV | head -n 1
+                    curl -fsSL ${kernel_api}/releases/expanded_assets/kernel_${vb} |
+                        grep -oE "${kernel_verpatch}.[0-9]+.tar.gz" | sed 's/.tar.gz//' |
+                        sort -urV | head -n 1
                 )"
 
                 if [[ "$?" -eq "0" && -n "${latest_version}" ]]; then
