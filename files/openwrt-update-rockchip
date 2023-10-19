@@ -86,7 +86,15 @@ case $MYDEVICE_NAME in
 		fi
 			SOC="photonicat"
 		;;
-	"Watermelon Pi")
+	"NLnet Watermelon Pi V3")
+		if [ -n "${CURRENT_FDTFILE}" ]; then
+			MYDTB_FDTFILE="${CURRENT_FDTFILE}"
+		else
+			MYDTB_FDTFILE="rk3568-watermelon-pi-v3.dtb"
+		fi
+			SOC="watermelon-pi-v3"
+		;;
+	"NLnet Watermelon Pi")
 		if [ -n "${CURRENT_FDTFILE}" ]; then
 			MYDTB_FDTFILE="${CURRENT_FDTFILE}"
 		else
