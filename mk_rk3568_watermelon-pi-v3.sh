@@ -17,10 +17,6 @@ SOC=rk3568
 BOARD=watermelon-pi-v3
 SUBVER=$1
 
-if [ -n "$RK35XX_KERNEL_VERSION" ];then
-    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
-fi
-
 # Kernel image sources
 ###################################################################
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
