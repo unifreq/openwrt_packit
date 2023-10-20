@@ -29,7 +29,8 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b"
-    "r66s" "r68s" "e25" "photonicat" "cm3"
+    "r66s" "r68s" "e25" "photonicat" "cm3" "watermelon-pi"
+    "watermelon-pi-v3"
     "beikeyun" "l1pro"
     "vplus"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
@@ -40,17 +41,16 @@ PACKAGE_OPENWRT=(
 PACKAGE_OPENWRT_RK3588=("rock5b")
 # Set the list of devices using the [ rk35xx ] kernel
 # Devices from the rk3528/rk3566/rk3568 series can utilize the rk35xx and rk3588 kernels.
-# You can add tags for rk35xx in [ KERNEL_TAGS ], and specify which devices use the rk35xx kernel in [ PACKAGE_OPENWRT_RK35XX ].
-PACKAGE_OPENWRT_RK35XX=("")
+PACKAGE_OPENWRT_RK35XX=("watermelon-pi-v3")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "e25" "photonicat" "cm3")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "e25" "photonicat" "cm3" "watermelon-pi")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
 # Set the default packaged kernel download repository
 KERNEL_REPO_URL_VALUE="breakings/OpenWrt"
-# Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx(Unused)
-KERNEL_TAGS=("stable" "rk3588")
+# Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx
+KERNEL_TAGS=("stable" "rk3588" "rk35xx")
 STABLE_KERNEL=("6.1.1" "5.15.1")
 RK3588_KERNEL=("5.10.160")
 RK35XX_KERNEL=("5.10.160")
@@ -71,6 +71,8 @@ SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
+SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
+SCRIPT_WATERMELONPI_V3_FILE="mk_rk3568_watermelon-pi-v3.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
@@ -136,6 +138,8 @@ init_var() {
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
     [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
     [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
+    [[ -n "${SCRIPT_WATERMELONPI}" ]] || SCRIPT_WATERMELONPI="${SCRIPT_WATERMELONPI_FILE}"
+    [[ -n "${SCRIPT_WATERMELONPI_V3}" ]] || SCRIPT_WATERMELONPI_V3="${SCRIPT_WATERMELONPI_V3_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
     [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
     [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
@@ -276,7 +280,8 @@ query_kernel() {
 
                 # Query the latest kernel version
                 latest_version="$(
-                    curl -fsSL ${kernel_api}/releases/expanded_assets/kernel_${vb} |
+                    curl -fsSL \
+                        ${kernel_api}/releases/expanded_assets/kernel_${vb} |
                         grep -oE "${kernel_verpatch}.[0-9]+.tar.gz" | sed 's/.tar.gz//' |
                         sort -urV | head -n 1
                 )"
@@ -386,10 +391,10 @@ make_openwrt() {
     for PACKAGE_VAR in ${PACKAGE_OPENWRT[@]}; do
         {
             # Distinguish between different OpenWrt and use different kernel
-            if [[ -n "$(echo "${PACKAGE_OPENWRT_RK3588[@]}" | grep -w "${PACKAGE_VAR}")" ]]; then
+            if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${PACKAGE_VAR} " ]]; then
                 build_kernel=(${RK3588_KERNEL[@]})
                 vb="rk3588"
-            elif [[ -n "$(echo "${PACKAGE_OPENWRT_RK35XX[@]}" | grep -w "${PACKAGE_VAR}")" ]]; then
+            elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${PACKAGE_VAR} " ]]; then
                 build_kernel=(${RK35XX_KERNEL[@]})
                 vb="rk35xx"
             else
@@ -460,25 +465,27 @@ EOF
 
                     # Select the corresponding packaging script
                     case "${PACKAGE_VAR}" in
-                        vplus)      [[ -f "${SCRIPT_VPLUS}" ]]      && sudo ./${SCRIPT_VPLUS} ;;
-                        beikeyun)   [[ -f "${SCRIPT_BEIKEYUN}" ]]   && sudo ./${SCRIPT_BEIKEYUN} ;;
-                        l1pro)      [[ -f "${SCRIPT_L1PRO}" ]]      && sudo ./${SCRIPT_L1PRO} ;;
-                        cm3)        [[ -f "${SCRIPT_CM3}" ]]        && sudo ./${SCRIPT_CM3} ;;
-                        r66s)       [[ -f "${SCRIPT_R66S}" ]]       && sudo ./${SCRIPT_R66S} ;;
-                        r68s)       [[ -f "${SCRIPT_R68S}" ]]       && sudo ./${SCRIPT_R68S} ;;
-                        rock5b)     [[ -f "${SCRIPT_ROCK5B}" ]]     && sudo ./${SCRIPT_ROCK5B} ;;
-                        e25)        [[ -f "${SCRIPT_E25}" ]]        && sudo ./${SCRIPT_E25} ;;
-                        photonicat) [[ -f "${SCRIPT_PHOTONICAT}" ]] && sudo ./${SCRIPT_PHOTONICAT} ;;
-                        s905)       [[ -f "${SCRIPT_S905}" ]]       && sudo ./${SCRIPT_S905} ;;
-                        s905d)      [[ -f "${SCRIPT_S905D}" ]]      && sudo ./${SCRIPT_S905D} ;;
-                        s905x2)     [[ -f "${SCRIPT_S905X2}" ]]     && sudo ./${SCRIPT_S905X2} ;;
-                        s905x3)     [[ -f "${SCRIPT_S905X3}" ]]     && sudo ./${SCRIPT_S905X3} ;;
-                        s912)       [[ -f "${SCRIPT_S912}" ]]       && sudo ./${SCRIPT_S912} ;;
-                        s922x)      [[ -f "${SCRIPT_S922X}" ]]      && sudo ./${SCRIPT_S922X} ;;
-                        s922x-n2)   [[ -f "${SCRIPT_S922X_N2}" ]]   && sudo ./${SCRIPT_S922X_N2} ;;
-                        qemu)       [[ -f "${SCRIPT_QEMU}" ]]       && sudo ./${SCRIPT_QEMU} ;;
-                        diy)        [[ -f "${SCRIPT_DIY}" ]]        && sudo ./${SCRIPT_DIY} ;;
-                        *)          echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
+                        vplus)            [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
+                        beikeyun)         [[ -f "${SCRIPT_BEIKEYUN}" ]]        && sudo ./${SCRIPT_BEIKEYUN} ;;
+                        l1pro)            [[ -f "${SCRIPT_L1PRO}" ]]           && sudo ./${SCRIPT_L1PRO} ;;
+                        cm3)              [[ -f "${SCRIPT_CM3}" ]]             && sudo ./${SCRIPT_CM3} ;;
+                        r66s)             [[ -f "${SCRIPT_R66S}" ]]            && sudo ./${SCRIPT_R66S} ;;
+                        r68s)             [[ -f "${SCRIPT_R68S}" ]]            && sudo ./${SCRIPT_R68S} ;;
+                        rock5b)           [[ -f "${SCRIPT_ROCK5B}" ]]          && sudo ./${SCRIPT_ROCK5B} ;;
+                        e25)              [[ -f "${SCRIPT_E25}" ]]             && sudo ./${SCRIPT_E25} ;;
+                        photonicat)       [[ -f "${SCRIPT_PHOTONICAT}" ]]      && sudo ./${SCRIPT_PHOTONICAT} ;;
+                        watermelon-pi)    [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
+                        watermelon-pi-v3) [[ -f "${SCRIPT_WATERMELONPI_V3}" ]] && sudo ./${SCRIPT_WATERMELONPI_V3} ;;
+                        s905)             [[ -f "${SCRIPT_S905}" ]]            && sudo ./${SCRIPT_S905} ;;
+                        s905d)            [[ -f "${SCRIPT_S905D}" ]]           && sudo ./${SCRIPT_S905D} ;;
+                        s905x2)           [[ -f "${SCRIPT_S905X2}" ]]          && sudo ./${SCRIPT_S905X2} ;;
+                        s905x3)           [[ -f "${SCRIPT_S905X3}" ]]          && sudo ./${SCRIPT_S905X3} ;;
+                        s912)             [[ -f "${SCRIPT_S912}" ]]            && sudo ./${SCRIPT_S912} ;;
+                        s922x)            [[ -f "${SCRIPT_S922X}" ]]           && sudo ./${SCRIPT_S922X} ;;
+                        s922x-n2)         [[ -f "${SCRIPT_S922X_N2}" ]]        && sudo ./${SCRIPT_S922X_N2} ;;
+                        qemu)             [[ -f "${SCRIPT_QEMU}" ]]            && sudo ./${SCRIPT_QEMU} ;;
+                        diy)              [[ -f "${SCRIPT_DIY}" ]]             && sudo ./${SCRIPT_DIY} ;;
+                        *)                echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
                     esac
 
                     # Generate compressed file

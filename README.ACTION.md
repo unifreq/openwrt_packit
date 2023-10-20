@@ -1,6 +1,6 @@
 # Github Actions 打包脚本使用说明
 
-支持一键打包目前已经支持的全部 OpenWrt 固件，支持全志（微加云）、瑞芯微（贝壳云，我家云，电犀牛R66S/R68S，瑞莎5B/E25），以及晶晨 S9xxx 系列型号如 S905x3、S905x2、S922x、S905x、S905d，S905，S912 等设备。
+支持一键打包目前已经支持的全部 OpenWrt 固件，支持全志（微加云）、瑞芯微（贝壳云，我家云，电犀牛R66S/R68S，瑞莎5B/E25，西瓜皮等），以及晶晨 S9xxx 系列型号如 S905x3、S905x2、S922x、S905x、S905d，S905，S912 等设备。
 
 ## 使用方法
 
@@ -45,7 +45,7 @@
 | KERNEL_REPO_URL        | breakings/OpenWrt     | 设置内核下载仓库的 `<owner>/<repo>`，默认从 breakings 维护的[内核 Releases](https://github.com/breakings/OpenWrt/releases/tag/kernel_stable)里下载。 |
 | KERNEL_VERSION_NAME    | 5.15.95_6.1.15        | 设置[内核版本](https://github.com/breakings/OpenWrt/releases/tag/kernel_stable)，可以查看并选择指定。可指定单个内核如 `6.1.10` ，可选择多个内核用`_`连接如 `6.1.10_5.15.50` |
 | KERNEL_AUTO_LATEST     | true                   | 设置是否自动采用同系列最新版本内核。当为 `true` 时，将自动在内核库中查找在 `KERNEL_VERSION_NAME` 中指定的内核如 5.15.95 的同系列是否有更新的版本，如有更新版本时，将自动更换为最新版。设置为 `false` 时将编译指定版本内核。 |
-| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus`, `cm3`, `beikeyun`, `l1pro`, `rock5b`, `r66s`, `r68s`, `e25`, `photonicat`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`, `diy` 是自定义盒子。 |
+| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus`, `cm3`, `beikeyun`, `l1pro`, `rock5b`, `r66s`, `r68s`, `e25`, `photonicat`, `watermelon-pi`, `watermelon-pi-v3`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`, `diy` 是自定义盒子。 |
 | GZIP_IMGS              | auto                   | 设置打包完毕后文件压缩的格式，可选值 `.gz`（默认） / `.xz` / `.zip` / `.zst` / `.7z` |
 | SELECT_PACKITPATH      | openwrt_packit         | 设置 `/opt` 下的打包目录名称                     |
 | SELECT_OUTPUTPATH      | output                 | 设置 `${SELECT_PACKITPATH}` 目录中固件输出的目录名称 |
@@ -57,7 +57,9 @@
 | SCRIPT_R66S            | mk_rk3568_r66s.sh      | 设置打包 `rk3568 r66s` 的脚本文件名              |
 | SCRIPT_R68S            | mk_rk3568_r68s.sh      | 设置打包 `rk3568 r68s` 的脚本文件名              |
 | SCRIPT_E25             | mk_rk3568_e25.sh       | 设置打包 `rk3568 e25` 的脚本文件名               |
-| SCRIPT_PHOTONICAT      | mk_rk3568_photonicat.sh  | 设置打包 `rk3568 photonicat` 的脚本文件名      |
+| SCRIPT_PHOTONICAT      | mk_rk3568_photonicat.sh        | 设置打包 `rk3568 photonicat` 的脚本文件名        |
+| SCRIPT_WATERMELONPI    | mk_rk3568_watermelon-pi.sh     | 设置打包 `rk3568 watermelon-pi` 的脚本文件名     |
+| SCRIPT_WATERMELONPI_V3 | mk_rk3568_watermelon-pi-v3.sh  | 设置打包 `rk3568 watermelon-pi-v3` 的脚本文件名  |
 | SCRIPT_S905            | mk_s905_mxqpro+.sh     | 设置打包 `s905 mxqpro+` 的脚本文件名             |
 | SCRIPT_S905D           | mk_s905d_n1.sh         | 设置打包 `s905d n1` 的脚本文件名                 |
 | SCRIPT_S905X2          | mk_s905x2_x96max.sh    | 设置打包 `s905x2 x96max` 的脚本文件名            |
