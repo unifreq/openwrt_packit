@@ -1,5 +1,6 @@
-# The default order of phy interfaces for h66k is
-# eth0(2.5G) eth1(2.5G)
+# The default order of phy interfaces for watermelon-pi-v3 is
+# eth0 1gb (lan)
+# eth1 1gb (wan)
 
 . /lib/functions/uci-defaults.sh
 . /lib/functions/system.sh
@@ -53,12 +54,17 @@ swap_interface()
 	ip link set dev $eth_b up
 }
 
+# swap eth0 & eth1
+# gmac0: fe2a0000 shoud be eth0
+# gmac1: fe010000 shoud be eth1
+[ -d /sys/devices/platform/fe010000.ethernet/net/eth0 ] && swap_interface "eth0" "eth1"
+
 # Init LAN and WAN
 json_is_a network object && exit 0
 LAN_MAC=$(generate_mac)
 WAN_MAC=$(macaddr_add $LAN_MAC +1)
 
-ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
+ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
 
 ucidef_set_interface_macaddr "lan" $LAN_MAC
 ucidef_set_interface_macaddr "wan" $WAN_MAC
