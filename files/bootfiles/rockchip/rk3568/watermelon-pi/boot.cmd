@@ -3,6 +3,36 @@
 # Please edit /boot/armbianEnv.txt to set supported parameters
 #
 
+# NLnet Watermelon Pi rk3568 combined image, board detected by ADC
+# Get coreboard and motherboard version
+env delete hwrev
+env delete coreboard_adc_value
+env delete motherboard_adc_value
+
+# using SARADC CH1 to detect coreboard hwrev
+# using SARADC CH7 to detect motherboard hwrev
+
+adc single saradc@fe720000 1 coreboard_adc_value
+adc single saradc@fe720000 7 motherboard_adc_value
+
+if test -n "$coreboard_adc_value"; then
+    if test "$coreboard_adc_value" -lt 225000; then
+        echo coreboard rev02
+        setenv hwrev 2
+    fi
+fi
+
+if test -n "$motherboard_adc_value"; then
+    if test "$motherboard_adc_value" -lt 225000; then
+        echo motherboard rev03
+        setenv hwrev 3
+    fi
+fi
+
+env delete coreboard_adc_value
+env delete motherboard_adc_value
+# End of Get coreboard and motherboard version
+
 setenv load_addr "0x39000000"
 setenv overlay_error "false"
 # default values
@@ -39,6 +69,8 @@ if test "${docker_optimizations}" = "on"; then setenv bootargs "${bootargs} cgro
 load ${devtype} ${devnum} ${ramdisk_addr_r} ${prefix}uInitrd
 load ${devtype} ${devnum} ${kernel_addr_r} ${prefix}Image
 
+if test "${hwrev}" = "2";then setenv fdtfile "rockchip/rk3568-watermelon-pi.dtb"; fi
+if test "${hwrev}" = "3";then setenv fdtfile "rockchip/rk3568-watermelon-pi-v3.dtb"; fi
 load ${devtype} ${devnum} ${fdt_addr_r} ${prefix}dtb/${fdtfile}
 fdt addr ${fdt_addr_r}
 fdt resize 65536
