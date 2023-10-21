@@ -29,8 +29,8 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b"
-    "r66s" "r68s" "e25" "photonicat" "cm3" "watermelon-pi"
-    "watermelon-pi-v3"
+    "r66s" "r68s" "e25" "photonicat" "cm3"
+    "watermelon-pi"
     "beikeyun" "l1pro"
     "vplus"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
@@ -41,9 +41,9 @@ PACKAGE_OPENWRT=(
 PACKAGE_OPENWRT_RK3588=("rock5b")
 # Set the list of devices using the [ rk35xx ] kernel
 # Devices from the rk3528/rk3566/rk3568 series can utilize the rk35xx and rk3588 kernels.
-PACKAGE_OPENWRT_RK35XX=("watermelon-pi-v3")
+PACKAGE_OPENWRT_RK35XX=("watermelon-pi")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "e25" "photonicat" "cm3" "watermelon-pi")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "e25" "photonicat" "cm3")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -72,7 +72,6 @@ SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
 SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
 SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
-SCRIPT_WATERMELONPI_V3_FILE="mk_rk3568_watermelon-pi-v3.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
@@ -139,7 +138,6 @@ init_var() {
     [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
     [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
     [[ -n "${SCRIPT_WATERMELONPI}" ]] || SCRIPT_WATERMELONPI="${SCRIPT_WATERMELONPI_FILE}"
-    [[ -n "${SCRIPT_WATERMELONPI_V3}" ]] || SCRIPT_WATERMELONPI_V3="${SCRIPT_WATERMELONPI_V3_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
     [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
     [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
@@ -475,7 +473,6 @@ EOF
                         e25)              [[ -f "${SCRIPT_E25}" ]]             && sudo ./${SCRIPT_E25} ;;
                         photonicat)       [[ -f "${SCRIPT_PHOTONICAT}" ]]      && sudo ./${SCRIPT_PHOTONICAT} ;;
                         watermelon-pi)    [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
-                        watermelon-pi-v3) [[ -f "${SCRIPT_WATERMELONPI_V3}" ]] && sudo ./${SCRIPT_WATERMELONPI_V3} ;;
                         s905)             [[ -f "${SCRIPT_S905}" ]]            && sudo ./${SCRIPT_S905} ;;
                         s905d)            [[ -f "${SCRIPT_S905D}" ]]           && sudo ./${SCRIPT_S905D} ;;
                         s905x2)           [[ -f "${SCRIPT_S905X2}" ]]          && sudo ./${SCRIPT_S905X2} ;;
