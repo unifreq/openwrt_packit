@@ -46,6 +46,14 @@ case $MYDEVICE_NAME in
 		fi
 			SOC="beikeyun"
 		;;
+	"ZCuble1 Max")
+		if [ -n "${CURRENT_FDTFILE}" ]; then
+			MYDTB_FDTFILE="${CURRENT_FDTFILE}"
+		else
+			MYDTB_FDTFILE="rk3399-zcube1-max.dtb"
+		fi
+			SOC="zcube1 max"
+		;;
 	"Radxa CM3 RPI CM4 IO")
 		if [ -n "${CURRENT_FDTFILE}" ]; then
 			MYDTB_FDTFILE="${CURRENT_FDTFILE}"
