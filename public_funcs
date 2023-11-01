@@ -1175,6 +1175,14 @@ function copy_supplement_files() {
             fi
         fi
 
+	# ZIMO Zcube1 max 呼吸灯
+        if [ "$BOARD" == "zcube1-max" ] && [ -n "${BREATHING_LIGHT}" ] && [ -f "${BREATHING_LIGHT}" ];then
+            echo "该机型有一组呼吸灯，故添加呼吸灯后台服务 ... "
+            cp -v ${BREATHING_LIGHT} ./usr/bin/breath_led
+            sed -e "/exit/i\/usr/bin/breath_led &" -i etc/rc.local
+            echo "完成"
+        fi
+
         [ -n "$BAL_ETH_IRQ" ] && [ -f $BAL_ETH_IRQ ] && cp -v $BAL_ETH_IRQ ./usr/sbin && chmod 755 ./usr/sbin/balethirq.pl && \
               sed -e "/exit/i\/usr/sbin/balethirq.pl" -i etc/rc.local
 

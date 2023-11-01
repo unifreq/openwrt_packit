@@ -112,6 +112,8 @@ MODULES_HOME="${PWD}/files/rk3399/modules.d"
 BOARD_MODULES_HOME="${PWD}/files/rk3399/zcube1-max/modules.d"
 # 20221013 add
 WIRELESS_CONFIG="${PWD}/files/rk3399/zcube1-max/wireless"
+# 20231101 add
+BREATHING_LIGHT="${PWD}/files/rk3399/zcube1-max/aw2028"
 ####################################################################
 
 check_depends
