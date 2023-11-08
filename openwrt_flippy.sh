@@ -29,7 +29,7 @@ PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "rock5b"
-    "r66s" "r68s" "e25" "photonicat" "cm3"
+    "r66s" "r68s" "e25" "photonicat" "cm3" "zcube1-max"
     "watermelon-pi"
     "beikeyun" "l1pro"
     "vplus"
@@ -43,7 +43,7 @@ PACKAGE_OPENWRT_RK3588=("rock5b")
 # Devices from the rk3528/rk3566/rk3568 series can utilize the rk35xx and rk3588 kernels.
 PACKAGE_OPENWRT_RK35XX=("watermelon-pi")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "e25" "photonicat" "cm3")
+PACKAGE_OPENWRT_KERNEL6=("r66s" "r68s" "e25" "photonicat" "cm3" "zcube1-max")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -66,6 +66,7 @@ SAVE_OPENWRT_ARMVIRT_VALUE="true"
 SCRIPT_VPLUS_FILE="mk_h6_vplus.sh"
 SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
+SCRIPT_ZCUBE1MAX_FILE="mk_rk3399_zcube1-max.sh"
 SCRIPT_CM3_FILE="mk_rk3566_radxa-cm3-rpi-cm4-io.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
@@ -132,6 +133,7 @@ init_var() {
     [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
     [[ -n "${SCRIPT_BEIKEYUN}" ]] || SCRIPT_BEIKEYUN="${SCRIPT_BEIKEYUN_FILE}"
     [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
+    [[ -n "${SCRIPT_ZCUBE1MAX}" ]] || SCRIPT_ZCUBE1MAX="${SCRIPT_ZCUBE1MAX_FILE}"
     [[ -n "${SCRIPT_CM3}" ]] || SCRIPT_CM3="${SCRIPT_CM3_FILE}"
     [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
@@ -162,7 +164,6 @@ init_var() {
 
     # Confirm package object
     [[ "${PACKAGE_SOC}" != "all" ]] && {
-        unset PACKAGE_OPENWRT
         oldIFS="${IFS}"
         IFS="_"
         PACKAGE_OPENWRT=(${PACKAGE_SOC})
@@ -188,7 +189,6 @@ init_var() {
 
     # Reset STABLE_KERNEL options
     [[ -n "${KERNEL_VERSION_NAME}" && " ${KERNEL_TAGS[@]} " =~ " stable " ]] && {
-        unset STABLE_KERNEL
         oldIFS="${IFS}"
         IFS="_"
         STABLE_KERNEL=(${KERNEL_VERSION_NAME})
@@ -256,7 +256,7 @@ query_kernel() {
 
     # Check the version on the kernel library
     x="1"
-    for vb in ${KERNEL_TAGS[@]}; do
+    for vb in "${KERNEL_TAGS[@]}"; do
         {
             # Select the corresponding kernel directory and list
             if [[ "${vb}" == "rk3588" ]]; then
@@ -270,7 +270,7 @@ query_kernel() {
             # Query the name of the latest kernel version
             TMP_ARR_KERNELS=()
             i=1
-            for kernel_var in ${down_kernel_list[@]}; do
+            for kernel_var in "${down_kernel_list[@]}"; do
                 echo -e "${INFO} (${i}) Auto query the latest kernel version of the same series for [ ${vb} - ${kernel_var} ]"
 
                 # Identify the kernel <VERSION> and <PATCHLEVEL>, such as [ 6.1 ]
@@ -316,7 +316,7 @@ check_kernel() {
     [[ -n "${1}" ]] && check_path="${1}" || error_msg "Invalid kernel path to check."
     check_files=($(cat "${check_path}/sha256sums" | awk '{print $2}'))
     m="1"
-    for cf in ${check_files[@]}; do
+    for cf in "${check_files[@]}"; do
         {
             # Check if file exists
             [[ -s "${check_path}/${cf}" ]] || error_msg "The [ ${cf} ] file is missing."
@@ -336,7 +336,7 @@ download_kernel() {
     cd /opt
 
     x="1"
-    for vb in ${KERNEL_TAGS[@]}; do
+    for vb in "${KERNEL_TAGS[@]}"; do
         {
             # Set the kernel download list
             if [[ "${vb}" == "rk3588" ]]; then
@@ -353,7 +353,7 @@ download_kernel() {
 
             # Download the kernel to the storage directory
             i="1"
-            for kernel_var in ${down_kernel_list[@]}; do
+            for kernel_var in "${down_kernel_list[@]}"; do
                 if [[ ! -d "${kernel_path}/${kernel_var}" ]]; then
                     kernel_down_from="https://github.com/${KERNEL_REPO_URL}/releases/download/kernel_${vb}/${kernel_var}.tar.gz"
                     echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel download from [ ${kernel_down_from} ]"
@@ -386,7 +386,7 @@ make_openwrt() {
     echo -e "${STEPS} Start packaging OpenWrt..."
 
     i="1"
-    for PACKAGE_VAR in ${PACKAGE_OPENWRT[@]}; do
+    for PACKAGE_VAR in "${PACKAGE_OPENWRT[@]}"; do
         {
             # Distinguish between different OpenWrt and use different kernel
             if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${PACKAGE_VAR} " ]]; then
@@ -401,7 +401,7 @@ make_openwrt() {
             fi
 
             k="1"
-            for kernel_var in ${build_kernel[@]}; do
+            for kernel_var in "${build_kernel[@]}"; do
                 {
                     # Rockchip rk3568 series only support 6.x.y and above kernel
                     [[ -n "$(echo "${PACKAGE_OPENWRT_KERNEL6[@]}" | grep -w "${PACKAGE_VAR}")" && "${kernel_var:0:1}" -ne "6" ]] && {
@@ -466,6 +466,7 @@ EOF
                         vplus)            [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
                         beikeyun)         [[ -f "${SCRIPT_BEIKEYUN}" ]]        && sudo ./${SCRIPT_BEIKEYUN} ;;
                         l1pro)            [[ -f "${SCRIPT_L1PRO}" ]]           && sudo ./${SCRIPT_L1PRO} ;;
+                        zcube1-max)       [[ -f "${SCRIPT_ZCUBE1MAX}" ]]       && sudo ./${SCRIPT_ZCUBE1MAX} ;;
                         cm3)              [[ -f "${SCRIPT_CM3}" ]]             && sudo ./${SCRIPT_CM3} ;;
                         r66s)             [[ -f "${SCRIPT_R66S}" ]]            && sudo ./${SCRIPT_R66S} ;;
                         r68s)             [[ -f "${SCRIPT_R68S}" ]]            && sudo ./${SCRIPT_R68S} ;;
