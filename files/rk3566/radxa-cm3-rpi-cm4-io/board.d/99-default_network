@@ -51,7 +51,7 @@ if [ -d "/sys/class/net/eth1" ];then
 	ucidef_set_interface_macaddr "lan" $LAN_MAC
 	ucidef_set_interface_macaddr "wan" $WAN_MAC
 else
-	ucidef_set_interfaces_lan 'eth0'
+	ucidef_set_interface_lan 'eth0'
 	ucidef_set_interface_macaddr "lan" $LAN_MAC
 fi
 
