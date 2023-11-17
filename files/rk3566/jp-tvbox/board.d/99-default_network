@@ -1,6 +1,5 @@
-# The phy interfaces for Radxa CM3 RPI CM4 IO:
-# eth0(1gb) rockchip gmac for wan
-# eth1(1gb) pcie realtek rtl81111h for lan
+# The phy interfaces for JianPian TVBox:
+# eth0(1gb) rockchip gmac for lan
 
 . /lib/functions/uci-defaults.sh
 . /lib/functions/system.sh
