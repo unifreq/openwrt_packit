@@ -16,3 +16,9 @@
 
 # gmac1
 eth0	4
+
+# usb3.0
+xhci-hcd:usb2	3
+
+# sata
+ahci-dwc[fc800000.sata]	2
