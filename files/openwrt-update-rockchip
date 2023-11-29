@@ -86,6 +86,14 @@ case $MYDEVICE_NAME in
 		fi
 			SOC="r68s"
 		;;
+	"RK3568 EC-X")
+		if [ -n "${CURRENT_FDTFILE}" ]; then
+			MYDTB_FDTFILE="${CURRENT_FDTFILE}"
+		else
+			MYDTB_FDTFILE="rk3568-ec-x.dtb"
+		fi
+			SOC="ec-x"
+		;;
 	"HINLINK OPC-H66K Board"|"Hlink H66K")
 		if [ -n "${CURRENT_FDTFILE}" ] && [ "${CURRENT_FDTFILE}" != "rk3568-opc-h66k.dtb" ];then
 			MYDTB_FDTFILE="${CURRENT_FDTFILE}"
