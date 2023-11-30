@@ -703,6 +703,12 @@ function extract_rootfs_files() {
        echo "完成"
    fi
 
+   if [ -n "${BOARD_FIRMWARE_HOME}" ] && [ -d "${BOARD_FIRMWARE_HOME}" ];then
+       echo -n "复制 Board custom firmware 文件 ... "
+       ( cd ${TGT_ROOT} && cp -a ${BOARD_FIRMWARE_HOME}/* lib/firmware/ && sync )
+       echo "完成"
+   fi
+
    echo -n "优化 firmware ... "
    (
        cd $TGT_ROOT/lib/firmware
