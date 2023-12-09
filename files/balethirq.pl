@@ -235,12 +235,31 @@ sub board_special_config() {
     }
 }
 
+sub get_eth_offload_status {
+    my ($eth, $offload) = @_;
+    my $ret = 0;
+    open my $fh, "ethtool -k $eth|" or die;
+    while(<$fh>) {
+        chomp;
+        if(m/^${offload}/) {
+            my @ary = split;
+	    if ($ary[-1] eq 'off') {
+                $ret = 1;
+	    }
+	    last;
+	}
+    }
+    close $fh;
+    return $ret;
+}
+
 sub optimize_eth_parameters {
+    my @offloads = ("scatter-gather", "tcp-segmentation-offload", "rx-udp-gro-forwarding");
     while (my $eth = shift) {
         print "optimizing $eth ... ";
-        system "ethtool -K $eth scatter-gather on >/dev/null 2>&1";
-        system "ethtool -K $eth tcp-segmentation-offload on >/dev/null 2>&1";
-        system "ethtool -K $eth rx-udp-gro-forwarding on >/dev/null 2>&1";
+	for my $offload (@offloads) {
+            system "ethtool -K $eth $offload on" if (&get_eth_offload_status("$eth", "$offload") != 0);
+        }
         print "done\n";
     }
 }

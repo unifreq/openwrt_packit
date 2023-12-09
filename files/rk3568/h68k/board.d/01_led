@@ -7,7 +7,9 @@
 
 board_config_update
 
-ucidef_set_led_netdev "wan" "WAN" "blue:wan" "eth0"
+ucidef_set_led_netdev "wan" "WAN" "blue:net" "eth3"
+ucidef_set_led_netdev "lan" "LAN" "amber:sata" "br-lan"
+ucidef_set_led_default "work" "WORK" "green:work" "1"
 
 board_config_flush
 
