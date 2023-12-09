@@ -214,25 +214,15 @@ sub get_boardinfo() {
     return $ret;
 }
 
+sub get_eth_list {
+    chdir("/sys/class/net");
+    my @eths = <eth*>;
+    return @eths;
+}
+
 sub board_special_config() {
-    my $board = &get_boardinfo();
-    if($board eq "FastRhino R66S") {
-        &optimize_eth_parameters("eth0","eth1");
-    } elsif($board eq "FastRhino R68S") {
-        &optimize_eth_parameters("eth0","eth1","eth2","eth3");
-    } elsif($board eq "Radxa E25") {
-        &optimize_eth_parameters("eth0","eth1");
-    } elsif($board eq "Radxa ROCK 5B") {
-        &optimize_eth_parameters("eth0","eth1");
-    } elsif($board eq "Hlink H28K") {
-        &optimize_eth_parameters("eth0", "eth1");
-    } elsif($board eq "Hlink H66K") {
-        &optimize_eth_parameters("eth0","eth1","eth2");
-    } elsif($board eq "Hlink H68K") {
-        &optimize_eth_parameters("eth0","eth1","eth2","eth3");
-    } elsif($board eq "Hlink H69K") {
-        &optimize_eth_parameters("eth0","eth1","eth2","eth3");
-    }
+    my @eths = &get_eth_list;
+    &optimize_eth_parameters(@eths);
 }
 
 sub get_eth_offload_status {
