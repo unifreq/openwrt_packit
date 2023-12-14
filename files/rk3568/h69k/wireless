@@ -7,7 +7,7 @@ config wifi-device 'radio0'
         option legacy_rates '1'
         option mu_beamformer '0'
         option channel '36'
-        option htmode 'HE80'
+        option htmode 'VHT80'
 
 config wifi-iface 'default_radio0'
         option device 'radio0'

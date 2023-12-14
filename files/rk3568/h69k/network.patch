@@ -52,7 +52,7 @@
 +        option country 'US'
 +        option legacy_rates '1'
 +        option mu_beamformer '0'
-+        option htmode 'HE160'
++        option htmode 'HE80'
 +
 +config wifi-iface 'default_radio1'
 +        option device 'radio1'
@@ -68,7 +68,7 @@
 +			if ! grep '3c0000000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0' /etc/config/wireless >/dev/null;then
 +				need_fix=1
 +			fi
-+                        if grep '3c0000000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0+1' /etc/config/wireless > /dev/null;then
++                       if grep '3c0000000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0+1' /etc/config/wireless > /dev/null;then
 +				need_fix=1
 +			fi
 +			if grep "option encryption 'none'" /etc/config/wireless >/dev/null;then
@@ -85,7 +85,7 @@
 +        option legacy_rates '1'
 +        option mu_beamformer '0'
 +        option channel '36'
-+        option htmode 'HE80'
++        option htmode 'VHT80'
 +
 +config wifi-iface 'default_radio0'
 +        option device 'radio0'
