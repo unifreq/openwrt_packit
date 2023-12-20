@@ -752,7 +752,7 @@ function extract_rootfs_files() {
        # JP-TVBox 采用 hcy6355(bcm4339) ,也可diy成AP6255(bcm43455),网速倍增！
        get_random_mac
        sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac4339-sdio.ZP.txt" > "brcmfmac4339-sdio.JP-TVbox,rk3566.txt"
-       ln -s brcmfmac4339-sdio.bin brcmfmac4339-sdio.JP-TVbox,rk3566.txt
+       ln -s brcmfmac4339-sdio.bin brcmfmac4339-sdio.JP-TVbox,rk3566.bin
        get_random_mac
        sed -e "s/macaddr=00:90:4c:c5:12:38/macaddr=${MACADDR}/" "brcmfmac43455-sdio.txt" > "brcmfmac43455-sdio.JP-TVbox,rk3566.txt"
        ln -s brcmfmac43455-sdio.bin brcmfmac43455-sdio.JP-TVbox,rk3566.bin
