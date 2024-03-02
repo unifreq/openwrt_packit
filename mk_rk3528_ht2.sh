@@ -119,7 +119,7 @@ BOARD_MODULES_HOME="${PWD}/files/rk3528/ht2/modules.d"
 # 20221013 add
 WIRELESS_CONFIG="${PWD}/files/rk3528/ht2/wireless"
 # 20231130 add
-BOARD_FIRMWARE_HOME="${PWD}/files/rk3528/ht2/firmware"
+#BOARD_FIRMWARE_HOME="${PWD}/files/rk3528/ht2/firmware"
 ####################################################################
 
 check_depends
