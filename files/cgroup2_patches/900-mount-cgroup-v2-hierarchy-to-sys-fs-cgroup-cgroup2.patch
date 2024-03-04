@@ -1,0 +1,15 @@
+--- a/usr/bin/cgroupfs-mount
++++ b/usr/bin/cgroupfs-mount
+@@ -41,6 +41,12 @@ for sys in $(awk '!/^#/ { if ($4 == 1) print $1 }' /proc/cgroups); do
+ 	fi
+ done
+ 
++# mount cgroup v2 hierarchy to /sys/fs/cgroup/cgroup2 if kernel support cgroup2 filesystem
++if grep -q cgroup2 /proc/filesystems; then
++	mkdir -p /sys/fs/cgroup/cgroup2
++	mount -t cgroup2 -o rw,nosuid,nodev,noexec,relatime,nsdelegate cgroup2 /sys/fs/cgroup/cgroup2
++fi
++
+ # example /proc/cgroups:
+ #  #subsys_name	hierarchy	num_cgroups	enabled
+ #  cpuset	2	3	1

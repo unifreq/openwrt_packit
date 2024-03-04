@@ -5,6 +5,7 @@ export ZSTD_LEVEL=6
 
 # global vars
 NETDATA_PATCH_HOME="${PWD}/files/netdata_patches"
+CGROUP2_PATCH_HOME="${PWD}/files/cgroup2_patches"
 
 get_random_mac ()
 {
@@ -626,10 +627,36 @@ function patch_netdata() {
 			echo
 			echo "为 netdata 打补丁以支持更多监控功能 ..."
 			cd ${TGT_ROOT}
-			for p in "${NETDATA_PATCH_HOME}/common/*.patch";do
+			for p in $(ls ${NETDATA_PATCH_HOME}/common/*.patch);do
 				patch -p1 < $p
 			done
-			for p in "${NETDATA_PATCH_HOME}/${daemon}/*.patch";do
+			for p in $(ls ${NETDATA_PATCH_HOME}/${daemon}/*.patch);do
+				patch -p1 < $p
+			done
+			echo "完成"
+			echo
+		)
+	fi
+}
+
+# 为cgroupfs_mount软件包打cgroup2补丁
+function patch_cgroupfs_mount() {
+	local common_required="cgroupfs-mount"
+	local ret
+
+	ret=$(check_opkg_requires ${common_required})
+	if [ "$ret" != "ok" ];then
+		echo
+		return
+	fi
+
+	if [ -n "$CGROUP2_PATCH_HOME" ] && [ -d "$CGROUP2_PATCH_HOME" ];then
+		(
+			echo
+			echo "为 cgroupfs-mount 打补丁以支持 cgroup2 ..."
+			cd ${TGT_ROOT}
+			for p in $(ls ${CGROUP2_PATCH_HOME}/*.patch);do
+				echo "$p"
 				patch -p1 < $p
 			done
 			echo "完成"
@@ -1218,6 +1245,7 @@ function copy_supplement_files() {
         [ -n "$SYSFIXTIME_PATCH" ] && [ -f $SYSFIXTIME_PATCH ] && patch -p1 < $SYSFIXTIME_PATCH
         [ -n "$NETWORK_SERVICE_PATCH" ] && [ -f $NETWORK_SERVICE_PATCH ] && patch -p1 < $NETWORK_SERVICE_PATCH
 	patch_netdata
+	patch_cgroupfs_mount
         [ -n "$FORCE_REBOOT" ] && [ -f $FORCE_REBOOT ] && cp -v $FORCE_REBOOT usr/sbin/ 
 
         [ -n "$GET_RANDOM_MAC" ] && [ -f ${GET_RANDOM_MAC} ] && cp -v ${GET_RANDOM_MAC} ./usr/bin/

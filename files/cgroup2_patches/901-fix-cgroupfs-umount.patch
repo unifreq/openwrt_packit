@@ -1,0 +1,15 @@
+--- a/usr/bin/cgroupfs-umount
++++ b/usr/bin/cgroupfs-umount
+@@ -24,8 +24,11 @@ for sys in *; do
+ 		umount $sys
+ 	fi
+ 	if [ -d $sys ]; then
+-		rmdir $sys || true
++		rm -rf $sys || true
+ 	fi
+ done
+ 
++cd /
++umount /sys/fs/cgroup || true
++
+ exit 0

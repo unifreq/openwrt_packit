@@ -1,0 +1,15 @@
+--- a/usr/bin/cgroupfs-mount
++++ b/usr/bin/cgroupfs-mount
+@@ -47,6 +47,12 @@ if grep -q cgroup2 /proc/filesystems; then
+ 	mount -t cgroup2 -o rw,nosuid,nodev,noexec,relatime,nsdelegate cgroup2 /sys/fs/cgroup/cgroup2
+ fi
+ 
++# mount /sys/fs/cgroup/systemd for docker systemd 
++mkdir -p /sys/fs/cgroup/systemd
++if ! mountpoint -q /sys/fs/cgroup/systemd; then
++	mount -t cgroup -o none,name=systemd systemd /sys/fs/cgroup/systemd
++fi
++
+ # example /proc/cgroups:
+ #  #subsys_name	hierarchy	num_cgroups	enabled
+ #  cpuset	2	3	1
