@@ -30,6 +30,7 @@ else
 ./etc/ksmbd/ksmbdpwd.db \
 ./etc/config/ \
 ./etc/crontabs/ \
+./etc/daed/ \
 ./usr/share/openclash/core/ \
 ./etc/openclash/backup/ \
 ./etc/openclash/config/ \
