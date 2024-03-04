@@ -657,8 +657,9 @@ function patch_cgroupfs_mount() {
 			cd ${TGT_ROOT}
 			for p in $(ls ${CGROUP2_PATCH_HOME}/*.patch);do
 				echo "$p"
-				patch -p1 < $p
+				patch -p1 < $p 2>/dev/null
 			done
+			rm -f ./etc/init.d/*.rej ./etc/init.d/*.orig ./usr/bin/*.rej ./usr/bin/*.orig
 			echo "完成"
 			echo
 		)
