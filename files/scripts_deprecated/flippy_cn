@@ -1,12 +1,20 @@
 #!/bin/bash
 # flippy's openwrt tools
 
-VERSION="v1.3"
+VERSION="v1.4"
 ZSTD_LEVEL=6
 SNAPSHOT_PRESTR=".snapshots/"
 BACKUP_DIR="/.reserved"
 BACKUP_FILE="${BACKUP_DIR}/openwrt_config.tar.gz"
-BACKUP_LIST='./etc/AdGuardHome.yaml \
+# Customize backup list
+backup_list_conf="/etc/amlogic_backup_list.conf"
+if [[ -s "${backup_list_conf}" ]]; then
+    while IFS= read -r line; do
+        BACKUP_LIST+="${line} "
+    done <"${backup_list_conf}"
+else
+    BACKUP_LIST='./etc/AdGuardHome.yaml \
+./etc/amlogic_backup_list.conf \
 ./etc/adblocklist/ \
 ./etc/amule/ \
 ./etc/balance_irq \
@@ -17,6 +25,8 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/ksmbd/ksmbdpwd.db \
 ./etc/config/ \
 ./etc/crontabs/ \
+./etc/dae/ \
+./etc/daed/ \
 ./usr/share/openclash/core/ \
 ./etc/openclash/backup/ \
 ./etc/openclash/config/ \
@@ -68,6 +78,7 @@ BACKUP_LIST='./etc/AdGuardHome.yaml \
 ./etc/v2raya/ \
 ./etc/verysync/ \
 ./root/.ssh/'
+fi
 
 if dmesg | grep 'meson' >/dev/null 2>&1; then
     PLATFORM="amlogic"
