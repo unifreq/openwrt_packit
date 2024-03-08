@@ -1160,32 +1160,32 @@ EOF
 	case "${PLATFORM}" in
 		amlogic)
 			KERNEL_TAGS="stable"
-            KERNEL_BRANCHES="mainline:all:>=:5.4"
+			KERNEL_BRANCHES="mainline:all:>=:5.4"
 			;;
 		allwinner)
 			KERNEL_TAGS="stable"
-            KERNEL_BRANCHES="mainline:all:>=:5.4"
+			KERNEL_BRANCHES="mainline:all:>=:5.4"
 			;;
 		rockchip)
-			case $SOC in
+			case "${SOC}" in
 				rk3328) KERNEL_TAGS="stable"
-                        KERNEL_BRANCHES="mainline:all:>=:5.4"
-					    ;;
+					KERNEL_BRANCHES="mainline:all:>=:5.4"
+					;;
 				rk3399) KERNEL_TAGS="stable"
-                        KERNEL_BRANCHES="mainline:all:>=:5.4 bsp:>=:5.10"
-					    ;;
+					KERNEL_BRANCHES="mainline:all:>=:5.4 bsp:>=:5.10"
+					;;
 				rk3528) KERNEL_TAGS="rk35xx"
-                        KERNEL_BRANCHES="bsp:rk35xx:>=:5.10"
-					    ;;
+					KERNEL_BRANCHES="bsp:rk35xx:>=:5.10"
+					;;
 				rk3566) KERNEL_TAGS="rk35xx"
-                        KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
-					    ;;
+					KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
+					;;
 				rk3568) KERNEL_TAGS="rk35xx"
-                        KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
-					    ;;
+					KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
+					;;
 				rk3588) KERNEL_TAGS="rk3588"
-                        KERNEL_BRANCHES="bsp:rk3588:>=:5.10 mainline:all:>=:6.6"
-					    ;;
+					KERNEL_BRANCHES="bsp:rk3588:>=:5.10 mainline:all:>=:6.6"
+					;;
 			esac
 			;;
 	esac
