@@ -1156,6 +1156,33 @@ EOF
             echo "LOCK_KERNEL=${LOCK_KERNEL}" >> ./etc/flippy-openwrt-release
         fi
 
+	# 内核标签
+	case $PLATFORM in 
+		amlogic)
+			KERNEL_TAGS="mainline:all:>=:5.4"
+			;;
+		allwinner)
+			KERNEL_TAGS="mainline:all:>=:5.4"
+			;;
+		rockchip)
+			case $SOC in
+				rk3328) KERNEL_TAGS="mainline:all:>=:5.4"
+					;;
+				rk3399) KERNEL_TAGS="mainline:all:>=:5.4 bsp:>=:5.10"
+					;;
+				rk3528) KERNEL_TAGS="bsp:rk35xx:>=:5.10"
+					;;
+				rk3566) KERNEL_TAGS="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
+					;;
+				rk3568) KERNEL_TAGS="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
+					;;
+				rk3588) KERNEL_TAGS="bsp:rk3588:>=:5.10 mainline:all:>=:6.6"
+					;;
+			esac
+			;;
+	esac
+	echo "KERNEL_TAGS=${KERNEL_TAGS}" >> ./etc/flippy-openwrt-release
+
         # only photonic need pcat-manager service
         if [ "${BOARD}" != "photonicat" ];then
             rm -f ./etc/rc.d/[SK]??pcat-manager 2>/dev/null
