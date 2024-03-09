@@ -220,7 +220,13 @@ sub get_eth_temperature {
     return $ret if (! -d "/proc/net/r8125/$eth_name");
     if($driver eq 'r8125') {
 	my $fh;
-	open $fh, "<", "/proc/net/r8125/$eth_name/temp" or die $!;
+	if (-f "/proc/net/r8125/$eth_name/test/temp") {
+		open $fh, "<", "/proc/net/r8125/$eth_name/test/temp" or die $!;
+	} elsif (-f "/proc/net/r8125/$eth_name/temp") {
+		open $fh, "<", "/proc/net/r8125/$eth_name/temp" or die $!;
+	} else {
+		return $ret;
+	}
 	while(<$fh>) {
             chomp;
 	    if(/^Cel:/) {
