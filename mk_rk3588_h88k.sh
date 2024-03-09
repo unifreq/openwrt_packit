@@ -20,6 +20,8 @@ fi
 
 # Kernel image sources
 ###################################################################
+KERNEL_TAGS="rk3588"
+KERNEL_BRANCHES="bsp:rk3588:>=:5.10 mainline:all:>=:6.6"
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
 check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
