@@ -22,6 +22,8 @@ KERNEL_VERSION=6.1.27-flippy-83+
 
 # Kernel image sources
 ###################################################################
+KERNEL_TAGS="stable"
+KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
 check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
