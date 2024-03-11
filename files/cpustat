@@ -241,7 +241,7 @@ sub get_eth_temperature {
 
 sub get_ethlist() {
     my $board = &get_boardinfo;
-    if($board eq "FastRhino R66S") {
+    if($board =~ m/FastRhino R66S/i) {
 	return reverse sort (</sys/class/net/e[tn]*>);
     } elsif($board eq "Hlink H68K") {
 	return reverse sort (</sys/class/net/e[tn]*>);
@@ -349,7 +349,8 @@ sub get_dc_voltage() {
 	$down_res = 27;
 	$iio_channel = 4;
 	$ret = "(Probably) 12";
-    } elsif($board =~ m/Radxa ROCK 5B/) {
+    } elsif(($board =~ m/Radxa ROCK 5B/i) ||
+	    ($board =~ m/Radxa ROCK 5 Model B/i)) {
 	$up_res = 100;
 	$down_res = 8.2;
 	$iio_channel = 6;
