@@ -121,7 +121,7 @@ BREATHING_LIGHT="${PWD}/files/rk3399/zcube1-max/aw2028"
 check_depends
 
 SKIP_MB=16
-BOOT_MB=160
+BOOT_MB=256
 ROOTFS_MB=960
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"

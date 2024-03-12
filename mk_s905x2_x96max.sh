@@ -129,8 +129,8 @@ MODULES_HOME="${PWD}/files/s905x2/modules.d"
 check_depends
 
 SKIP_MB=4
-BOOT_MB=160
-ROOTFS_MB=736
+BOOT_MB=256
+ROOTFS_MB=960
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "fat32" "0" "-1" "btrfs"

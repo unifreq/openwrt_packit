@@ -127,7 +127,7 @@ WIRELESS_CONFIG="${PWD}/files/rk3528/ht2/wireless"
 check_depends
 
 SKIP_MB=16
-BOOT_MB=160
+BOOT_MB=256
 ROOTFS_MB=960
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
