@@ -1,12 +1,24 @@
---- /etc/init.d/network.orig	2023-08-01 20:12:13.766223709 +0800
-+++ /etc/init.d/network	2023-08-01 20:29:38.282969216 +0800
-@@ -5,6 +5,112 @@ STOP=90
+--- a/etc/init.d/network
++++ b/etc/init.d/network
+@@ -5,6 +5,124 @@ STOP=90
  
  USE_PROCD=1
  
 +fix_wireless_config() {
 +	local sys_home="/sys/class/pci_bus/0002:21/device/0002:21:00.0"
-+	local pci_path="fe170000.pcie/pci0002:20/0002:20:00.0/0002:21:00.0"
++	local pci_addr
++	if [ -d "/sys/devices/platform/fe170000.pcie" ];then
++		# rockchip bsp kernel
++		pci_addr="fe170000"
++	elif [ -d "/sys/devices/platform/a40800000.pcie" ];then
++		# mainline kernel
++		pci_addr="a40800000"
++	else
++		return
++	fi
++
++	local pci_path="${pci_addr}.pcie/pci0002:20/0002:20:00.0/0002:21:00.0"
++
 +        if [ -d "${sys_home}" ];then
 +                source "${sys_home}/uevent"
 +		local need_fix=0
@@ -113,7 +125,7 @@
  init_switch() {
  	setup_switch() { return 0; }
  
-@@ -13,6 +119,7 @@ init_switch() {
+@@ -13,6 +131,7 @@ init_switch() {
  }
  
  start_service() {
