@@ -1976,13 +1976,21 @@ function archive_lxc_rootfs {
 	local compress_progress
 	case $LXC_ROOTFS_COMPRESS in
             gzip) lxc_ext=".gz"
-		  compress_prog="| gzip"
+		  if which pigz;then
+		      compress_prog="| pigz"
+		  else
+		      compress_prog="| gzip"
+		  fi
 		  ;;
 	    zstd) lxc_ext=".zst"
 		  compress_prog="| zstd"
 		  ;;
 	      xz) lxc_ext=".xz"
-		  compress_prog="| xz"
+		  if which pixz;then
+		      compress_prog="| pixz"
+		  else
+		      compress_prog="| xz"
+		  fi
 		  ;;
 	       *) lxc_ext=""
 		  compress_prog=""
@@ -1992,10 +2000,10 @@ function archive_lxc_rootfs {
         echo "制作 LXC 容器镜像 ..."
         (
            cd ${TGT_ROOT}
-           eval tar --exclude="./lib/firmware/*" \
-	            --exclude="./lib/modules/*" \
-		    --exclude="./boot/*" \
-		    --exclude="./.snapshots" \
+           eval tar --exclude="lib/firmware/*" \
+	            --exclude="lib/modules/*" \
+		    --exclude="boot/*" \
+		    --exclude=".snapshots" \
 		    -cf - . \
 	            $compress_prog > ${TGT_LXC_ROOTFS}${lxc_ext}
         )

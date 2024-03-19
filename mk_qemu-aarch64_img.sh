@@ -32,9 +32,9 @@ TGT_QCOW2_IMG="${OUTPUT_DIR}/openwrt_${PLATFORM}_${OPENWRT_VER}_k${KERNEL_VERSIO
 # 20240319 add
 LXC_PLATFORM="aarch64-lxc"
 # Target LXC rootfs
-TGT_LXC_ROOTFS="${OUTPUT_DIR}/openwrt_${LXC_PLATFORM}_${OPENWRT_VER}.tar"
+TGT_LXC_ROOTFS="${OUTPUT_DIR}/openwrt_${OPENWRT_VER}_${LXC_PLATFORM}.tar"
 # compress: gzip | zstd | xz | none
-LXC_ROOTFS_COMPRESS="zstd"
+LXC_ROOTFS_COMPRESS="xz"
 
 ###################################################################
 
