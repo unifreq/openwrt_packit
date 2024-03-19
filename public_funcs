@@ -1968,3 +1968,38 @@ function append_custom_uci_defaults_command {
     echo "==========================="
 
 }
+
+# 导出LXC rootfs 镜像
+function archive_lxc_rootfs {
+    if [ -n "$TGT_LXC_ROOTFS" ];then
+        local lxc_ext
+	local compress_progress
+	case $LXC_ROOTFS_COMPRESS in
+            gzip) lxc_ext=".gz"
+		  compress_prog="| gzip"
+		  ;;
+	    zstd) lxc_ext=".zst"
+		  compress_prog="| zstd"
+		  ;;
+	      xz) lxc_ext=".xz"
+		  compress_prog="| xz"
+		  ;;
+	       *) lxc_ext=""
+		  compress_prog=""
+		  ;;
+        esac
+        echo "==============================================================================="
+        echo "制作 LXC 容器镜像 ..."
+        (
+           cd ${TGT_ROOT}
+           eval tar --exclude="./lib/firmware/*" \
+	            --exclude="./lib/modules/*" \
+		    --exclude="./boot/*" \
+		    --exclude="./.snapshots" \
+		    -cf - . \
+	            $compress_prog > ${TGT_LXC_ROOTFS}${lxc_ext}
+        )
+        echo "制作完成, LXC 容器镜像是 ${TGT_LXC_ROOTFS}${lxc_ext}"
+        echo "==============================================================================="
+    fi
+}
