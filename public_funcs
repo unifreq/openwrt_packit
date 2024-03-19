@@ -1992,12 +1992,7 @@ function archive_lxc_rootfs {
 		  ;;
 	      xz) lxc_ext=".xz"
 		  echo "由于采用了 xz 压缩算法，制作时间会很长，请耐心等待 ... "
-		  if which pixz;then
-		      compress_prog="| pixz"
-		  else
-		      compress_prog="| xz"
-		      echo "小知识： 对于 xz 压缩算法， 可以安装并发版的 pixz 应用程序来加速压缩"
-		  fi
+		  compress_prog="| xz -T 0"
 		  ;;
 	       *) lxc_ext=""
 		  compress_prog=""
