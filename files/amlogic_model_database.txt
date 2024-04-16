@@ -21,7 +21,7 @@
 1k:CM211-1:s905l3:meson-gxl-s905l3b-m302a.dtb:u-boot-p212.bin:NA:NA:2+8G,100Mb-Nic
 
 # Amlogic GXM Family
-21:Octopus Planet:s912:meson-gxm-octopus-planet.dtb:u-boot-zyxq.bin:NA:NA:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
+21:Octopus-Planet/OneCloudPro-V1.1:s912:meson-gxm-octopus-planet.dtb:u-boot-zyxq.bin:NA:NA:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
 22:*FAKE* Octopus Planet *FAKE*:s912:meson-gxm-fake-octopus-planet.dtb:u-boot-zyxq.bin:NA:/lib/u-boot/bl-fake-octopus-planet.bin:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
 23:TX9-Pro(3G_32G_1Gb):s912:meson-gxm-tx9-pro.dtb:u-boot-zyxq.bin:NA:NA:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic,brcm43455 wifi
 24:H96 Pro Plus:s912:meson-gxm-octopus-planet.dtb:u-boot-zyxq.bin:NA:NA:2G/32G,1Gb Nic
@@ -34,6 +34,7 @@
 2b:Tanix TX8 MAX:s912:meson-gxm-tx8-max.dtb:u-boot-p212.bin:NA:NA:3GB RAM,16GB/32GB eMMC,2.4G/5.0G WiFi,qca9377 WLAN/Bluetooth 4.1,1Gb Nic
 2c:Vontar-X92:s912:meson-gxm-x92.dtb:u-boot-p212.bin:NA:NA:3GB RAM,16GB/32GB eMMC,2.4G/5.0G WiFi,AP6255 WLAN/Bluetooth 4.0,1Gb Nic:meson-gxm:s912:no
 2d:Phicomm-T1:s912:meson-gxm-phicomm-t1.dtb:u-boot-s905x-s912.bin:NA:NA:2G RAM,16G ROM,100Mb Nic,Wifi,Bluetooth
+2e:OneCloudPro-V1.2:s912:meson-gxm-octopus-planet.dtb:u-boot-zyxq.bin:NA:NA:4C@1512Mhz+4C@1000Mhz,2GB Mem,1Gb Nic
 
 # Amlogic G12A Family
 31:X96 Max 4GB:s905x2:meson-g12a-x96-max.dtb:u-boot-x96max.bin:/lib/u-boot/x96max-u-boot.bin.sd.bin:NA:4C@1908Mhz,4GB Mem,1Gb Nic
