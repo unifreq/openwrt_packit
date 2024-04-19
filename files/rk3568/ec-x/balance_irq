@@ -16,3 +16,4 @@
 
 # lan
 eth0		4
+xhci-hcd:usb5	3

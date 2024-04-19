@@ -7,8 +7,9 @@
 
 board_config_update
 
-ucidef_set_led_default "work" "WORK" "blue:work" "1"
-ucidef_set_led_netdev "lan" "LAN" "blue:net" "eth0"
+ucidef_set_led_default "work" "WORK" "red:led2" "1"
+ucidef_set_led_netdev "lan" "LAN" "green:led1" "wlan0"
+ucidef_set_led_netdev "wan" "WAN" "blue:led3" "wwan"
 
 board_config_flush
 
