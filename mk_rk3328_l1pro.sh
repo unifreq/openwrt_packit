@@ -136,6 +136,8 @@ rootflags=compress=zstd:${ZSTD_LEVEL}
 extraargs=usbcore.autosuspend=-1
 extraboardargs=
 fdtfile=/dtb/rockchip/rk3328-l1pro-1296mhz.dtb
+usbstoragequirks=0x05e3:0x0612:u,0x1d6b:0x0003:u,0x05e3:0x0610:u
+console=serial
 kernel_addr_r=0x02000000
 ramdisk_addr_r=0x06000000
 EOF
