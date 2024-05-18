@@ -1226,6 +1226,13 @@ function copy_supplement_files() {
                 sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
                 echo "完成"
             fi
+	    if [ "$SOC" == "rk3588s" ] && [ "$BOARD" == "rock5c" ] && [ -f "$PWM_FAN" ];then
+                echo "该机型有pwm风扇接口，故添加风扇调速脚本 ... "
+                cp -v $PWM_FAN ./usr/bin
+                echo "pwm_fan" > ./etc/modules.d/pwm_fan
+                sed -e "/exit/i\/usr/bin/pwm-fan.pl &" -i etc/rc.local
+                echo "完成"
+            fi
         fi
 
 	# ZIMO Zcube1 max 呼吸灯
