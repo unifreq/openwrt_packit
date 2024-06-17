@@ -17,7 +17,7 @@ fi
 DEPENDS="lsblk uuidgen grep awk btrfs mkfs.fat mkfs.btrfs perl md5sum"
 echo "检查必要的依赖文件 ..."
 for dep in ${DEPENDS};do
-    WITCH=$(which $dep)
+    WITCH=$(busybox which $dep)
     if [ "$WITCH" == "" ];then
         echo "依赖的命令: $dep 不存在，无法进行升级，只能通过U盘/TF卡刷机！"
 	exit 1
