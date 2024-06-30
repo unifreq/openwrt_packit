@@ -83,7 +83,7 @@ SCRIPT_E25_FILE="mk_rk3568_e25.sh"
 SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
 SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
-SCRIPT_ROCK5C_FILE="mk_rk3588_rock5c.sh"
+SCRIPT_ROCK5C_FILE="mk_rk3588s_rock5c.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
@@ -396,7 +396,7 @@ download_kernel() {
                     echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel download from [ ${kernel_down_from} ]"
 
                     # Download the kernel file. If the download fails, try again 10 times.
-                    for i in {1..10}; do
+                    for t in {1..10}; do
                         curl -fsSL "${kernel_down_from}" -o "${kernel_path}/${kernel_var}.tar.gz"
                         [[ "${?}" -eq "0" ]] && break || sleep 60
                     done
@@ -447,7 +447,7 @@ make_openwrt() {
                 {
                     # Rockchip rk3568 series only support 6.x.y and above kernel
                     [[ -n "$(echo "${PACKAGE_OPENWRT_6XY[@]}" | grep -w "${PACKAGE_VAR}")" && "${kernel_var:0:2}" != "6." ]] && {
-                        echo -e "${STEPS} (${i}.${k}) ${NOTE} ${PACKAGE_VAR} cannot use ${kernel_var} kernel, skip."
+                        echo -e "${STEPS} (${i}.${k}) ${NOTE} Based on <PACKAGE_OPENWRT_6XY>, skip the [ ${PACKAGE_VAR} - ${vb}/${kernel_var} ] build."
                         let k++
                         continue
                     }
@@ -580,7 +580,7 @@ out_github_env() {
         fi
 
         # Generate a sha256sum verification file for each OpenWrt file
-        for file in *; do [[ ! -d "${file}" ]] && sudo sha256sum "${file}" | sudo tee "${file}.sha" > /dev/null; done
+        for file in *; do [[ -f "${file}" ]] && sudo sha256sum "${file}" | sudo tee "${file}.sha" >/dev/null; done
         sudo rm -f *.sha.sha 2>/dev/null
 
         echo "PACKAGED_OUTPUTPATH=${PWD}" >>${GITHUB_ENV}
