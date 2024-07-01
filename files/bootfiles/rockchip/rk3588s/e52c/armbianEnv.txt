@@ -1,0 +1,19 @@
+verbosity=7
+bootlogo=true
+fdtfile=rockchip/rk3588s-radxa-e52c.dtb
+rootdev=/dev/mmcblk0p2
+rootfstype=btrfs 
+rootflags=compress=zstd:6
+earlycon=on
+console=serial
+consoleargs=console=ttyFIQ0 console=tty1
+usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
+docker_optimizations=on
+extraargs=
+extraboardargs=net.ifnames=0
+overlay_prefix=rk3588
+overlays=
+# for rk3582, rkvdec and rkvenc are disabled
+# if the soc is rk3588s, you can enable rkvdec0/rkvdec1/rkvenc0/rkvenc1 by overlays
+#overlays=rkvdec0 rkvdec1 rkvenc0 rkvenc1
+user_overlays=
