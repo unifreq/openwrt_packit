@@ -957,7 +957,7 @@ config global
         option check_fs '0'
 
 config mount
-        option target '/overlay'
+        option target '/rom'
         option enabled '1'
         option enabled_fsck '1'
         option uuid '${ROOTFS_UUID}'
