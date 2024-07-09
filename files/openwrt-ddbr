@@ -55,6 +55,9 @@ do_checkemmc() {
 	root_ptname="$(df / | tail -n1 | awk '{print $1}' | awk -F '/' '{print $3}')"
 	if [[ -z "${root_ptname}" ]]; then
 		root_ptname="$(df /overlay | tail -n1 | awk '{print $1}' | awk -F '/' '{print $3}')"
+	        if [[ -z "${root_ptname}" ]]; then
+		    root_ptname="$(df /rom | tail -n1 | awk '{print $1}' | awk -F '/' '{print $3}')"
+		fi
 	fi
 	[[ -z "${root_ptname}" ]] && error_msg "Cannot find the partition corresponding to the root file system!"
 

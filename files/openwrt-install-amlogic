@@ -67,7 +67,15 @@ fi
 root_devname=$(df / | tail -n1 | awk '{print $1}' | awk -F '\/' '{print substr($3, 1, length($3)-2)}')
 if [[ -z "${root_devname}" ]]; then
     root_devname="$(df /overlay | tail -n1 | awk '{print $1}' | awk -F '\/' '{print substr($3, 1, length($3)-2)}')"
+    if [[ -z "${root_devname}" ]]; then
+        root_devname="$(df /rom | tail -n1 | awk '{print $1}' | awk -F '\/' '{print substr($3, 1, length($3)-2)}')"
+        if [[ -z "${root_devname}" ]]; then
+            echo "Cannot find the partition corresponding to the root file system!"
+            exit 1
+        fi
+    fi
 fi
+
 if lsblk -l | grep -E "^${root_devname}boot0" >/dev/null; then
     echo "you are running in emmc mode, please boot system with usb or tf card!"
     exit 1
@@ -616,7 +624,7 @@ config  global
         option check_fs '0'
 
 config  mount
-        option target '/overlay'
+        option target '/rom'
         option uuid '${ROOTFS1_UUID}'
         option enabled '1'
         option enabled_fsck '1'
