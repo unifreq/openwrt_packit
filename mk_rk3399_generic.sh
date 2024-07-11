@@ -7,6 +7,7 @@
 
 if [ $# -lt 2 ];then
 	echo "Usage: $0 board fdtfile"
+	echo "Example: $0 tvi3315a rk3399-tvi3315a.dtb"
 	exit 1
 fi
 
