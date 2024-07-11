@@ -82,6 +82,23 @@ function check_block_dev() {
     fi
 }
 
+# 检查指定的 dtb.tar.gz 中是否存在指定的 dtb
+function check_fdtfile() {
+    local dtbs_tgz=$1
+    local fdtfile=$2
+    tar tvf "$dtbs_tgz" "$fdtfile" 2>/dev/null
+    if [ $? -ne 0 ];then
+            tar tvf "$dtbs_tgz" "./$fdtfile" 2>/dev/null
+            if [ $? -ne 0 ];then
+	        echo "not exists"
+	    else
+	        echo "exists"
+	    fi
+    else
+	    echo "exists"
+    fi
+}
+
 # 此函数原有的用途是检查内核版本是否 >= 5.10, 现改为检查内核的 text_offset 是否为 0x01080000
 # text offset: 
 #   0x01080000  适用晶晨盒子厂商 bootloader 以及 主线 bootloader, 已过时
