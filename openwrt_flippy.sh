@@ -43,7 +43,7 @@ PACKAGE_OPENWRT_RK3588=("rock5b" "rock5c" "e52c" "ak88" "h88k" "h88k-v3")
 # Devices from the rk3528/rk3566/rk3568 series can utilize the rk35xx and rk3588 kernels.
 PACKAGE_OPENWRT_RK35XX=("watermelon-pi" "zcube1-max" "jp-tvbox" "ht2" "e20c" "h28k" "h66k" "h68k" "h69k" "h69k-max")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_6XY=("r66s" "r68s" "e25" "photonicat" "cm3")
+PACKAGE_OPENWRT_6XY=("r66s" "r68s" "e25" "photonicat" "cm3" "rk3399")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -94,6 +94,7 @@ SCRIPT_S922X_FILE="mk_s922x_gtking.sh"
 SCRIPT_S922X_N2_FILE="mk_s922x_odroid-n2.sh"
 SCRIPT_QEMU_FILE="mk_qemu-aarch64_img.sh"
 SCRIPT_DIY_FILE="mk_diy.sh"
+SCRIPT_RK3399_FILE="mk_rk3399_generic.sh"
 
 # Set make.env related parameters
 WHOAMI_VALUE="flippy"
@@ -171,6 +172,7 @@ init_var() {
     [[ -n "${SCRIPT_S922X}" ]] || SCRIPT_S922X="${SCRIPT_S922X_FILE}"
     [[ -n "${SCRIPT_S922X_N2}" ]] || SCRIPT_S922X_N2="${SCRIPT_S922X_N2_FILE}"
     [[ -n "${SCRIPT_QEMU}" ]] || SCRIPT_QEMU="${SCRIPT_QEMU_FILE}"
+    [[ -n "${SCRIPT_RK3399}" ]] || SCRIPT_RK3399="${SCRIPT_RK3399_FILE}"
     [[ -n "${SCRIPT_DIY}" ]] || SCRIPT_DIY="${SCRIPT_DIY_FILE}"
 
     # Specify make.env variable
@@ -190,22 +192,46 @@ init_var() {
         IFS="_"
         PACKAGE_OPENWRT=(${PACKAGE_SOC})
         IFS="${oldIFS}"
-
-        # Reset required kernel tags
-        KERNEL_TAGS_TMP=()
-        for kt in "${PACKAGE_OPENWRT[@]}"; do
-            if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
-                KERNEL_TAGS_TMP+=("rk3588")
-            elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " ]]; then
-                KERNEL_TAGS_TMP+=("rk35xx")
-            else
-                KERNEL_TAGS_TMP+=("stable")
-            fi
-        done
-        # Remove duplicate kernel tags
-        KERNEL_TAGS=()
-        KERNEL_TAGS=($(echo "${KERNEL_TAGS_TMP[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
     }
+
+    # Confirm customize rk3399 devices: ${CUSTOMIZE_RK3399}
+    # Format:  [ board1:dtb1/board2:dtb2/board3:dtb3/... ]
+    # Example: [ tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb ]
+    RK3399_BOARD_LIST=()
+    RK3399_DTB_LIST=()
+    [[ -n "${CUSTOMIZE_RK3399}" ]] && {
+        # Add rk3399 to the package list
+        PACKAGE_OPENWRT+=("rk3399")
+
+        # Split the string
+        oldIFS="${IFS}"
+        IFS="/"
+        for rk in ${CUSTOMIZE_RK3399}; do
+            IFS=":"
+            tmp_rk_arr=(${rk})
+            RK3399_BOARD_LIST+=(${tmp_rk_arr[0]})
+            RK3399_DTB_LIST+=(${tmp_rk_arr[1]})
+        done
+        IFS="${oldIFS}"
+    }
+
+    # Remove duplicate package drivers
+    PACKAGE_OPENWRT=($(echo "${PACKAGE_OPENWRT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+    # Reset required kernel tags
+    KERNEL_TAGS_TMP=()
+    for kt in "${PACKAGE_OPENWRT[@]}"; do
+        if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
+            KERNEL_TAGS_TMP+=("rk3588")
+        elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " ]]; then
+            KERNEL_TAGS_TMP+=("rk35xx")
+        else
+            KERNEL_TAGS_TMP+=("stable")
+        fi
+    done
+    # Remove duplicate kernel tags
+    KERNEL_TAGS=($(echo "${KERNEL_TAGS_TMP[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
     echo -e "${INFO} Package directory: [ /opt/${SELECT_PACKITPATH} ]"
     echo -e "${INFO} Package SoC: [ $(echo ${PACKAGE_OPENWRT[@]} | xargs) ]"
     echo -e "${INFO} Kernel tags: [ $(echo ${KERNEL_TAGS[@]} | xargs) ]"
@@ -540,6 +566,11 @@ EOF
                         s922x-n2)         [[ -f "${SCRIPT_S922X_N2}" ]]        && sudo ./${SCRIPT_S922X_N2} ;;
                         qemu)             [[ -f "${SCRIPT_QEMU}" ]]            && sudo ./${SCRIPT_QEMU} ;;
                         diy)              [[ -f "${SCRIPT_DIY}" ]]             && sudo ./${SCRIPT_DIY} ;;
+                        rk3399)           [[ -f "${SCRIPT_RK3399}" && ${#RK3399_BOARD_LIST[@]} -gt 0 ]] && {
+                                          for rbl in ${!RK3399_BOARD_LIST[@]}; do
+                                              sudo ./${SCRIPT_RK3399} ${RK3399_BOARD_LIST[rbl]} ${RK3399_DTB_LIST[rbl]}
+                                          done
+                                          } ;;
                         *)                echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
                     esac
 
