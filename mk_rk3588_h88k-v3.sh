@@ -9,7 +9,12 @@ PLATFORM=rockchip
 SOC=rk3588
 BOARD=h88k-v3
 
-SUBVER=$1
+# 默认打包 v3.1 固件，如果需要打包 v3 的，加上 30 参数
+case "$1" in
+     30)  SUBVER=".0";;
+     31)  SUBVER=".1";;
+      *)  SUBVER=".1";;
+esac
 
 if [ -n "$RK3588_KERNEL_VERSION" ];then
     # lock the kernel version
@@ -34,7 +39,7 @@ OPWRT_ROOTFS_GZ=$(get_openwrt_rootfs_archive ${PWD})
 check_file ${OPWRT_ROOTFS_GZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
-TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}_${OPENWRT_VER}_k${KERNEL_VERSION}.img"
+TGT_IMG="${WORK_DIR}/openwrt_${SOC}_${BOARD}${SUBVER}_${OPENWRT_VER}_k${KERNEL_VERSION}.img"
 
 # patches、scripts
 ####################################################################
@@ -84,7 +89,7 @@ DOCKERD_PATCH="${PWD}/files/dockerd.patch"
 FIRMWARE_TXZ="${PWD}/files/firmware_armbian.tar.xz"
 BOOTFILES_HOME="${PWD}/files/bootfiles/rockchip/rk3588/h88k-v3"
 GET_RANDOM_MAC="${PWD}/files/get_random_mac.sh"
-BOOTLOADER_IMG="${PWD}/files/rk3588/h88k/rk3588-h88k-bootloader.bin"
+BOOTLOADER_IMG="${PWD}/files/rk3588/h88k-v3/bootloader.bin"
 
 # 20210618 add
 DOCKER_README="${PWD}/files/DockerReadme.pdf"
@@ -142,6 +147,13 @@ cd $TGT_BOOT
 sed -e '/rootdev=/d' -i armbianEnv.txt
 sed -e '/rootfstype=/d' -i armbianEnv.txt
 sed -e '/rootflags=/d' -i armbianEnv.txt
+sed -e '/fdtfile=/d' -i armbianEnv.txt
+case $SUBVER in
+    ".0") echo "fdtfile=rockchip/rk3588-hlink-h88k-v3.dtb" >> armbianEnv.txt
+         ;;
+    ".1") echo "fdtfile=rockchip/rk3588-hlink-h88k-v31.dtb" >> armbianEnv.txt
+         ;;
+esac
 cat >> armbianEnv.txt <<EOF
 rootdev=UUID=${ROOTFS_UUID}
 rootfstype=btrfs
