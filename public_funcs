@@ -1104,6 +1104,11 @@ function patch_admin_status_index_html() {
     echo "打补丁：[状态页面相关信息补丁] ... "
 	(
             cd $TGT_ROOT
+	    if [ ! -f ./usr/lib/lua/luci/view/admin_status/index.htm ];then
+		    echo "未发现目标文件，放弃打补丁"
+		    return
+	    fi
+
             if [ ! -f usr/bin/perl ];then
                  echo "未发现 perl 实用程序, 放弃补丁!"
             else 
