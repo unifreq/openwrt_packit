@@ -342,12 +342,8 @@ query_kernel() {
                 kernel_verpatch="$(echo ${kernel_var} | awk -F '.' '{print $1"."$2}')"
 
                 # Query the latest kernel version
-                latest_version="$(
-                    curl -fsSL \
-                        ${kernel_api}/releases/expanded_assets/kernel_${vb} |
-                        grep -oE "${kernel_verpatch}.[0-9]+.*.tar.gz" | sed 's/.tar.gz//' |
-                        sort -urV | head -n 1
-                )"
+                latest_version="$(curl -fsSL ${kernel_api}/releases/expanded_assets/kernel_${vb} | grep -oE "${kernel_verpatch}\.[0-9]+.*.tar.gz" | sed 's/.tar.gz//' | sort -urV | head -n 1)" 2>/dev/null
+                [[ ${KERNEL_REPO_URL} == *ffuqiangg* ]] && latest_version="$(curl -fsSL ${kernel_api}/releases | grep -oE "kernel_${kernel_verpatch}\.[0-9]+" | sed 's/kernel_//' | sort -urV | head -n 1)"
 
                 if [[ "$?" -eq "0" && -n "${latest_version}" ]]; then
                     TMP_ARR_KERNELS[${i}]="${latest_version}"
@@ -406,8 +402,10 @@ download_kernel() {
             # Set the kernel download list
             if [[ "${vb}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
+                KERNEL_REPO_URL="${KERNEL_REPO_URL_VALUE}"
             elif [[ "${vb}" == "rk35xx" ]]; then
                 down_kernel_list=(${RK35XX_KERNEL[@]})
+                KERNEL_REPO_URL="${KERNEL_REPO_URL_VALUE}"
             else
                 down_kernel_list=(${STABLE_KERNEL[@]})
             fi
@@ -421,6 +419,7 @@ download_kernel() {
             for kernel_var in "${down_kernel_list[@]}"; do
                 if [[ ! -d "${kernel_path}/${kernel_var}" ]]; then
                     kernel_down_from="https://github.com/${KERNEL_REPO_URL}/releases/download/kernel_${vb}/${kernel_var}.tar.gz"
+                    [[ "${KERNEL_REPO_URL}" == *ffuqiangg* ]] && kernel_down_from="https://github.com/${KERNEL_REPO_URL}/releases/download/kernel_${kernel_var}/${kernel_var}.tar.gz"
                     echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel download from [ ${kernel_down_from} ]"
 
                     # Download the kernel file. If the download fails, try again 10 times.
@@ -526,6 +525,7 @@ ENABLE_WIFI_K504="${ENABLE_WIFI_K504}"
 ENABLE_WIFI_K510="${ENABLE_WIFI_K510}"
 DISTRIB_REVISION="${DISTRIB_REVISION}"
 DISTRIB_DESCRIPTION="${DISTRIB_DESCRIPTION}"
+BUILD_DATE="${BUILD_DATE}"
 EOF
 
                     #echo -e "${INFO} make.env file info:"

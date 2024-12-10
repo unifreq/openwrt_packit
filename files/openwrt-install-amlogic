@@ -602,13 +602,11 @@ EOF
             sed -i "s|option data_root.*|option data_root '/mnt/${EMMC_NAME}p4/docker/'|g" etc/config/dockerd
         fi
         rm -rf opt/docker && ln -sf /mnt/${EMMC_NAME}p4/docker/ opt/docker >/dev/null
-        rm -rf usr/bin/AdGuardHome && ln -sf /mnt/${EMMC_NAME}p4/AdGuardHome usr/bin/ >/dev/null
 
         echo "Edit configuration file ..."
         #cd /mnt/${EMMC_NAME}p2/usr/bin/
         #rm -f openwrt-install-amlogic openwrt-update-amlogic
         cd /mnt/${EMMC_NAME}p2/etc/rc.d
-        ln -sf ../init.d/dockerd S99dockerd
         rm -f S??shortcut-fe
         if grep "sfe_flow '1'" ../config/turboacc >/dev/null; then
             if find ../../lib/modules -name 'shortcut-fe-cm.ko'; then
@@ -697,7 +695,7 @@ case $TARGET_SHARED_FSTYPE in
     mount -t ext4 /dev/${EMMC_NAME}p4 /mnt/${EMMC_NAME}p4
     ;;
 esac
-mkdir -p /mnt/${EMMC_NAME}p4/docker /mnt/${EMMC_NAME}p4/AdGuardHome/data
+mkdir -p /mnt/${EMMC_NAME}p4/docker
 sync
 
 echo "Successful installed, please unplug the USB, re-insert the power supply to start the openwrt."
