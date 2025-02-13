@@ -6,7 +6,7 @@ rootfstype=btrfs
 rootflags=compress=zstd:6
 earlycon=on
 console=serial
-consoleargs=console=ttyFIQ0 console=tty1
+consoleargs=console=ttyFIQ0 console=ttyS2 console=tty1
 usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
 docker_optimizations=on
 extraargs=
