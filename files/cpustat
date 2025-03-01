@@ -168,11 +168,18 @@ sub get_eth_operstate {
 sub get_eth_driver {
     my $eth = shift;
     my $fh;
-    open $fh, "<", "$eth/device/uevent" or warn $!;
+    if (-d "$eth/device") {
+        open $fh, "<", "$eth/device/uevent" or warn $eth;
+    } elsif(-f "$eth/uevent") {
+        open $fh, "<", "$eth/uevent" or warn $eth;
+    }
     my $driver;
     while(<$fh>) {
         chomp;
 	if(/^DRIVER=/) {
+	    $driver = (split /=/, $_)[-1];
+            last;	    
+	} elsif(/^DEVTYPE=/) {
 	    $driver = (split /=/, $_)[-1];
             last;	    
 	}
@@ -249,6 +256,8 @@ sub get_ethlist() {
 	return reverse sort (</sys/class/net/e[tn]*>);
     } elsif($board =~ m/NLnet Watermelon Pi/i) {
 	return reverse sort (</sys/class/net/e[tn]*>);
+    } elsif($board =~ m/Radxa E54C/i) {
+	return reverse sort (</sys/class/net/eth0\.?>);
     } else {
      	return sort (</sys/class/net/e[tn]*>);   
     }

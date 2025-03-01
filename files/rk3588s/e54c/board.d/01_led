@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# Copyright (C) 2015 OpenWrt.org
+#
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+case "$(board_name)" in
+    radxa,e54c) ucidef_set_led_netdev "lan" "LAN" "green:lan1" "eth0.1"
+                ucidef_set_led_netdev "lan" "LAN" "green:lan2" "eth0.1"
+                ucidef_set_led_netdev "lan" "LAN" "green:lan3" "eth0.1"
+                ucidef_set_led_netdev "wan" "WAN" "green:wan"  "eth0.2"
+	        ;;
+esac
+
+board_config_flush
+
+exit 0

@@ -215,8 +215,14 @@ sub get_boardinfo() {
 }
 
 sub get_eth_list {
+    my $board = &get_boardinfo;
     chdir("/sys/class/net");
-    my @eths = <eth*>;
+    my @eths;
+    if($board =~ m/Radxa E54C/i) {
+       @eths = <eth0>;
+    } else {
+       @eths = <eth*>;
+    };
     return @eths;
 }
 
