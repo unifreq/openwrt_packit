@@ -9,10 +9,10 @@ board_config_update
 
 case "$(board_name)" in
     radxa,e54c)
-	ucidef_set_led_switch "lan1" "lan1" "blue:lan3" "switch0" "0x01"
-	ucidef_set_led_switch "lan2" "lan2" "blue:lan2" "switch0" "0x02"
-	ucidef_set_led_switch "lan3" "lan3" "blue:lan1" "switch0" "0x04"
-	ucidef_set_led_switch "wan"  "wan"  "blue:wan"  "switch0" "0x08"
+	ucidef_set_led_switch "lan1" "lan1" "green:lan3" "switch0" "0x01"
+	ucidef_set_led_switch "lan2" "lan2" "green:lan2" "switch0" "0x02"
+	ucidef_set_led_switch "lan3" "lan3" "green:lan1" "switch0" "0x04"
+	ucidef_set_led_switch "wan"  "wan"  "green:wan"  "switch0" "0x08"
 	;;
 esac
 
