@@ -8,11 +8,12 @@
 board_config_update
 
 case "$(board_name)" in
-    radxa,e54c) ucidef_set_led_netdev "lan" "LAN" "green:lan1" "eth0.1"
-                ucidef_set_led_netdev "lan" "LAN" "green:lan2" "eth0.1"
-                ucidef_set_led_netdev "lan" "LAN" "green:lan3" "eth0.1"
-                ucidef_set_led_netdev "wan" "WAN" "green:wan"  "eth0.2"
-	        ;;
+    radxa,e54c)
+	ucidef_set_led_switch "lan1" "lan1" "blue:lan3" "switch0" "0x01"
+	ucidef_set_led_switch "lan2" "lan2" "blue:lan2" "switch0" "0x02"
+	ucidef_set_led_switch "lan3" "lan3" "blue:lan1" "switch0" "0x04"
+	ucidef_set_led_switch "wan"  "wan"  "blue:wan"  "switch0" "0x08"
+	;;
 esac
 
 board_config_flush
