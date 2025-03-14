@@ -1651,6 +1651,10 @@ function adjust_docker_config() {
         [ -n "$DOCKER_README" ] && [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
         if [ -f ./etc/init.d/dockerd ];then
             echo "发现 dockerd 服务，正在调整 ... "
+            sed -e "/^net.bridge.bridge-nf-call-ip6tables/d" -i ./etc/sysctl.conf
+            sed -e "/^net.bridge.bridge-nf-call-iptables/d" -i ./etc/sysctl.conf
+            echo "net.bridge.bridge-nf-call-ip6tables = 1" >> ./etc/sysctl.conf
+            echo "net.bridge.bridge-nf-call-iptables = 1" >> ./etc/sysctl.conf
             [ -n "$DOCKERD_PATCH" ] && [ -f "$DOCKERD_PATCH" ] && [ ! -f ./etc/init.d/dockerman ] && patch -p1 < $DOCKERD_PATCH
 
             if [ -f "./etc/init.d/dockerman" ] ;then
