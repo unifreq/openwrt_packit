@@ -1,1 +1,21 @@
-xhci-hcd:usb1  5
+xhci-hcd:usb1  6
+
+# LAN TX 
+eth1-16 8
+eth1-18 6
+
+# LAN RX
+eth1-0  6
+eth1-1  5
+eth1-2  8
+eth1-3  7
+
+# WAN TX
+eth0-16 6
+eth0-18 8
+
+# WAN RX
+eth0-0 5
+eth0-1 6
+eth0-2 7
+eth0-3 8
