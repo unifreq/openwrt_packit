@@ -1,0 +1,18 @@
+
+config wifi-device 'radio0'
+        option type 'mac80211'
+        option path 'platform/fe2c0000.mmc/mmc_host/mmc2/mmc2:390b/mmc2:390b:1'
+        option band '5g'
+        option legacy_rates '1'
+        option mu_beamformer '0'
+        option htmode 'VHT80'
+        option country '00'
+        option channel '149'
+
+config wifi-iface 'default_radio0'
+        option device 'radio0'
+        option network 'lan'
+        option mode 'ap'
+        option encryption 'psk2'
+        option key 'password'
+        option ssid 'Openwrt'
