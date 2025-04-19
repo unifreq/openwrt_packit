@@ -65,7 +65,7 @@ LAN_MAC=$(generate_mac)
 WAN_MAC=$(macaddr_add $LAN_MAC +1)
 
 case "$(board_name)" in
-   radxa,e54c) ucidef_add_switch "switch0" "0:lan" "1:lan" "2:lan" "3:wan" "6t@eth0"
+   radxa,e24c|radxa,e54c) ucidef_add_switch "switch0" "0:lan" "1:lan" "2:lan" "3:wan" "6t@eth0"
                ucidef_set_interface_macaddr "lan" $LAN_MAC
 	       ucidef_set_interface_macaddr "wan" $WAN_MAC
                ;;
