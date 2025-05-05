@@ -1771,6 +1771,12 @@ function adjust_kernel_env() {
             echo "完成"
         fi
 
+	if [ -n "${RC_BUTTON_HOME}" ] && [ -d "${RC_BUTTON_HOME}" ];then
+            echo "启用自定义的 rc.button 脚本 ... "
+	    cp -v ${RC_BUTTON_HOME}/* ./etc/rc.button/
+            echo "完成"
+        fi
+
         case $ps in 
             allwinner_h6|rockchip_rk3328|rockchip_rk3568|rockchip_rk3588) 
                 echo -n "当前机型并未内置 broadcom 无线模块, 禁用 brcmfmac 驱动 ... "

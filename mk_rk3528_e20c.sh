@@ -120,6 +120,8 @@ MODULES_HOME="${PWD}/files/rk3528/modules.d"
 BOARD_MODULES_HOME="${PWD}/files/rk3528/e20c/modules.d"
 # 20221013 add
 WIRELESS_CONFIG="${PWD}/files/rk3528/e20c/wireless"
+# 20250505 add
+RC_BUTTON_HOME="${PWD}/files/rk3528/e20c/rc.button"
 ####################################################################
 
 check_depends

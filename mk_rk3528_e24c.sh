@@ -17,12 +17,11 @@ SOC=rk3528
 BOARD=e24c
 SUBVER=$1
 
-if [ -n "$RK35XX_KERNEL_VERSION" ];then
-    # lock the kernel version
-    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
-    LOCK_KERNEL=${KERNEL_VERSION}
-fi
-KERNEL_VERSION=6.1.115-rk35xx-flippy-2504a
+#if [ -n "$RK35XX_KERNEL_VERSION" ];then
+    ## lock the kernel version
+    #KERNEL_VERSION=$RK35XX_KERNEL_VERSION
+    #LOCK_KERNEL=${KERNEL_VERSION}
+#fi
 
 # Kernel image sources
 ###################################################################
@@ -121,6 +120,8 @@ MODULES_HOME="${PWD}/files/rk3528/modules.d"
 BOARD_MODULES_HOME="${PWD}/files/rk3528/e24c/modules.d"
 # 20221013 add
 WIRELESS_CONFIG="${PWD}/files/rk3528/e24c/wireless"
+# 20250505 add
+RC_BUTTON_HOME="${PWD}/files/rk3528/e24c/rc.button"
 ####################################################################
 
 check_depends

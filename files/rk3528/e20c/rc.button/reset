@@ -1,0 +1,46 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+OVERLAY="$( grep ' /overlay ' /proc/mounts )"
+
+case "$ACTION" in
+pressed)
+	[ -z "$OVERLAY" ] && return 0
+
+	return 5
+;;
+timeout)
+	. /etc/diag.sh
+	set_state failsafe
+;;
+released)
+	if [ "$SEEN" -lt 1 ]
+	then
+		echo "REBOOT" > /dev/console
+		sync
+		reboot
+	elif [ "$SEEN" -ge 5 -a -d "/.snapshots/etc-000" ]
+	then
+		echo "FACTORY RESET" > /dev/console
+	    	(
+		      cd /
+                      chattr -ia etc/config/fstab
+		      mv etc etc.backup
+                      btrfs subvolume snapshot "/.snapshots/etc-000" etc
+		      if [ $? -eq 0 ];then
+			 echo "重置成功，正在重启系统！"  > /etc/console
+			 btrfs subvolume delete -c etc.backup
+			 sync
+			 echo 'b' > /proc/sysrq-trigger
+		      else
+			 rm -rf etc 
+			 mv etc.backup etc
+			 echo "重置失败, 配置文件未发生任何变化!"
+		      fi
+	        )
+	fi
+;;
+esac
+
+return 0

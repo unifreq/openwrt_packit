@@ -112,6 +112,8 @@ MODULES_HOME="${PWD}/files/rk3588s/modules.d"
 BOARD_HOME="${PWD}/files/rk3588s/e54c/board.d"
 # 20230801 add
 BOARD_MODULES_HOME="${PWD}/files/rk3588s/e54c/modules.d"
+# 20250505 add
+RC_BUTTON_HOME="${PWD}/files/rk3588s/e54c/rc.button"
 ####################################################################
 
 check_depends
