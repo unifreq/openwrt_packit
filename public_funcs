@@ -37,7 +37,10 @@ function get_openwrt_rootfs_archive() {
 		    return
 		fi
 	    else
-		if [ -f "${dir}/openwrt-armvirt-64-default-rootfs.tar.gz" ];then
+		if [ -f "${dir}/openwrt-armsr-armv8-generic-rootfs.tar.gz" ];then
+		    echo "${dir}/openwrt-armsr-armv8-generic-rootfs.tar.gz"
+		    return
+	   	elif [ -f "${dir}/openwrt-armvirt-64-default-rootfs.tar.gz" ];then
 		    echo "${dir}/openwrt-armvirt-64-default-rootfs.tar.gz"
 		    return
 	   	elif [ -f "${dir}/openwrt-armvirt-64-generic-rootfs.tar.gz" ];then
