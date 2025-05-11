@@ -11,7 +11,7 @@
 - name: Package OpenWrt Firmware
   uses: unifreq/openwrt_packit@master
   env:
-    OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*rootfs.tar.gz
+    OPENWRT_ARMSR: openwrt/bin/targets/*/*/*rootfs.tar.gz
     PACKAGE_SOC: all
     KERNEL_VERSION_NAME: 6.1.y_6.12.y
 
@@ -23,12 +23,12 @@
 - name: Upload OpenWrt Firmware to Release
   uses: ncipollo/release-action@main
   with:
-    tag: openwrt_armvirt_v8_${{ env.PACKAGED_OUTPUTDATE }}
+    tag: openwrt_armsr-armv8_${{ env.PACKAGED_OUTPUTDATE }}
     artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
     allowUpdates: true
     token: ${{ secrets.GH_TOKEN }}
     body: |
-      This is OpenWrt firmware for Armvirt 64
+      This is OpenWrt firmware for Armv8
       * Firmware information
       Default IP: 192.168.1.1
       Default username: root
@@ -41,11 +41,11 @@
 
 | 参数                   | 默认值                  | 说明                                            |
 |------------------------|------------------------|------------------------------------------------|
-| OPENWRT_ARMVIRT        | 无                     | 必选项. 设置 `openwrt-armvirt-64-default-rootfs.tar.gz` 的文件路径，可以使用相对路径如 `openwrt/bin/targets/*/*/*.tar.gz` 或 网络文件下载地址如 `https://github.com/*/releases/*/*.tar.gz` |
+| OPENWRT_ARMSR          | 无                     | 必选项. 设置 `openwrt-armsr-armv8-generic-rootfs.tar.gz` 的文件路径，可以使用相对路径如 `openwrt/bin/targets/*/*/*.tar.gz` 或 网络文件下载地址如 `https://github.com/*/releases/*/*.tar.gz` |
 | KERNEL_REPO_URL        | breakings/OpenWrt     | 设置内核下载仓库的 `<owner>/<repo>`，默认从 breakings 维护的[内核 Releases](https://github.com/breakings/OpenWrt/releases/tag/kernel_stable)里下载。 |
 | KERNEL_VERSION_NAME    | 6.1.y_6.12.y           | 设置[内核版本](https://github.com/breakings/OpenWrt/releases/tag/kernel_stable)，可以查看并选择指定。可指定单个内核如 `6.1.y` ，可选择多个内核用`_`连接如 `6.1.y_6.12.y` |
 | KERNEL_AUTO_LATEST     | true                   | 设置是否自动采用同系列最新版本内核。当为 `true` 时，将自动在内核库中查找在 `KERNEL_VERSION_NAME` 中指定的内核如 6.1.y 的同系列是否有更新的版本，如有更新版本时，将自动更换为最新版。设置为 `false` 时将编译指定版本内核。 |
-| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus`, `cm3`, `jp-tvbox`, `beikeyun`, `l1pro`, `rock5b`, `rock5c`, `e52c`, `e54c`, `r66s`, `r68s`, `h88k`, `h88k-v3`, `ak88`, `ht2`, `e20c`, `h28k`, `h66k`, `h68k`, `h69k`, `h69k-max`, `e25`, `photonicat`, `watermelon-pi`, `zcube1-max`, `rk3399`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`, `diy` 是自定义盒子。 |
+| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus`, `cm3`, `jp-tvbox`, `beikeyun`, `l1pro`, `rock5b`, `rock5c`, `e52c`, `e54c`, `r66s`, `r68s`, `h88k`, `h88k-v3`, `ak88`, `ht2`, `e20c`, `e24c`, `h28k`, `h66k`, `h68k`, `h69k`, `h69k-max`, `e25`, `photonicat`, `watermelon-pi`, `zcube1-max`, `rk3399`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`, `diy` 是自定义盒子。 |
 | GZIP_IMGS              | auto                   | 设置打包完毕后文件压缩的格式，可选值 `.gz`（默认） / `.xz` / `.zip` / `.zst` / `.7z` |
 | SELECT_PACKITPATH      | openwrt_packit         | 设置 `/opt` 下的打包目录名称                     |
 | SELECT_OUTPUTPATH      | output                 | 设置 `${SELECT_PACKITPATH}` 目录中固件输出的目录名称 |
@@ -63,6 +63,7 @@
 | SCRIPT_H88KV3          | mk_rk3588_h88k-v3.sh   | 设置打包 `rk3588 h88k-v3` 的脚本文件名           |
 | SCRIPT_HT2             | mk_rk3528_ht2.sh       | 设置打包 `rk3528 ht2` 的脚本文件名               |
 | SCRIPT_E20C            | mk_rk3528_e20c.sh      | 设置打包 `rk3528 e20c` 的脚本文件名              |
+| SCRIPT_E24C            | mk_rk3528_e24c.sh      | 设置打包 `rk3528 e24c` 的脚本文件名              |
 | SCRIPT_H28K            | mk_rk3528_h28k.sh      | 设置打包 `rk3528 h28k` 的脚本文件名              |
 | SCRIPT_H66K            | mk_rk3568_h66k.sh      | 设置打包 `rk3568 h66k` 的脚本文件名              |
 | SCRIPT_H68K            | mk_rk3568_h68k.sh      | 设置打包 `rk3568 h68k` 的脚本文件名              |

@@ -24,26 +24,26 @@ SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
 
 # Set the *rootfs.tar.gz package save name
-PACKAGE_FILE="openwrt-armvirt-64-generic-rootfs.tar.gz"
+PACKAGE_FILE="openwrt-armsr-armv8-generic-rootfs.tar.gz"
 
 # Set the list of supported device
 PACKAGE_OPENWRT=(
-    "rock5b" "rock5c" "e52c" "e54c" "ak88" "h88k" "h88k-v3"
-    "r66s" "r68s" "e25" "photonicat" "cm3"
-    "watermelon-pi" "zcube1-max" "jp-tvbox" "ht2" "e20c" "h28k" "h66k" "h68k" "h69k" "h69k-max"
+    "ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c"
+    "cm3" "e25" "photonicat" "r66s" "r68s" "rk3399"
+    "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2" "jp-tvbox" "watermelon-pi" "zcube1-max"
+    "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "beikeyun" "l1pro"
     "vplus"
-    "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "qemu"
     "diy"
 )
 # Set the list of devices using the [ rk3588 ] kernel
-PACKAGE_OPENWRT_RK3588=("rock5b" "rock5c" "e52c" "e54c" "ak88" "h88k" "h88k-v3")
+PACKAGE_OPENWRT_RK3588=("ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c")
 # Set the list of devices using the [ rk35xx ] kernel
 # Devices from the rk3528/rk3566/rk3568 series can utilize the rk35xx and rk3588 kernels.
-PACKAGE_OPENWRT_RK35XX=("watermelon-pi" "zcube1-max" "jp-tvbox" "ht2" "e20c" "h28k" "h66k" "h68k" "h69k" "h69k-max")
+PACKAGE_OPENWRT_RK35XX=("e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2" "jp-tvbox" "watermelon-pi" "zcube1-max")
 # Set the list of devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_6XY=("r66s" "r68s" "e25" "photonicat" "cm3" "rk3399")
+PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -60,32 +60,33 @@ KERNEL_AUTO_LATEST_VALUE="true"
 SELECT_PACKITPATH_VALUE="openwrt_packit"
 SELECT_OUTPUTPATH_VALUE="output"
 GZIP_IMGS_VALUE="auto"
-SAVE_OPENWRT_ARMVIRT_VALUE="true"
+SAVE_OPENWRT_ARMSR_VALUE="true"
 
 # Set the default packaging script
-SCRIPT_VPLUS_FILE="mk_h6_vplus.sh"
 SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
-SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
-SCRIPT_ZCUBE1MAX_FILE="mk_rk3399_zcube1-max.sh"
 SCRIPT_CM3_FILE="mk_rk3566_radxa-cm3-rpi-cm4-io.sh"
-SCRIPT_HT2_FILE="mk_rk3528_ht2.sh"
+SCRIPT_DIY_FILE="mk_diy.sh"
 SCRIPT_E20C_FILE="mk_rk3528_e20c.sh"
+SCRIPT_E24C_FILE="mk_rk3528_e24c.sh"
+SCRIPT_E25_FILE="mk_rk3568_e25.sh"
+SCRIPT_E52C_FILE="mk_rk3588s_e52c.sh"
+SCRIPT_E54C_FILE="mk_rk3588s_e54c.sh"
 SCRIPT_H28K_FILE="mk_rk3528_h28k.sh"
 SCRIPT_H66K_FILE="mk_rk3568_h66k.sh"
 SCRIPT_H68K_FILE="mk_rk3568_h68k.sh"
 SCRIPT_H69K_FILE="mk_rk3568_h69k.sh"
 SCRIPT_H88K_FILE="mk_rk3588_h88k.sh"
 SCRIPT_H88KV3_FILE="mk_rk3588_h88k-v3.sh"
+SCRIPT_HT2_FILE="mk_rk3528_ht2.sh"
 SCRIPT_JPTVBOX_FILE="mk_rk3566_jp-tvbox.sh"
+SCRIPT_L1PRO_FILE="mk_rk3328_l1pro.sh"
+SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
+SCRIPT_QEMU_FILE="mk_qemu-aarch64_img.sh"
 SCRIPT_R66S_FILE="mk_rk3568_r66s.sh"
 SCRIPT_R68S_FILE="mk_rk3568_r68s.sh"
-SCRIPT_E25_FILE="mk_rk3568_e25.sh"
-SCRIPT_PHOTONICAT_FILE="mk_rk3568_photonicat.sh"
-SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
+SCRIPT_RK3399_FILE="mk_rk3399_generic.sh"
 SCRIPT_ROCK5B_FILE="mk_rk3588_rock5b.sh"
 SCRIPT_ROCK5C_FILE="mk_rk3588s_rock5c.sh"
-SCRIPT_E52C_FILE="mk_rk3588s_e52c.sh"
-SCRIPT_E54C_FILE="mk_rk3588s_e54c.sh"
 SCRIPT_S905_FILE="mk_s905_mxqpro+.sh"
 SCRIPT_S905D_FILE="mk_s905d_n1.sh"
 SCRIPT_S905X2_FILE="mk_s905x2_x96max.sh"
@@ -93,9 +94,9 @@ SCRIPT_S905X3_FILE="mk_s905x3_multi.sh"
 SCRIPT_S912_FILE="mk_s912_zyxq.sh"
 SCRIPT_S922X_FILE="mk_s922x_gtking.sh"
 SCRIPT_S922X_N2_FILE="mk_s922x_odroid-n2.sh"
-SCRIPT_QEMU_FILE="mk_qemu-aarch64_img.sh"
-SCRIPT_DIY_FILE="mk_diy.sh"
-SCRIPT_RK3399_FILE="mk_rk3399_generic.sh"
+SCRIPT_VPLUS_FILE="mk_h6_vplus.sh"
+SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
+SCRIPT_ZCUBE1MAX_FILE="mk_rk3399_zcube1-max.sh"
 
 # Set make.env related parameters
 WHOAMI_VALUE="flippy"
@@ -132,7 +133,7 @@ init_var() {
 
     # Specify the default value
     [[ -n "${SCRIPT_REPO_URL}" ]] || SCRIPT_REPO_URL="${SCRIPT_REPO_URL_VALUE}"
-    [[ "${SCRIPT_REPO_URL}" == http* ]] || SCRIPT_REPO_URL="https://github.com/${SCRIPT_REPO_URL}"
+    [[ "${SCRIPT_REPO_URL,,}" =~ ^http ]] || SCRIPT_REPO_URL="https://github.com/${SCRIPT_REPO_URL}"
     [[ -n "${SCRIPT_REPO_BRANCH}" ]] || SCRIPT_REPO_BRANCH="${SCRIPT_REPO_BRANCH_VALUE}"
     [[ -n "${KERNEL_REPO_URL}" ]] || KERNEL_REPO_URL="${KERNEL_REPO_URL_VALUE}"
     [[ -n "${PACKAGE_SOC}" ]] || PACKAGE_SOC="${PACKAGE_SOC_VALUE}"
@@ -140,32 +141,33 @@ init_var() {
     [[ -n "${GZIP_IMGS}" ]] || GZIP_IMGS="${GZIP_IMGS_VALUE}"
     [[ -n "${SELECT_PACKITPATH}" ]] || SELECT_PACKITPATH="${SELECT_PACKITPATH_VALUE}"
     [[ -n "${SELECT_OUTPUTPATH}" ]] || SELECT_OUTPUTPATH="${SELECT_OUTPUTPATH_VALUE}"
-    [[ -n "${SAVE_OPENWRT_ARMVIRT}" ]] || SAVE_OPENWRT_ARMVIRT="${SAVE_OPENWRT_ARMVIRT_VALUE}"
+    [[ -n "${SAVE_OPENWRT_ARMSR}" ]] || SAVE_OPENWRT_ARMSR="${SAVE_OPENWRT_ARMSR_VALUE}"
 
     # Specify the default packaging script
-    [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
     [[ -n "${SCRIPT_BEIKEYUN}" ]] || SCRIPT_BEIKEYUN="${SCRIPT_BEIKEYUN_FILE}"
-    [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
-    [[ -n "${SCRIPT_ZCUBE1MAX}" ]] || SCRIPT_ZCUBE1MAX="${SCRIPT_ZCUBE1MAX_FILE}"
     [[ -n "${SCRIPT_CM3}" ]] || SCRIPT_CM3="${SCRIPT_CM3_FILE}"
-    [[ -n "${SCRIPT_HT2}" ]] || SCRIPT_HT2="${SCRIPT_HT2_FILE}"
+    [[ -n "${SCRIPT_DIY}" ]] || SCRIPT_DIY="${SCRIPT_DIY_FILE}"
     [[ -n "${SCRIPT_E20C}" ]] || SCRIPT_E20C="${SCRIPT_E20C_FILE}"
+    [[ -n "${SCRIPT_E24C}" ]] || SCRIPT_E24C="${SCRIPT_E24C_FILE}"
+    [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
+    [[ -n "${SCRIPT_E52C}" ]] || SCRIPT_E52C="${SCRIPT_E52C_FILE}"
+    [[ -n "${SCRIPT_E54C}" ]] || SCRIPT_E54C="${SCRIPT_E54C_FILE}"
     [[ -n "${SCRIPT_H28K}" ]] || SCRIPT_H28K="${SCRIPT_H28K_FILE}"
     [[ -n "${SCRIPT_H66K}" ]] || SCRIPT_H66K="${SCRIPT_H66K_FILE}"
     [[ -n "${SCRIPT_H68K}" ]] || SCRIPT_H68K="${SCRIPT_H68K_FILE}"
     [[ -n "${SCRIPT_H69K}" ]] || SCRIPT_H69K="${SCRIPT_H69K_FILE}"
     [[ -n "${SCRIPT_H88K}" ]] || SCRIPT_H88K="${SCRIPT_H88K_FILE}"
     [[ -n "${SCRIPT_H88KV3}" ]] || SCRIPT_H88KV3="${SCRIPT_H88KV3_FILE}"
+    [[ -n "${SCRIPT_HT2}" ]] || SCRIPT_HT2="${SCRIPT_HT2_FILE}"
     [[ -n "${SCRIPT_JPTVBOX}" ]] || SCRIPT_JPTVBOX="${SCRIPT_JPTVBOX_FILE}"
+    [[ -n "${SCRIPT_L1PRO}" ]] || SCRIPT_L1PRO="${SCRIPT_L1PRO_FILE}"
+    [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
+    [[ -n "${SCRIPT_QEMU}" ]] || SCRIPT_QEMU="${SCRIPT_QEMU_FILE}"
     [[ -n "${SCRIPT_R66S}" ]] || SCRIPT_R66S="${SCRIPT_R66S_FILE}"
     [[ -n "${SCRIPT_R68S}" ]] || SCRIPT_R68S="${SCRIPT_R68S_FILE}"
-    [[ -n "${SCRIPT_E25}" ]] || SCRIPT_E25="${SCRIPT_E25_FILE}"
-    [[ -n "${SCRIPT_PHOTONICAT}" ]] || SCRIPT_PHOTONICAT="${SCRIPT_PHOTONICAT_FILE}"
-    [[ -n "${SCRIPT_WATERMELONPI}" ]] || SCRIPT_WATERMELONPI="${SCRIPT_WATERMELONPI_FILE}"
+    [[ -n "${SCRIPT_RK3399}" ]] || SCRIPT_RK3399="${SCRIPT_RK3399_FILE}"
     [[ -n "${SCRIPT_ROCK5B}" ]] || SCRIPT_ROCK5B="${SCRIPT_ROCK5B_FILE}"
     [[ -n "${SCRIPT_ROCK5C}" ]] || SCRIPT_ROCK5C="${SCRIPT_ROCK5C_FILE}"
-    [[ -n "${SCRIPT_E52C}" ]] || SCRIPT_E52C="${SCRIPT_E52C_FILE}"
-    [[ -n "${SCRIPT_E54C}" ]] || SCRIPT_E54C="${SCRIPT_E54C_FILE}"
     [[ -n "${SCRIPT_S905}" ]] || SCRIPT_S905="${SCRIPT_S905_FILE}"
     [[ -n "${SCRIPT_S905D}" ]] || SCRIPT_S905D="${SCRIPT_S905D_FILE}"
     [[ -n "${SCRIPT_S905X2}" ]] || SCRIPT_S905X2="${SCRIPT_S905X2_FILE}"
@@ -173,9 +175,9 @@ init_var() {
     [[ -n "${SCRIPT_S912}" ]] || SCRIPT_S912="${SCRIPT_S912_FILE}"
     [[ -n "${SCRIPT_S922X}" ]] || SCRIPT_S922X="${SCRIPT_S922X_FILE}"
     [[ -n "${SCRIPT_S922X_N2}" ]] || SCRIPT_S922X_N2="${SCRIPT_S922X_N2_FILE}"
-    [[ -n "${SCRIPT_QEMU}" ]] || SCRIPT_QEMU="${SCRIPT_QEMU_FILE}"
-    [[ -n "${SCRIPT_RK3399}" ]] || SCRIPT_RK3399="${SCRIPT_RK3399_FILE}"
-    [[ -n "${SCRIPT_DIY}" ]] || SCRIPT_DIY="${SCRIPT_DIY_FILE}"
+    [[ -n "${SCRIPT_VPLUS}" ]] || SCRIPT_VPLUS="${SCRIPT_VPLUS_FILE}"
+    [[ -n "${SCRIPT_WATERMELONPI}" ]] || SCRIPT_WATERMELONPI="${SCRIPT_WATERMELONPI_FILE}"
+    [[ -n "${SCRIPT_ZCUBE1MAX}" ]] || SCRIPT_ZCUBE1MAX="${SCRIPT_ZCUBE1MAX_FILE}"
 
     # Specify make.env variable
     [[ -n "${WHOAMI}" ]] || WHOAMI="${WHOAMI_VALUE}"
@@ -198,10 +200,12 @@ init_var() {
 
     # Confirm customize rk3399 devices: ${CUSTOMIZE_RK3399}
     # Format:  [ board1:dtb1/board2:dtb2/board3:dtb3/... ]
+    #          [ none ]
     # Example: [ tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb ]
+    # If not specified, it can be set to 'none'.
     RK3399_BOARD_LIST=()
     RK3399_DTB_LIST=()
-    [[ -n "${CUSTOMIZE_RK3399}" ]] && {
+    [[ -n "${CUSTOMIZE_RK3399}" && "${CUSTOMIZE_RK3399,,}" != "none" ]] && {
         # Add rk3399 to the package list
         PACKAGE_OPENWRT+=("rk3399")
 
@@ -268,22 +272,24 @@ init_packit_repo() {
     }
 
     # Check the *rootfs.tar.gz package
-    [[ -z "${OPENWRT_ARMVIRT}" ]] && error_msg "The [ OPENWRT_ARMVIRT ] variable must be specified."
+    # If the original variable name [ OPENWRT_ARMVIRT ] is detected, it will be inherited and used.
+    [[ -n "${OPENWRT_ARMVIRT}" && -z "${OPENWRT_ARMSR}" ]] && OPENWRT_ARMSR="${OPENWRT_ARMVIRT}"
+    [[ -z "${OPENWRT_ARMSR}" ]] && error_msg "The [ OPENWRT_ARMSR ] variable must be specified."
 
-    # Load *-armvirt-64-default-rootfs.tar.gz
+    # Load *-armsr-armv8-generic-rootfs.tar.gz
     rm -f ${SELECT_PACKITPATH}/${PACKAGE_FILE}
-    if [[ "${OPENWRT_ARMVIRT}" == http* ]]; then
-        echo -e "${STEPS} Download the [ ${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
+    if [[ "${OPENWRT_ARMSR,,}" =~ ^http ]]; then
+        echo -e "${STEPS} Download the [ ${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
 
-        # Download the *-armvirt-64-default-rootfs.tar.gz file. If the download fails, try again 10 times.
+        # Download the *-armsr-armv8-generic-rootfs.tar.gz file. If the download fails, try again 10 times.
         for i in {1..10}; do
-            curl -fsSL "${OPENWRT_ARMVIRT}" -o "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
+            curl -fsSL "${OPENWRT_ARMSR}" -o "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
             [[ "${?}" -eq "0" ]] && break || sleep 60
         done
         [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file download failed."
     else
-        echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ] file into [ ${SELECT_PACKITPATH} ]"
-        cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMVIRT} ${SELECT_PACKITPATH}/${PACKAGE_FILE}
+        echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
+        cp -f ${GITHUB_WORKSPACE}/${OPENWRT_ARMSR} ${SELECT_PACKITPATH}/${PACKAGE_FILE}
         [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file copy failed."
     fi
 
@@ -299,7 +305,7 @@ init_packit_repo() {
     # Add custom script
     [[ -n "${SCRIPT_DIY_PATH}" ]] && {
         rm -f ${SELECT_PACKITPATH}/${SCRIPT_DIY}
-        if [[ "${SCRIPT_DIY_PATH}" == http* ]]; then
+        if [[ "${SCRIPT_DIY_PATH,,}" =~ ^http ]]; then
             echo -e "${INFO} Download the custom script file: [ ${SCRIPT_DIY_PATH} ]"
 
             # Download the custom script file. If the download fails, try again 10 times.
@@ -326,9 +332,9 @@ query_kernel() {
     for vb in "${KERNEL_TAGS[@]}"; do
         {
             # Select the corresponding kernel directory and list
-            if [[ "${vb}" == "rk3588" ]]; then
+            if [[ "${vb,,}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
-            elif [[ "${vb}" == "rk35xx" ]]; then
+            elif [[ "${vb,,}" == "rk35xx" ]]; then
                 down_kernel_list=(${RK35XX_KERNEL[@]})
             else
                 down_kernel_list=(${STABLE_KERNEL[@]})
@@ -363,10 +369,10 @@ query_kernel() {
             done
 
             # Reset the kernel array to the latest kernel version
-            if [[ "${vb}" == "rk3588" ]]; then
+            if [[ "${vb,,}" == "rk3588" ]]; then
                 RK3588_KERNEL=(${TMP_ARR_KERNELS[@]})
                 echo -e "${INFO} The latest version of the rk3588 kernel: [ ${RK3588_KERNEL[@]} ]"
-            elif [[ "${vb}" == "rk35xx" ]]; then
+            elif [[ "${vb,,}" == "rk35xx" ]]; then
                 RK35XX_KERNEL=(${TMP_ARR_KERNELS[@]})
                 echo -e "${INFO} The latest version of the rk35xx kernel: [ ${RK35XX_KERNEL[@]} ]"
             else
@@ -390,7 +396,7 @@ check_kernel() {
             # Check if the file sha256sum is correct
             tmp_sha256sum="$(sha256sum "${check_path}/${cf}" | awk '{print $1}')"
             tmp_checkcode="$(cat ${check_path}/sha256sums | grep ${cf} | awk '{print $1}')"
-            [[ "${tmp_sha256sum}" == "${tmp_checkcode}" ]] || error_msg "[ ${cf} ]: sha256sum verification failed."
+            [[ "${tmp_sha256sum,,}" == "${tmp_checkcode,,}" ]] || error_msg "[ ${cf} ]: sha256sum verification failed."
             let m++
         }
     done
@@ -406,9 +412,9 @@ download_kernel() {
     for vb in "${KERNEL_TAGS[@]}"; do
         {
             # Set the kernel download list
-            if [[ "${vb}" == "rk3588" ]]; then
+            if [[ "${vb,,}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
-            elif [[ "${vb}" == "rk35xx" ]]; then
+            elif [[ "${vb,,}" == "rk35xx" ]]; then
                 down_kernel_list=(${RK35XX_KERNEL[@]})
             else
                 down_kernel_list=(${STABLE_KERNEL[@]})
@@ -497,8 +503,8 @@ make_openwrt() {
                     #
                     boot_kernel_file="$(ls boot-${kernel_var}* 2>/dev/null | head -n 1)"
                     KERNEL_VERSION="${boot_kernel_file:5:-7}"
-                    [[ "${vb}" == "rk3588" ]] && RK3588_KERNEL_VERSION="${KERNEL_VERSION}" || RK3588_KERNEL_VERSION=""
-                    [[ "${vb}" == "rk35xx" ]] && RK35XX_KERNEL_VERSION="${KERNEL_VERSION}" || RK35XX_KERNEL_VERSION=""
+                    [[ "${vb,,}" == "rk3588" ]] && RK3588_KERNEL_VERSION="${KERNEL_VERSION}" || RK3588_KERNEL_VERSION=""
+                    [[ "${vb,,}" == "rk35xx" ]] && RK35XX_KERNEL_VERSION="${KERNEL_VERSION}" || RK35XX_KERNEL_VERSION=""
                     echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel version: [ ${KERNEL_VERSION} ]"
                     echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
 
@@ -507,7 +513,7 @@ make_openwrt() {
                     # If flowoffload is turned on, then sfe is forced to be closed by default
                     [[ "${SW_FLOWOFFLOAD}" -eq "1" ]] && SFE_FLOW="0"
 
-                    if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER}" == "auto" ]]; then
+                    if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER,,}" == "auto" ]]; then
                         OPENWRT_VER="$(cat make.env | grep "OPENWRT_VER=\"" | cut -d '"' -f2)"
                         echo -e "${INFO} (${i}.${k}) OPENWRT_VER: [ ${OPENWRT_VER} ]"
                     fi
@@ -535,31 +541,31 @@ EOF
 
                     # Select the corresponding packaging script
                     case "${PACKAGE_VAR}" in
-                        vplus)            [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
-                        beikeyun)         [[ -f "${SCRIPT_BEIKEYUN}" ]]        && sudo ./${SCRIPT_BEIKEYUN} ;;
-                        l1pro)            [[ -f "${SCRIPT_L1PRO}" ]]           && sudo ./${SCRIPT_L1PRO} ;;
-                        zcube1-max)       [[ -f "${SCRIPT_ZCUBE1MAX}" ]]       && sudo ./${SCRIPT_ZCUBE1MAX} ;;
-                        cm3)              [[ -f "${SCRIPT_CM3}" ]]             && sudo ./${SCRIPT_CM3} ;;
                         ak88)             [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} ;;
-                        ht2)              [[ -f "${SCRIPT_HT2}" ]]             && sudo ./${SCRIPT_HT2} ;;
+                        beikeyun)         [[ -f "${SCRIPT_BEIKEYUN}" ]]        && sudo ./${SCRIPT_BEIKEYUN} ;;
+                        cm3)              [[ -f "${SCRIPT_CM3}" ]]             && sudo ./${SCRIPT_CM3} ;;
+                        diy)              [[ -f "${SCRIPT_DIY}" ]]             && sudo ./${SCRIPT_DIY} ;;
                         e20c)             [[ -f "${SCRIPT_E20C}" ]]            && sudo ./${SCRIPT_E20C} ;;
+                        e24c)             [[ -f "${SCRIPT_E24C}" ]]            && sudo ./${SCRIPT_E24C} ;;
+                        e25)              [[ -f "${SCRIPT_E25}" ]]             && sudo ./${SCRIPT_E25} ;;
+                        e52c)             [[ -f "${SCRIPT_E52C}" ]]            && sudo ./${SCRIPT_E52C} ;;
+                        e54c)             [[ -f "${SCRIPT_E54C}" ]]            && sudo ./${SCRIPT_E54C} ;;
                         h28k)             [[ -f "${SCRIPT_H28K}" ]]            && sudo ./${SCRIPT_H28K} ;;
-                        h88k)             [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} "25" ;;
-                        h88k-v3)          [[ -f "${SCRIPT_H88KV3}" ]]          && sudo ./${SCRIPT_H88KV3} ;;
                         h66k)             [[ -f "${SCRIPT_H66K}" ]]            && sudo ./${SCRIPT_H66K} ;;
                         h68k)             [[ -f "${SCRIPT_H68K}" ]]            && sudo ./${SCRIPT_H68K} ;;
                         h69k)             [[ -f "${SCRIPT_H69K}" ]]            && sudo ./${SCRIPT_H69K} ;;
                         h69k-max)         [[ -f "${SCRIPT_H69K}" ]]            && sudo ./${SCRIPT_H69K} "max" ;;
+                        h88k)             [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} "25" ;;
+                        h88k-v3)          [[ -f "${SCRIPT_H88KV3}" ]]          && sudo ./${SCRIPT_H88KV3} ;;
+                        ht2)              [[ -f "${SCRIPT_HT2}" ]]             && sudo ./${SCRIPT_HT2} ;;
                         jp-tvbox)         [[ -f "${SCRIPT_JPTVBOX}" ]]         && sudo ./${SCRIPT_JPTVBOX} ;;
+                        l1pro)            [[ -f "${SCRIPT_L1PRO}" ]]           && sudo ./${SCRIPT_L1PRO} ;;
+                        photonicat)       [[ -f "${SCRIPT_PHOTONICAT}" ]]      && sudo ./${SCRIPT_PHOTONICAT} ;;
+                        qemu)             [[ -f "${SCRIPT_QEMU}" ]]            && sudo ./${SCRIPT_QEMU} ;;
                         r66s)             [[ -f "${SCRIPT_R66S}" ]]            && sudo ./${SCRIPT_R66S} ;;
                         r68s)             [[ -f "${SCRIPT_R68S}" ]]            && sudo ./${SCRIPT_R68S} ;;
                         rock5b)           [[ -f "${SCRIPT_ROCK5B}" ]]          && sudo ./${SCRIPT_ROCK5B} ;;
                         rock5c)           [[ -f "${SCRIPT_ROCK5C}" ]]          && sudo ./${SCRIPT_ROCK5C} ;;
-                        e52c)             [[ -f "${SCRIPT_E52C}" ]]            && sudo ./${SCRIPT_E52C} ;;
-                        e54c)             [[ -f "${SCRIPT_E54C}" ]]            && sudo ./${SCRIPT_E54C} ;;
-                        e25)              [[ -f "${SCRIPT_E25}" ]]             && sudo ./${SCRIPT_E25} ;;
-                        photonicat)       [[ -f "${SCRIPT_PHOTONICAT}" ]]      && sudo ./${SCRIPT_PHOTONICAT} ;;
-                        watermelon-pi)    [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
                         s905)             [[ -f "${SCRIPT_S905}" ]]            && sudo ./${SCRIPT_S905} ;;
                         s905d)            [[ -f "${SCRIPT_S905D}" ]]           && sudo ./${SCRIPT_S905D} ;;
                         s905x2)           [[ -f "${SCRIPT_S905X2}" ]]          && sudo ./${SCRIPT_S905X2} ;;
@@ -567,8 +573,9 @@ EOF
                         s912)             [[ -f "${SCRIPT_S912}" ]]            && sudo ./${SCRIPT_S912} ;;
                         s922x)            [[ -f "${SCRIPT_S922X}" ]]           && sudo ./${SCRIPT_S922X} ;;
                         s922x-n2)         [[ -f "${SCRIPT_S922X_N2}" ]]        && sudo ./${SCRIPT_S922X_N2} ;;
-                        qemu)             [[ -f "${SCRIPT_QEMU}" ]]            && sudo ./${SCRIPT_QEMU} ;;
-                        diy)              [[ -f "${SCRIPT_DIY}" ]]             && sudo ./${SCRIPT_DIY} ;;
+                        vplus)            [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
+                        watermelon-pi)    [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
+                        zcube1-max)       [[ -f "${SCRIPT_ZCUBE1MAX}" ]]       && sudo ./${SCRIPT_ZCUBE1MAX} ;;
                         rk3399)           [[ -f "${SCRIPT_RK3399}" && ${#RK3399_BOARD_LIST[@]} -gt 0 ]] && {
                                           for rbl in ${!RK3399_BOARD_LIST[@]}; do
                                               sudo ./${SCRIPT_RK3399} ${RK3399_BOARD_LIST[rbl]} ${RK3399_DTB_LIST[rbl]}
@@ -584,10 +591,10 @@ EOF
                         cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
                         case "${GZIP_IMGS}" in
                             7z | .7z)      ls *.img | head -n 1 | xargs -I % sh -c 'sudo 7z a -t7z -r %.7z %; rm -f %' ;;
+                            gz | .gz | *)  sudo pigz -f *.img ;;
+                            xz | .xz)      sudo xz -z *.img ;;
                             zip | .zip)    ls *.img | head -n 1 | xargs -I % sh -c 'sudo zip %.zip %; rm -f %' ;;
                             zst | .zst)    sudo zstd --rm *.img ;;
-                            xz | .xz)      sudo xz -z *.img ;;
-                            gz | .gz | *)  sudo pigz -f *.img ;;
                         esac
                     }
 
@@ -611,7 +618,7 @@ out_github_env() {
 
         cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
 
-        if [[ "${SAVE_OPENWRT_ARMVIRT}" == "true" ]]; then
+        if [[ "${SAVE_OPENWRT_ARMSR,,}" == "true" ]]; then
             echo -e "${INFO} copy [ ${PACKAGE_FILE} ] into [ ${SELECT_OUTPUTPATH} ]"
             sudo cp -f ../${PACKAGE_FILE} .
         fi
@@ -645,7 +652,7 @@ init_packit_repo
 echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT /opt/${SELECT_PACKITPATH}) \n"
 
 # Packit OpenWrt
-[[ "${KERNEL_AUTO_LATEST}" == "true" ]] && query_kernel
+[[ "${KERNEL_AUTO_LATEST,,}" == "true" ]] && query_kernel
 download_kernel
 make_openwrt
 out_github_env
