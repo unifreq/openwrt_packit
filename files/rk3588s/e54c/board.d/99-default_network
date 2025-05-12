@@ -22,10 +22,7 @@ generate_mac()
 
         # get the cpu/emmc/sd unique id
         local sd_hash
-	local cpusn=$(cat /proc/cpuinfo | grep 'Serial' | awk '{print $3}')
-	if [ -n "$cpusn" ];then
-            sd_hash=$(echo $cpusn | sha256sum | cut -f1) 
-        elif [ -f "/sys/class/block/mmcblk1/device/cid" ];then
+        if [ -f "/sys/class/block/mmcblk1/device/cid" ];then
             sd_hash=$(sha256sum /sys/class/block/mmcblk1/device/cid | cut -f1) 
 	elif [ -f "/sys/class/block/mmcblk0/device/cid" ];then
             sd_hash=$(sha256sum /sys/class/block/mmcblk0/device/cid | cut -f1) 
