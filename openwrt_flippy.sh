@@ -591,10 +591,10 @@ EOF
                         cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
                         case "${GZIP_IMGS}" in
                             7z | .7z)      ls *.img | head -n 1 | xargs -I % sh -c 'sudo 7z a -t7z -r %.7z %; rm -f %' ;;
-                            gz | .gz | *)  sudo pigz -f *.img ;;
                             xz | .xz)      sudo xz -z *.img ;;
                             zip | .zip)    ls *.img | head -n 1 | xargs -I % sh -c 'sudo zip %.zip %; rm -f %' ;;
                             zst | .zst)    sudo zstd --rm *.img ;;
+                            gz | .gz | *)  sudo pigz -f *.img ;;
                         esac
                     }
 
