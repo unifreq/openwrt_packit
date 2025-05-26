@@ -8,6 +8,5 @@
 /output
 flowoffload
 sfe*
-openwrt-armvirt-64-default-rootfs.tar.gz
-openwrt-armvirt-64-generic-rootfs.tar.gz
+/*-rootfs.tar.gz
 /whoami
