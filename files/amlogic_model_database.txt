@@ -53,6 +53,7 @@
 46:UGOOS AM6 Plus:s922x:meson-g12b-ugoos-am6.dtb:u-boot-gtkingpro.bin:/lib/u-boot/gtkingpro-u-boot.bin.sd.bin:NA:2C@1800Mhz(A53)+4C@1908Mhz(A73),4GB Mem,1Gb Nic,brcm4398 wifi
 47:Khadas VIM3:a311d:meson-g12b-a311d-khadas-vim3.dtb:u-boot-gtkingpro.bin:/lib/u-boot/khadas-vim3-u-boot.sd.bin:NA:4C@2.2Ghz+2C@1.8Ghz,PCIe+USB 3.0,1Gb Nic,brcm4398 wifi
 48:Ali-CT2000:s922x:meson-g12b-ali-ct2000.dtb:u-boot-gtkingpro.bin:NA:NA:4GB-Mem,16GB-eMMC,1Gb-Nic,bcm43438-bt
+49:WXY-OES:a311d:meson-g12b-oes.dtb:u-boot-gtkingpro.bin:NA:NA:4GB-Mem,8GB-eMMC,1Gb-Nic
 
 # Amlogic SM1 Family
 51:X96 Max+:s905x3:meson-sm1-x96-max-plus.dtb:u-boot-x96maxplus.bin:/lib/u-boot/x96maxplus-u-boot.bin.sd.bin:/lib/u-boot/hk1box-bootloader.img:4C@2100Mhz,4GB Mem,1Gb Nic,rtl8822cs wifi(no work)
