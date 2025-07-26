@@ -355,7 +355,7 @@ query_kernel() {
                 latest_version="$(
                     curl -fsSL \
                         ${kernel_api}/releases/expanded_assets/kernel_${vb} |
-                        grep -oE "${kernel_verpatch}.[0-9]+.*.tar.gz" | sed 's/.tar.gz//' |
+                        grep -oE "${kernel_verpatch}\.[0-9]+.*\.tar\.gz" | sed 's/.tar.gz//' |
                         sort -urV | head -n 1
                 )"
 
