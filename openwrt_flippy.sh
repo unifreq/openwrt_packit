@@ -52,8 +52,8 @@ KERNEL_REPO_URL_VALUE="breakingbadboy/OpenWrt"
 # Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx
 KERNEL_TAGS=("stable" "rk3588" "rk35xx")
 STABLE_KERNEL=("6.1.y" "6.12.y")
-RK3588_KERNEL=("5.10.y")
-RK35XX_KERNEL=("5.10.y")
+RK3588_KERNEL=("5.10.y" "6.1.y")
+RK35XX_KERNEL=("5.10.y" "6.1.y")
 KERNEL_AUTO_LATEST_VALUE="true"
 
 # Set the working directory under /opt
