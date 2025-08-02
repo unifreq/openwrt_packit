@@ -479,7 +479,7 @@ make_openwrt() {
                 build_kernel=(${RK35XX_KERNEL[@]})
                 vb="rk35xx"
             elif [[ " ${PACKAGE_OPENWRT_RK35XX_5XY[@]} " =~ " ${PACKAGE_VAR} " ]]; then
-                build_kernel=($(printf "%s\n" "${RK35XX_KERNEL[@]}" | grep -E "^${RK35XX_KERNEL_5XY//.y/.}"))
+                build_kernel=($(printf "%s\n" "${RK35XX_KERNEL[@]}" | grep -E "^$(IFS='|'; echo "${RK35XX_KERNEL_5XY[@]//.y/\\.}" | sed 's/ /|/g')"))
                 vb="rk35xx"
             else
                 build_kernel=(${STABLE_KERNEL[@]})
