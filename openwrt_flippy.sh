@@ -40,8 +40,10 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c")
 # Set the list of devices using the [ rk35xx ] kernel
-# Devices from the rk3528/rk3566/rk3568 series can utilize the rk35xx and rk3588 kernels.
-PACKAGE_OPENWRT_RK35XX=("e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2" "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max")
+# Devices from the rk3528/rk3399/rk3566/rk3568 series can utilize the rk35xx kernels.
+PACKAGE_OPENWRT_RK35XX=("e20c" "e24c" "h28k" "h66k" "h68k" "ht2" "jp-tvbox" "yixun-rs6pro")
+# The following devices lack DTB support in the unifreq/linux-6.1.y-rockchip kernel and can only use the rk35xx/5.1.y kernel.
+PACKAGE_OPENWRT_RK35XX_5XY=("h69k" "h69k-max" "watermelon-pi" "zcube1-max")
 # Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
@@ -52,8 +54,9 @@ KERNEL_REPO_URL_VALUE="breakingbadboy/OpenWrt"
 # Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx
 KERNEL_TAGS=("stable" "rk3588" "rk35xx")
 STABLE_KERNEL=("6.1.y" "6.12.y")
-RK3588_KERNEL=("5.10.y")
-RK35XX_KERNEL=("5.10.y")
+RK3588_KERNEL=("5.10.y" "6.1.y")
+RK35XX_KERNEL=("5.10.y" "6.1.y")
+RK35XX_KERNEL_5XY=("5.10.y")
 KERNEL_AUTO_LATEST_VALUE="true"
 
 # Set the working directory under /opt
@@ -231,7 +234,7 @@ init_var() {
     for kt in "${PACKAGE_OPENWRT[@]}"; do
         if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
             KERNEL_TAGS_TMP+=("rk3588")
-        elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " ]]; then
+        elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " || " ${PACKAGE_OPENWRT_RK35XX_5XY[@]} " =~ " ${kt} " ]]; then
             KERNEL_TAGS_TMP+=("rk35xx")
         else
             KERNEL_TAGS_TMP+=("stable")
@@ -474,6 +477,9 @@ make_openwrt() {
                 vb="rk3588"
             elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${PACKAGE_VAR} " ]]; then
                 build_kernel=(${RK35XX_KERNEL[@]})
+                vb="rk35xx"
+            elif [[ " ${PACKAGE_OPENWRT_RK35XX_5XY[@]} " =~ " ${PACKAGE_VAR} " ]]; then
+                build_kernel=($(printf "%s\n" "${RK35XX_KERNEL[@]}" | grep -E "^$(IFS='|'; echo "${RK35XX_KERNEL_5XY[@]//.y/\\.}" | sed 's/ /|/g')"))
                 vb="rk35xx"
             else
                 build_kernel=(${STABLE_KERNEL[@]})
