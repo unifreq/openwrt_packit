@@ -112,6 +112,7 @@ ENABLE_WIFI_K504_VALUE="1"
 ENABLE_WIFI_K510_VALUE="1"
 DISTRIB_REVISION_VALUE="R$(date +%Y.%m.%d)"
 DISTRIB_DESCRIPTION_VALUE="OpenWrt"
+OPENWRT_IP_VALUE="192.168.1.1"
 
 # Set font color
 STEPS="[\033[95m STEPS \033[0m]"
@@ -194,6 +195,7 @@ init_var() {
     [[ -n "${ENABLE_WIFI_K510}" ]] || ENABLE_WIFI_K510="${ENABLE_WIFI_K510_VALUE}"
     [[ -n "${DISTRIB_REVISION}" ]] || DISTRIB_REVISION="${DISTRIB_REVISION_VALUE}"
     [[ -n "${DISTRIB_DESCRIPTION}" ]] || DISTRIB_DESCRIPTION="${DISTRIB_DESCRIPTION_VALUE}"
+    [[ -n "${OPENWRT_IP}" ]] || OPENWRT_IP="${OPENWRT_IP_VALUE}"
 
     # Confirm package object
     [[ "${PACKAGE_SOC}" != "all" ]] && {
@@ -306,6 +308,14 @@ init_packit_repo() {
     else
         error_msg "The [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] failed to load."
     fi
+
+    # Modify default IP address
+    echo -e "${STEPS} Start modifying the OpenWrt default IP address to [ ${OPENWRT_IP} ]"
+    tmpdir="$(mktemp -d)"
+    tar -xzpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}"
+    sed -i "/lan) ipad=\${ipaddr:-/s/\${ipaddr:-\"[^\"]*\"}/\${ipaddr:-\"${OPENWRT_IP}\"}/" "${tmpdir}/bin/config_generate"
+    tar -czpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}" .
+    rm -rf "${tmpdir}"
 
     # Add custom script
     [[ -n "${SCRIPT_DIY_PATH}" ]] && {
@@ -629,12 +639,12 @@ out_github_env() {
 
         if [[ "${SAVE_OPENWRT_ARMSR,,}" == "true" ]]; then
             echo -e "${INFO} copy [ ${PACKAGE_FILE} ] into [ ${SELECT_OUTPUTPATH} ]"
-            sudo cp -f ../${PACKAGE_FILE} .
+            sudo cp -f ../${PACKAGE_FILE} . || true
         fi
 
         # Generate a sha256sum verification file for each OpenWrt file
-        for file in *; do [[ -f "${file}" ]] && sudo sha256sum "${file}" | sudo tee "${file}.sha" >/dev/null; done
-        sudo rm -f *.sha.sha 2>/dev/null
+        #for file in *; do [[ -f "${file}" ]] && sudo sha256sum "${file}" | sudo tee "${file}.sha" >/dev/null; done
+        #sudo rm -f *.sha.sha 2>/dev/null
 
         echo "PACKAGED_OUTPUTPATH=${PWD}" >>${GITHUB_ENV}
         echo "PACKAGED_OUTPUTDATE=$(date +"%m.%d.%H%M")" >>${GITHUB_ENV}
