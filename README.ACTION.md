@@ -4,7 +4,7 @@
 
 ## 使用方法
 
-在 `.github/workflows` 的编译脚本中引入此 Actions 即可进行打包，例如 [packaging-openwrt.yml](https://github.com/ophub/flippy-openwrt-actions/blob/main/.github/workflows/packaging-openwrt.yml) 中的使用方法，代码如下：
+在 `.github/workflows` 的编译脚本中引入此 Actions 即可进行打包，例如 [packaging-openwrt.yml](https://github.com/ophub/flippy-openwrt-actions/blob/main/.github/workflows/package-openwrt-image.yml) 中的使用方法，代码如下：
 
 ```yaml
 
@@ -14,7 +14,7 @@
     OPENWRT_ARMSR: openwrt/bin/targets/*/*/*rootfs.tar.gz
     PACKAGE_SOC: all
     KERNEL_VERSION_NAME: 6.1.y_6.12.y
-    OPENWRT_IP: 10.10.10.1
+    OPENWRT_IP: 192.168.1.1
 
 ```
 
@@ -48,6 +48,7 @@
 | KERNEL_AUTO_LATEST     | true                   | 设置是否自动采用同系列最新版本内核。当为 `true` 时，将自动在内核库中查找在 `KERNEL_VERSION_NAME` 中指定的内核如 6.1.y 的同系列是否有更新的版本，如有更新版本时，将自动更换为最新版。设置为 `false` 时将编译指定版本内核。 |
 | PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包盒子的 `SOC` ，默认 `all` 打包全部盒子，可指定单个盒子如 `s905x3` ，可选择多个盒子用`_`连接如 `s905x3_s905d` 。各盒子的SoC代码为：`vplus`, `cm3`, `jp-tvbox`, `beikeyun`, `l1pro`, `rock5b`, `rock5c`, `e52c`, `e54c`, `r66s`, `r68s`, `h88k`, `h88k-v3`, `ak88`, `ht2`, `e20c`, `e24c`, `h28k`, `h66k`, `h68k`, `h69k`, `h69k-max`, `e25`, `photonicat`, `watermelon-pi`, `yixun-rs6pro`, `zcube1-max`, `rk3399`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`, `diy` 是自定义盒子。 |
 | GZIP_IMGS              | auto                   | 设置打包完毕后文件压缩的格式，可选值 `.gz`（默认） / `.xz` / `.zip` / `.zst` / `.7z` |
+| OPENWRT_IP             | 192.168.1.1            | 设置 OpenWrt 的默认 `IP` 地址                   |
 | SELECT_PACKITPATH      | openwrt_packit         | 设置 `/opt` 下的打包目录名称                     |
 | SELECT_OUTPUTPATH      | output                 | 设置 `${SELECT_PACKITPATH}` 目录中固件输出的目录名称 |
 | SCRIPT_VPLUS           | mk_h6_vplus.sh         | 设置打包 `h6 vplus` 的脚本文件名                 |
@@ -95,7 +96,6 @@
 | ENABLE_WIFI_K510       | 1                      | 设置 `make.env` 中 `ENABLE_WIFI_K510` 参数的值  |
 | DISTRIB_REVISION       | R$(date +%Y.%m.%d)     | 设置 `make.env` 中 `DISTRIB_REVISION` 参数的值  |
 | DISTRIB_DESCRIPTION    | OpenWrt                | 设置 `make.env` 中 `DISTRIB_DESCRIPTION` 参数的值  |
-| OPENWRT_IP             | 192.168.1.1            | 设置 OpenWrt 的默认 `IP` 地址                   |
 
 ## 输出参数说明
 
@@ -109,5 +109,5 @@
 
 ## OpenWrt 固件个性化定制说明
 
-此 `Actions` 仅提供 OpenWrt 打包服务，你需要自己编译 `openwrt-armvirt-64-default-rootfs.tar.gz`。编译方法可以参考 https://github.com/breakings/OpenWrt
+此 `Actions` 仅提供 OpenWrt 打包服务，你需要自己编译 `openwrt-armsr-armv8-generic-rootfs.tar.gz`。编译方法可以参考 https://github.com/breakingbadboy/OpenWrt
 

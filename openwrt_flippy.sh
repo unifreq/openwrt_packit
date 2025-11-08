@@ -40,10 +40,9 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c")
 # Set the list of devices using the [ rk35xx ] kernel
-# Devices from the rk3528/rk3399/rk3566/rk3568 series can utilize the rk35xx kernels.
-PACKAGE_OPENWRT_RK35XX=("e20c" "e24c" "h28k" "h66k" "h68k" "ht2" "jp-tvbox" "yixun-rs6pro")
-# The following devices lack DTB support in the unifreq/linux-6.1.y-rockchip kernel and can only use the rk35xx/5.1.y kernel.
-PACKAGE_OPENWRT_RK35XX_5XY=("h69k" "h69k-max" "watermelon-pi" "zcube1-max")
+PACKAGE_OPENWRT_RK35XX=("e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2" "watermelon-pi" "jp-tvbox" "yixun-rs6pro" "zcube1-max")
+# Set the list of devices that can only use the [ rk35xx/5.1.y ] kernel
+PACKAGE_OPENWRT_RK35XX_5XY=()
 # Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
@@ -58,6 +57,10 @@ RK3588_KERNEL=("5.10.y" "6.1.y")
 RK35XX_KERNEL=("5.10.y" "6.1.y")
 RK35XX_KERNEL_5XY=("5.10.y")
 KERNEL_AUTO_LATEST_VALUE="true"
+
+# Set the default OpenWrt IP address
+OPENWRT_IP_DEFAULT_VALUE="192.168.1.1"
+IP_REGEX="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
 # Set the working directory under /opt
 SELECT_PACKITPATH_VALUE="openwrt_packit"
@@ -112,7 +115,6 @@ ENABLE_WIFI_K504_VALUE="1"
 ENABLE_WIFI_K510_VALUE="1"
 DISTRIB_REVISION_VALUE="R$(date +%Y.%m.%d)"
 DISTRIB_DESCRIPTION_VALUE="OpenWrt"
-OPENWRT_IP_VALUE="192.168.1.1"
 
 # Set font color
 STEPS="[\033[95m STEPS \033[0m]"
@@ -195,7 +197,7 @@ init_var() {
     [[ -n "${ENABLE_WIFI_K510}" ]] || ENABLE_WIFI_K510="${ENABLE_WIFI_K510_VALUE}"
     [[ -n "${DISTRIB_REVISION}" ]] || DISTRIB_REVISION="${DISTRIB_REVISION_VALUE}"
     [[ -n "${DISTRIB_DESCRIPTION}" ]] || DISTRIB_DESCRIPTION="${DISTRIB_DESCRIPTION_VALUE}"
-    [[ -n "${OPENWRT_IP}" ]] || OPENWRT_IP="${OPENWRT_IP_VALUE}"
+    [[ -z "${OPENWRT_IP}" || ! "${OPENWRT_IP}" =~ ${IP_REGEX} ]] && OPENWRT_IP="${OPENWRT_IP_DEFAULT_VALUE}"
 
     # Confirm package object
     [[ "${PACKAGE_SOC}" != "all" ]] && {
@@ -310,12 +312,14 @@ init_packit_repo() {
     fi
 
     # Modify default IP address
-    echo -e "${STEPS} Start modifying the OpenWrt default IP address to [ ${OPENWRT_IP} ]"
-    tmpdir="$(mktemp -d)"
-    tar -xzpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}"
-    sed -i "/lan) ipad=\${ipaddr:-/s/\${ipaddr:-\"[^\"]*\"}/\${ipaddr:-\"${OPENWRT_IP}\"}/" "${tmpdir}/bin/config_generate"
-    tar -czpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}" .
-    rm -rf "${tmpdir}"
+    [[ "${OPENWRT_IP}" != "${OPENWRT_IP_DEFAULT_VALUE}" ]] && {
+        echo -e "${STEPS} Start modifying the OpenWrt default IP address to [ ${OPENWRT_IP} ]"
+        tmpdir="$(mktemp -d)"
+        tar -xzpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}"
+        sed -i "/lan) ipad=\${ipaddr:-/s/\${ipaddr:-\"[^\"]*\"}/\${ipaddr:-\"${OPENWRT_IP}\"}/" "${tmpdir}/bin/config_generate"
+        tar -czpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}" .
+        rm -rf "${tmpdir}"
+    }
 
     # Add custom script
     [[ -n "${SCRIPT_DIY_PATH}" ]] && {
