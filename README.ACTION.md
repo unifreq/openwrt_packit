@@ -51,6 +51,7 @@
 | OPENWRT_IP             | 192.168.1.1            | 设置 OpenWrt 的默认 `IP` 地址                   |
 | SELECT_PACKITPATH      | openwrt_packit         | 设置 `/opt` 下的打包目录名称                     |
 | SELECT_OUTPUTPATH      | output                 | 设置 `${SELECT_PACKITPATH}` 目录中固件输出的目录名称 |
+| SAVE_OPENWRT_ROOTFS    | true                   | 设置打包完成后是否保存 `*-rootfs.tar.gz` 文件     |
 | SCRIPT_VPLUS           | mk_h6_vplus.sh         | 设置打包 `h6 vplus` 的脚本文件名                 |
 | SCRIPT_CM3             | mk_rk3566_radxa-cm3-rpi-cm4-io.sh | 设置打包 `rk3566 radxa-cm3-rpi-cm4-io` 的脚本文件名 |
 | SCRIPT_JPTVBOX         | mk_rk3566_jp-tvbox.sh  | 设置打包 `rk3566 jp-tvbox` 的脚本文件名          |
