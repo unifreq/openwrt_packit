@@ -1,0 +1,261 @@
+#==========================================================================
+# Description: Package OpenWrt image
+# Copyright (C) 2021 https://github.com/unifreq/openwrt_packit
+# Copyright (C) 2021 https://github.com/ophub/flippy-openwrt-actions
+#==========================================================================
+
+name: Package OpenWrt image
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      openwrt_soc:
+        description: "Select device board."
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - s922x_s905x3_s905x2_s912_s905d_s905
+          - rock5b_h28k_r66s_vplus
+          - ak88
+          - beikeyun
+          - cm3
+          - e20c
+          - e24c
+          - e25
+          - e52c
+          - e54c
+          - ht2
+          - h28k
+          - h66k
+          - h68k
+          - h69k
+          - h69k-max
+          - h88k
+          - h88k-v3
+          - jp-tvbox
+          - l1pro
+          - photonicat
+          - qemu
+          - r66s
+          - r68s
+          - rock5b
+          - rock5c
+          - rk3399
+          - s905
+          - s905d
+          - s905x2
+          - s905x3
+          - s912
+          - s922x
+          - s922x-n2
+          - vplus
+          - watermelon-pi
+          - yixun-rs6pro
+          - zcube1-max
+          - diy
+      customize_rk3399:
+        description: "Set customize rk3399 devices"
+        required: false
+        default: "tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb"
+        type: choice
+        options:
+          - tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb
+          - none
+      openwrt_ip:
+        description: "Set OpenWrt default IP address"
+        required: false
+        default: "192.168.1.1"
+      kernel_repo:
+        description: "Set the kernel repository"
+        required: false
+        default: "ophub/kernel"
+        type: choice
+        options:
+          - breakingbadboy/OpenWrt
+          - ophub/kernel
+      openwrt_kernel:
+        description: "Select kernel version"
+        required: false
+        default: "6.1.y_6.12.y"
+        type: choice
+        options:
+          - 5.4.y
+          - 5.10.y
+          - 5.15.y
+          - 6.1.y
+          - 6.6.y
+          - 6.12.y
+          - 5.4.y_5.10.y
+          - 5.15.y_6.1.y
+          - 6.1.y_6.12.y
+          - 6.1.y_6.6.y
+          - 6.6.y_6.12.y
+      auto_kernel:
+        description: "Auto use the latest kernel"
+        required: false
+        default: true
+        type: boolean
+      openwrt_rootfs:
+        description: "Set OpenWrt rootfs tags keywords"
+        required: false
+        default: "OpenWrt_armv8_rootfs"
+      script_diy_path:
+        description: "Set custom script loading path"
+        required: false
+        default: ""
+      openwrt_storage:
+        description: "Select image storage type."
+        required: false
+        default: "save"
+        type: choice
+        options:
+          - save
+          - temp
+      builder_name:
+        description: "Set OpenWrt builder signature."
+        required: false
+        default: "ophub"
+        type: choice
+        options:
+          - ophub
+          - angel
+          - yourname
+
+env:
+  TZ: Etc/UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Initialization environment
+        id: init
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi -f $(docker images -q) 2>/dev/null || true
+          [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+          sudo swapoff -a
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo -E apt-get -y update
+          sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+          sudo -E apt-get -y install $(curl -fsSL https://ophub.org/ubuntu2404-make-openwrt-depends)
+          sudo -E systemctl daemon-reload
+          #sudo -E apt-get -y full-upgrade
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+          sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+          sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+          sudo -E timedatectl set-timezone "${TZ:-Etc/UTC}"
+          sudo -E ntpdate ntp.ubuntu.com 0.pool.ntp.org || true
+          sudo -E timedatectl set-ntp true
+          date -u
+          timedatectl status || true
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Create simulated physical disk
+        run: |
+          mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+          root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+          sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+          sudo truncate -s "${root_size}"G /root.img
+          sudo losetup /dev/loop6 /mnt/mnt.img
+          sudo losetup /dev/loop7 /root.img
+          sudo pvcreate /dev/loop6
+          sudo pvcreate /dev/loop7
+          sudo vgcreate github /dev/loop6 /dev/loop7
+          sudo lvcreate -n runner -l 100%FREE github
+          sudo mkfs.xfs -f -i sparse=0 -b size=4096 /dev/github/runner
+          sudo mkdir -p /builder
+          sudo mount /dev/github/runner /builder
+          sudo chown -R runner:runner /builder
+          df -Th
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Download OpenWrt rootfs file
+        id: download
+        working-directory: /builder
+        if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
+        run: |
+          # Set OpenWrt rootfs repository(Change it to your own repository)
+          down_rootfs_repo="ophub/flippy-openwrt-actions"
+
+          # Get the latest OpenWrt rootfs download URL
+          latest_version=$(curl -s \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                https://api.github.com/repos/${down_rootfs_repo}/releases?per_page=20 | \
+                jq -r --arg RTK "${{ inputs.openwrt_rootfs }}" \
+                --arg BOARD "-rootfs.tar.gz" \
+                '[.[] | select(.tag_name | contains($RTK))] |
+                map(.assets[] | select(.browser_download_url | endswith($BOARD))) |
+                sort_by(.updated_at) |
+                reverse |
+                .[0] |
+                {data: .updated_at, url: .browser_download_url}')
+
+          [[ -z "${latest_version}" || "${latest_version}" == "null" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
+          latest_url="$(echo ${latest_version} | jq -r '.url')"
+          rootfsfile_name="${latest_url##*/}"
+          echo "Latest OpenWrt rootfs file: ${rootfsfile_name}"
+
+          # Download OpenWrt rootfs file
+          download_path="download"
+          [[ -d "${download_path}" ]] || mkdir -p ${download_path}
+          curl -fsSL "${latest_url}" -o "${download_path}/${rootfsfile_name}"
+          [[ "${?}" -ne "0" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
+
+          # Mount builder directory
+          mkdir -p opt
+          sudo rm -rf /opt && sudo ln -sf /builder/opt /opt
+          ln -sf /builder/${download_path} ${{ github.workspace }}/${download_path}
+
+          echo "build_tag=OpenWrt_armv8_${{ inputs.openwrt_storage }}_$(date +"%Y.%m")" >> ${GITHUB_ENV}
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Package OpenWrt Firmware
+        uses: unifreq/openwrt_packit@master
+        if: ${{ steps.download.outputs.status }} == 'success' && !cancelled()
+        env:
+          OPENWRT_ARMSR: download/*rootfs.tar.gz
+          PACKAGE_SOC: ${{ inputs.openwrt_soc }}
+          KERNEL_REPO_URL: ${{ inputs.kernel_repo }}
+          KERNEL_VERSION_NAME: ${{ inputs.openwrt_kernel }}
+          KERNEL_AUTO_LATEST: ${{ inputs.auto_kernel }}
+          OPENWRT_IP: ${{ inputs.openwrt_ip }}
+          CUSTOMIZE_RK3399: ${{ inputs.customize_rk3399 }}
+          SCRIPT_DIY_PATH: ${{ inputs.script_diy_path }}
+          WHOAMI: ${{ inputs.builder_name }}
+
+      - name: Upload OpenWrt Firmware to Release
+        uses: ncipollo/release-action@main
+        if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
+        with:
+          tag: ${{ env.build_tag }}
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          removeArtifacts: false
+          replacesArtifacts: true
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ### OpenWrt Image information
+            - Default IP: 192.168.1.1
+            - Default username: root
+            - Default password: password
+            ### Install to EMMC
+            - Login to OpenWrt → System → Amlogic Service → Install OpenWrt
+            ### OpenWrt source code
+            - [coolsnowwolf/lede](https://github.com/coolsnowwolf/lede)
+            - The OpenWrt [rootfs and kernel](https://github.com/ophub/flippy-openwrt-actions/releases/tag/OpenWrt_armv8_rootfs) files are both shared by [flippy](https://github.com/unifreq/openwrt_packit).
+            ### OpenWrt Image Verification
+            - sha256sum
