@@ -1,0 +1,8 @@
+# LAN
+eth0 8
+
+# WAN
+eth1 7
+
+# usb
+xhci-hcd:usb1  6
