@@ -1183,7 +1183,6 @@ EOF
             echo "LOCK_KERNEL=${LOCK_KERNEL}" >> ./etc/flippy-openwrt-release
         fi
 
-
         # only photonic need pcat-manager service
         if [ "${BOARD}" != "photonicat" ];then
             rm -f ./etc/rc.d/[SK]??pcat-manager 2>/dev/null
@@ -1516,6 +1515,14 @@ EOF
 ::shutdown:/etc/init.d/rcS K shutdown
 tty1::askfirst:/usr/libexec/login.sh
 ttyS2::askfirst:/usr/libexec/login.sh
+ttyFIQ0::askfirst:/usr/libexec/login.sh
+EOF
+                         elif [ "${SOC}" == rk3576 ];then
+                             cat > ./etc/inittab <<EOF
+::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
+tty1::askfirst:/usr/libexec/login.sh
+ttyS0::askfirst:/usr/libexec/login.sh
 ttyFIQ0::askfirst:/usr/libexec/login.sh
 EOF
                          elif [ "${SOC}" == rk3528 ];then
