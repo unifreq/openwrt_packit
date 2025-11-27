@@ -34,8 +34,9 @@ SAVE_OPENWRT_ROOTFS_VALUE="true"
 # Set the list of supported device
 PACKAGE_OPENWRT=(
     "ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c"
+    "100ask-dshanpi-a1" "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2"
+    "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max"
     "cm3" "e25" "photonicat" "r66s" "r68s" "rk3399"
-    "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2" "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "beikeyun" "l1pro"
     "vplus"
@@ -45,9 +46,10 @@ PACKAGE_OPENWRT=(
 # Set the list of devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c")
 # Set the list of devices using the [ rk35xx ] kernel
-PACKAGE_OPENWRT_RK35XX=("e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2" "watermelon-pi" "jp-tvbox" "yixun-rs6pro" "zcube1-max")
-# Set the list of devices that can only use the [ rk35xx/5.1.y ] kernel
-PACKAGE_OPENWRT_RK35XX_5XY=()
+PACKAGE_OPENWRT_RK35XX=(
+    "100ask-dshanpi-a1" "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2"
+    "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max"
+)
 # Set the list of devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399")
 # All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
@@ -58,9 +60,8 @@ KERNEL_REPO_URL_VALUE="breakingbadboy/OpenWrt"
 # Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx
 KERNEL_TAGS=("stable" "rk3588" "rk35xx")
 STABLE_KERNEL=("6.1.y" "6.12.y")
-RK3588_KERNEL=("5.10.y" "6.1.y")
-RK35XX_KERNEL=("5.10.y" "6.1.y")
-RK35XX_KERNEL_5XY=("5.10.y")
+RK3588_KERNEL=("6.1.y")
+RK35XX_KERNEL=("6.1.y")
 # The kernel_flippy provided by flippy in ophub/kernel repository: https://github.com/ophub/kernel/releases
 FLIPPY_KERNEL=(${STABLE_KERNEL[@]})
 # Set to automatically query the latest kernel version
@@ -71,6 +72,7 @@ OPENWRT_IP_DEFAULT_VALUE="192.168.1.1"
 IP_REGEX="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
 # Set the default packaging script
+SCRIPT_100ASKDSHANPIA1_FILE="mk_rk3576_100ask-dshanpi-a1.sh"
 SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_CM3_FILE="mk_rk3566_radxa-cm3-rpi-cm4-io.sh"
 SCRIPT_DIY_FILE="mk_diy.sh"
@@ -165,6 +167,7 @@ init_var() {
     KERNEL_AUTO_LATEST="${KERNEL_AUTO_LATEST:-${KERNEL_AUTO_LATEST_VALUE}}"
 
     # Accept user-defined packaging script parameters
+    SCRIPT_100ASKDSHANPIA1="${SCRIPT_100ASKDSHANPIA1:-${SCRIPT_100ASKDSHANPIA1_FILE}}"
     SCRIPT_BEIKEYUN="${SCRIPT_BEIKEYUN:-${SCRIPT_BEIKEYUN_FILE}}"
     SCRIPT_CM3="${SCRIPT_CM3:-${SCRIPT_CM3_FILE}}"
     SCRIPT_DIY="${SCRIPT_DIY:-${SCRIPT_DIY_FILE}}"
@@ -258,7 +261,7 @@ init_var() {
     for kt in "${PACKAGE_OPENWRT[@]}"; do
         if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
             KERNEL_TAGS_TMP+=("rk3588")
-        elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " || " ${PACKAGE_OPENWRT_RK35XX_5XY[@]} " =~ " ${kt} " ]]; then
+        elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " ]]; then
             KERNEL_TAGS_TMP+=("rk35xx")
         else
             # The stable kernel is used by default, and the flippy kernel is used with the ophub repository.
@@ -512,9 +515,6 @@ make_openwrt() {
             elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${PACKAGE_VAR} " ]]; then
                 build_kernel=(${RK35XX_KERNEL[@]})
                 vb="rk35xx"
-            elif [[ " ${PACKAGE_OPENWRT_RK35XX_5XY[@]} " =~ " ${PACKAGE_VAR} " ]]; then
-                build_kernel=($(printf "%s\n" "${RK35XX_KERNEL[@]}" | grep -E "^$(IFS='|'; echo "${RK35XX_KERNEL_5XY[@]//.y/\\.}" | sed 's/ /|/g')"))
-                vb="rk35xx"
             else
                 if [[ "${KERNEL_REPO_URL}" == "ophub/kernel" ]]; then
                     build_kernel=(${FLIPPY_KERNEL[@]})
@@ -588,48 +588,49 @@ EOF
 
                     # Select the corresponding packaging script
                     case "${PACKAGE_VAR}" in
-                        ak88)             [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} ;;
-                        beikeyun)         [[ -f "${SCRIPT_BEIKEYUN}" ]]        && sudo ./${SCRIPT_BEIKEYUN} ;;
-                        cm3)              [[ -f "${SCRIPT_CM3}" ]]             && sudo ./${SCRIPT_CM3} ;;
-                        diy)              [[ -f "${SCRIPT_DIY}" ]]             && sudo ./${SCRIPT_DIY} ;;
-                        e20c)             [[ -f "${SCRIPT_E20C}" ]]            && sudo ./${SCRIPT_E20C} ;;
-                        e24c)             [[ -f "${SCRIPT_E24C}" ]]            && sudo ./${SCRIPT_E24C} ;;
-                        e25)              [[ -f "${SCRIPT_E25}" ]]             && sudo ./${SCRIPT_E25} ;;
-                        e52c)             [[ -f "${SCRIPT_E52C}" ]]            && sudo ./${SCRIPT_E52C} ;;
-                        e54c)             [[ -f "${SCRIPT_E54C}" ]]            && sudo ./${SCRIPT_E54C} ;;
-                        h28k)             [[ -f "${SCRIPT_H28K}" ]]            && sudo ./${SCRIPT_H28K} ;;
-                        h66k)             [[ -f "${SCRIPT_H66K}" ]]            && sudo ./${SCRIPT_H66K} ;;
-                        h68k)             [[ -f "${SCRIPT_H68K}" ]]            && sudo ./${SCRIPT_H68K} ;;
-                        h69k)             [[ -f "${SCRIPT_H69K}" ]]            && sudo ./${SCRIPT_H69K} ;;
-                        h69k-max)         [[ -f "${SCRIPT_H69K}" ]]            && sudo ./${SCRIPT_H69K} "max" ;;
-                        h88k)             [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} "25" ;;
-                        h88k-v3)          [[ -f "${SCRIPT_H88KV3}" ]]          && sudo ./${SCRIPT_H88KV3} ;;
-                        ht2)              [[ -f "${SCRIPT_HT2}" ]]             && sudo ./${SCRIPT_HT2} ;;
-                        jp-tvbox)         [[ -f "${SCRIPT_JPTVBOX}" ]]         && sudo ./${SCRIPT_JPTVBOX} ;;
-                        l1pro)            [[ -f "${SCRIPT_L1PRO}" ]]           && sudo ./${SCRIPT_L1PRO} ;;
-                        photonicat)       [[ -f "${SCRIPT_PHOTONICAT}" ]]      && sudo ./${SCRIPT_PHOTONICAT} ;;
-                        qemu)             [[ -f "${SCRIPT_QEMU}" ]]            && sudo ./${SCRIPT_QEMU} ;;
-                        r66s)             [[ -f "${SCRIPT_R66S}" ]]            && sudo ./${SCRIPT_R66S} ;;
-                        r68s)             [[ -f "${SCRIPT_R68S}" ]]            && sudo ./${SCRIPT_R68S} ;;
-                        rock5b)           [[ -f "${SCRIPT_ROCK5B}" ]]          && sudo ./${SCRIPT_ROCK5B} ;;
-                        rock5c)           [[ -f "${SCRIPT_ROCK5C}" ]]          && sudo ./${SCRIPT_ROCK5C} ;;
-                        s905)             [[ -f "${SCRIPT_S905}" ]]            && sudo ./${SCRIPT_S905} ;;
-                        s905d)            [[ -f "${SCRIPT_S905D}" ]]           && sudo ./${SCRIPT_S905D} ;;
-                        s905x2)           [[ -f "${SCRIPT_S905X2}" ]]          && sudo ./${SCRIPT_S905X2} ;;
-                        s905x3)           [[ -f "${SCRIPT_S905X3}" ]]          && sudo ./${SCRIPT_S905X3} ;;
-                        s912)             [[ -f "${SCRIPT_S912}" ]]            && sudo ./${SCRIPT_S912} ;;
-                        s922x)            [[ -f "${SCRIPT_S922X}" ]]           && sudo ./${SCRIPT_S922X} ;;
-                        s922x-n2)         [[ -f "${SCRIPT_S922X_N2}" ]]        && sudo ./${SCRIPT_S922X_N2} ;;
-                        vplus)            [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
-                        watermelon-pi)    [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
-                        yixun-rs6pro)     [[ -f "${SCRIPT_RS6PRO}" ]]          && sudo ./${SCRIPT_RS6PRO} ;;
-                        zcube1-max)       [[ -f "${SCRIPT_ZCUBE1MAX}" ]]       && sudo ./${SCRIPT_ZCUBE1MAX} ;;
-                        rk3399)           [[ -f "${SCRIPT_RK3399}" && ${#RK3399_BOARD_LIST[@]} -gt 0 ]] && {
-                                          for rbl in ${!RK3399_BOARD_LIST[@]}; do
-                                              sudo ./${SCRIPT_RK3399} ${RK3399_BOARD_LIST[rbl]} ${RK3399_DTB_LIST[rbl]}
-                                          done
-                                          } ;;
-                        *)                echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
+                        100ask-dshanpi-a1)  [[ -f "${SCRIPT_100ASKDSHANPIA1}" ]] && sudo ./${SCRIPT_100ASKDSHANPIA1} ;;
+                        ak88)               [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} ;;
+                        beikeyun)           [[ -f "${SCRIPT_BEIKEYUN}" ]]        && sudo ./${SCRIPT_BEIKEYUN} ;;
+                        cm3)                [[ -f "${SCRIPT_CM3}" ]]             && sudo ./${SCRIPT_CM3} ;;
+                        diy)                [[ -f "${SCRIPT_DIY}" ]]             && sudo ./${SCRIPT_DIY} ;;
+                        e20c)               [[ -f "${SCRIPT_E20C}" ]]            && sudo ./${SCRIPT_E20C} ;;
+                        e24c)               [[ -f "${SCRIPT_E24C}" ]]            && sudo ./${SCRIPT_E24C} ;;
+                        e25)                [[ -f "${SCRIPT_E25}" ]]             && sudo ./${SCRIPT_E25} ;;
+                        e52c)               [[ -f "${SCRIPT_E52C}" ]]            && sudo ./${SCRIPT_E52C} ;;
+                        e54c)               [[ -f "${SCRIPT_E54C}" ]]            && sudo ./${SCRIPT_E54C} ;;
+                        h28k)               [[ -f "${SCRIPT_H28K}" ]]            && sudo ./${SCRIPT_H28K} ;;
+                        h66k)               [[ -f "${SCRIPT_H66K}" ]]            && sudo ./${SCRIPT_H66K} ;;
+                        h68k)               [[ -f "${SCRIPT_H68K}" ]]            && sudo ./${SCRIPT_H68K} ;;
+                        h69k)               [[ -f "${SCRIPT_H69K}" ]]            && sudo ./${SCRIPT_H69K} ;;
+                        h69k-max)           [[ -f "${SCRIPT_H69K}" ]]            && sudo ./${SCRIPT_H69K} "max" ;;
+                        h88k)               [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} "25" ;;
+                        h88k-v3)            [[ -f "${SCRIPT_H88KV3}" ]]          && sudo ./${SCRIPT_H88KV3} ;;
+                        ht2)                [[ -f "${SCRIPT_HT2}" ]]             && sudo ./${SCRIPT_HT2} ;;
+                        jp-tvbox)           [[ -f "${SCRIPT_JPTVBOX}" ]]         && sudo ./${SCRIPT_JPTVBOX} ;;
+                        l1pro)              [[ -f "${SCRIPT_L1PRO}" ]]           && sudo ./${SCRIPT_L1PRO} ;;
+                        photonicat)         [[ -f "${SCRIPT_PHOTONICAT}" ]]      && sudo ./${SCRIPT_PHOTONICAT} ;;
+                        qemu)               [[ -f "${SCRIPT_QEMU}" ]]            && sudo ./${SCRIPT_QEMU} ;;
+                        r66s)               [[ -f "${SCRIPT_R66S}" ]]            && sudo ./${SCRIPT_R66S} ;;
+                        r68s)               [[ -f "${SCRIPT_R68S}" ]]            && sudo ./${SCRIPT_R68S} ;;
+                        rock5b)             [[ -f "${SCRIPT_ROCK5B}" ]]          && sudo ./${SCRIPT_ROCK5B} ;;
+                        rock5c)             [[ -f "${SCRIPT_ROCK5C}" ]]          && sudo ./${SCRIPT_ROCK5C} ;;
+                        s905)               [[ -f "${SCRIPT_S905}" ]]            && sudo ./${SCRIPT_S905} ;;
+                        s905d)              [[ -f "${SCRIPT_S905D}" ]]           && sudo ./${SCRIPT_S905D} ;;
+                        s905x2)             [[ -f "${SCRIPT_S905X2}" ]]          && sudo ./${SCRIPT_S905X2} ;;
+                        s905x3)             [[ -f "${SCRIPT_S905X3}" ]]          && sudo ./${SCRIPT_S905X3} ;;
+                        s912)               [[ -f "${SCRIPT_S912}" ]]            && sudo ./${SCRIPT_S912} ;;
+                        s922x)              [[ -f "${SCRIPT_S922X}" ]]           && sudo ./${SCRIPT_S922X} ;;
+                        s922x-n2)           [[ -f "${SCRIPT_S922X_N2}" ]]        && sudo ./${SCRIPT_S922X_N2} ;;
+                        vplus)              [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
+                        watermelon-pi)      [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
+                        yixun-rs6pro)       [[ -f "${SCRIPT_RS6PRO}" ]]          && sudo ./${SCRIPT_RS6PRO} ;;
+                        zcube1-max)         [[ -f "${SCRIPT_ZCUBE1MAX}" ]]       && sudo ./${SCRIPT_ZCUBE1MAX} ;;
+                        rk3399)             [[ -f "${SCRIPT_RK3399}" && ${#RK3399_BOARD_LIST[@]} -gt 0 ]] && {
+                                                for rbl in ${!RK3399_BOARD_LIST[@]}; do
+                                                    sudo ./${SCRIPT_RK3399} ${RK3399_BOARD_LIST[rbl]} ${RK3399_DTB_LIST[rbl]}
+                                                done
+                                            } ;;
+                        *)                  echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
                     esac
 
                     # Generate compressed file
