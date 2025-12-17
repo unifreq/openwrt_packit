@@ -12,7 +12,7 @@ runs:
   steps:
     - shell: bash
       run: |
-        cd ${{ github.action_path }}
+        cd "${GITHUB_ACTION_PATH}"
         ./openwrt_flippy.sh
       
 branding:
