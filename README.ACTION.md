@@ -4,7 +4,7 @@
 
 ## 使用方法
 
-在 `.github/workflows` 的编译脚本中引入此 Actions 即可进行打包，例如 [packaging-openwrt.yml](https://github.com/ophub/flippy-openwrt-actions/blob/main/.github/workflows/package-openwrt-image.yml) 中的使用方法，代码如下：
+在 `.github/workflows` 的编译脚本中引入此 Actions 即可进行打包，例如 [packaging-openwrt.yml](.github/workflows/package-openwrt-image.yml) 中的使用方法，代码如下：
 
 ```yaml
 

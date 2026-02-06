@@ -310,17 +310,23 @@ init_packit_repo() {
     [[ -z "${OPENWRT_ARMSR}" ]] && error_msg "The [ OPENWRT_ARMSR ] variable must be specified."
 
     # Load *-armsr-armv8-generic-rootfs.tar.gz
-    rm -f ${SELECT_PACKITPATH}/${PACKAGE_FILE}
-    if [[ "${OPENWRT_ARMSR,,}" =~ ^http ]]; then
-        echo -e "${STEPS} Download the [ ${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
+    if [[ ! -f "${SELECT_PACKITPATH}/${PACKAGE_FILE}" ]]; then
+        if [[ "${OPENWRT_ARMSR,,}" =~ ^http ]]; then
+            echo -e "${STEPS} Download the [ ${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
 
-        # Download the *-armsr-armv8-generic-rootfs.tar.gz file. If the download fails, try again 10 times.
-        download_retry "${OPENWRT_ARMSR}" "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
-        [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file download failed."
+            # Download the *-armsr-armv8-generic-rootfs.tar.gz file. If the download fails, try again 10 times.
+            download_retry "${OPENWRT_ARMSR}" "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
+            [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file download failed."
+        else
+            echo -e "${STEPS} copy [ ${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
+            if [[ "${OPENWRT_ARMSR}" =~ ^/ ]]; then
+                cp -vf ${OPENWRT_ARMSR} ${SELECT_PACKITPATH}/${PACKAGE_FILE} || true
+            else
+                cp -vf ${GITHUB_WORKSPACE}/${OPENWRT_ARMSR} ${SELECT_PACKITPATH}/${PACKAGE_FILE} || true
+            fi
+        fi
     else
-        echo -e "${STEPS} copy [ ${GITHUB_WORKSPACE}/${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
-        cp -vf ${GITHUB_WORKSPACE}/${OPENWRT_ARMSR} ${SELECT_PACKITPATH}/${PACKAGE_FILE}
-        [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file copy failed."
+        echo -e "${INFO} [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] already exists, skipping."
     fi
 
     # Normal ${PACKAGE_FILE} file should not be less than 10MB
@@ -393,7 +399,7 @@ query_kernel() {
                 latest_version="$(
                     curl -fsSL \
                         ${kernel_api}/releases/expanded_assets/kernel_${vb} |
-                        grep -oE "${kernel_verpatch}\.[0-9]+.*\.tar\.gz" | sed 's/.tar.gz//' |
+                        grep -oP "${kernel_verpatch}\.[0-9]+.*(?=\.tar\.gz)" |
                         sort -urV | head -n 1
                 )"
 
