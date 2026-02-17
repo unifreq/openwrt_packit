@@ -131,8 +131,8 @@ DC_VOLTAGE_PATCH="${PWD}/files/rk3588/h88k/dc_voltage.patch"
 check_depends
 
 SKIP_MB=16
-BOOT_MB=256
-ROOTFS_MB=1024
+BOOT_MB=512
+ROOTFS_MB=2048
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "gpt" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
