@@ -17,11 +17,11 @@ SOC=rk3528
 BOARD=e24c
 SUBVER=$1
 
-#if [ -n "$RK35XX_KERNEL_VERSION" ];then
-    ## lock the kernel version
-    #KERNEL_VERSION=$RK35XX_KERNEL_VERSION
-    #LOCK_KERNEL=${KERNEL_VERSION}
-#fi
+if [ -n "$RK35XX_KERNEL_VERSION" ];then
+    # lock the kernel version
+    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
+    LOCK_KERNEL=${KERNEL_VERSION}
+fi
 
 # Kernel image sources
 ###################################################################
