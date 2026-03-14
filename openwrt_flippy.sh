@@ -1,37 +1,37 @@
 #!/usr/bin/env bash
 #==============================================================================================
 #
-# Description: Automatically Packaged OpenWrt
-# Function: Use Flippy's kernel files and script to Packaged openwrt
+# Description: Automated OpenWrt Firmware Packaging Tool
+# Function: Package OpenWrt firmware using Flippy's kernel files and scripts
 # Copyright (C) 2021 https://github.com/unifreq/openwrt_packit
 # Copyright (C) 2021 https://github.com/ophub/flippy-openwrt-actions
 #
 #======================================= Functions list =======================================
 #
-# error_msg         : Output error message
+# error_msg         : Print error message and exit
 # download_retry    : Download file with retry mechanism
-# init_var          : Initialize all variables
-# init_packit_repo  : Initialize packit openwrt repo
-# query_kernel      : Query the latest kernel version
-# check_kernel      : Check kernel files integrity
-# download_kernel   : Download the kernel
-# make_openwrt      : Loop to make OpenWrt files
-# out_github_env    : Output github.com variables
+# init_var          : Initialize environment variables and configuration
+# init_packit_repo  : Initialize packaging repository and load rootfs
+# query_kernel      : Query the latest kernel versions from repository
+# check_kernel      : Verify kernel file integrity via SHA256 checksums
+# download_kernel   : Download and extract kernel files from repository
+# make_openwrt      : Package OpenWrt firmware for all target devices
+# out_github_env    : Export packaging results to GitHub Actions environment
 #
 #=============================== Set make environment variables ===============================
 #
-# Set the default package source download repository
+# Default packaging script source repository
 SCRIPT_REPO_URL_VALUE="https://github.com/unifreq/openwrt_packit"
 SCRIPT_REPO_BRANCH_VALUE="master"
-# Set the *rootfs.tar.gz package save name
+# Filename for the rootfs.tar.gz package
 PACKAGE_FILE="openwrt-armsr-armv8-generic-rootfs.tar.gz"
-# Set the working directory under /opt
+# Working directories under /opt
 SELECT_PACKITPATH_VALUE="openwrt_packit"
 SELECT_OUTPUTPATH_VALUE="output"
 GZIP_IMGS_VALUE="auto"
 SAVE_OPENWRT_ROOTFS_VALUE="true"
 
-# Set the list of supported device
+# List of all supported devices
 PACKAGE_OPENWRT=(
     "ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c"
     "100ask-dshanpi-a1" "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2"
@@ -43,35 +43,35 @@ PACKAGE_OPENWRT=(
     "qemu"
     "diy"
 )
-# Set the list of devices using the [ rk3588 ] kernel
+# Devices using the [ rk3588 ] kernel
 PACKAGE_OPENWRT_RK3588=("ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c")
-# Set the list of devices using the [ rk35xx ] kernel
+# Devices using the [ rk35xx ] kernel
 PACKAGE_OPENWRT_RK35XX=(
     "100ask-dshanpi-a1" "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2"
     "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max"
 )
-# Set the list of devices using the [ 6.x.y ] kernel
+# Devices using the [ 6.x.y ] kernel
 PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399")
-# All are packaged by default, and independent settings are supported, such as: [ s905x3_s905d_rock5b ]
+# Package all devices by default; specify individual devices like: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
-# Set the default packaged kernel download repository: https://github.com/breakingbadboy/OpenWrt/releases
+# Default kernel download repository: https://github.com/breakingbadboy/OpenWrt/releases
 KERNEL_REPO_URL_VALUE="breakingbadboy/OpenWrt"
-# Set kernel tag: kernel_stable, kernel_rk3588, kernel_rk35xx
+# Kernel tags and version configuration: kernel_stable, kernel_rk3588, kernel_rk35xx
 KERNEL_TAGS=("stable" "rk3588" "rk35xx")
-STABLE_KERNEL=("6.1.y" "6.12.y")
+STABLE_KERNEL=("6.12.y" "6.18.y")
 RK3588_KERNEL=("6.1.y")
 RK35XX_KERNEL=("6.1.y")
-# The kernel_flippy provided by flippy in ophub/kernel repository: https://github.com/ophub/kernel/releases
+# Flippy kernel from ophub/kernel repository: https://github.com/ophub/kernel/releases
 FLIPPY_KERNEL=(${STABLE_KERNEL[@]})
-# Set to automatically query the latest kernel version
+# Automatically query the latest kernel version
 KERNEL_AUTO_LATEST_VALUE="true"
 
-# Set the default OpenWrt IP address
+# Default OpenWrt LAN IP address
 OPENWRT_IP_DEFAULT_VALUE="192.168.1.1"
 IP_REGEX="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 
-# Set the default packaging script
+# Device-specific packaging scripts
 SCRIPT_100ASKDSHANPIA1_FILE="mk_rk3576_100ask-dshanpi-a1.sh"
 SCRIPT_BEIKEYUN_FILE="mk_rk3328_beikeyun.sh"
 SCRIPT_CM3_FILE="mk_rk3566_radxa-cm3-rpi-cm4-io.sh"
@@ -109,7 +109,7 @@ SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
 SCRIPT_RS6PRO_FILE="mk_rk3528_rs6pro.sh"
 SCRIPT_ZCUBE1MAX_FILE="mk_rk3399_zcube1-max.sh"
 
-# Set make.env related parameters
+# Default make.env parameters
 WHOAMI_VALUE="flippy"
 OPENWRT_VER_VALUE="auto"
 SW_FLOWOFFLOAD_VALUE="1"
@@ -120,7 +120,7 @@ ENABLE_WIFI_K510_VALUE="1"
 DISTRIB_REVISION_VALUE="R$(date +%Y.%m.%d)"
 DISTRIB_DESCRIPTION_VALUE="OpenWrt"
 
-# Set font color
+# Output formatting color tags
 STEPS="[\033[95m STEPS \033[0m]"
 INFO="[\033[94m INFO \033[0m]"
 SUCCESS="[\033[92m SUCCESS \033[0m]"
@@ -146,13 +146,13 @@ download_retry() {
 }
 
 init_var() {
-    echo -e "${STEPS} Start Initializing Variables..."
+    echo -e "${STEPS} Initializing environment variables..."
 
-    # Install the compressed package
+    # Install required dependencies
     sudo apt-get -qq update
     sudo apt-get -qq install -y curl git coreutils p7zip p7zip-full zip unzip gzip xz-utils pigz zstd jq tar
 
-    # Accept user-defined repository parameters
+    # Load user-defined repository parameters
     SCRIPT_REPO_URL="${SCRIPT_REPO_URL:-${SCRIPT_REPO_URL_VALUE}}"
     [[ "${SCRIPT_REPO_URL,,}" =~ ^http ]] || SCRIPT_REPO_URL="https://github.com/${SCRIPT_REPO_URL}"
     SCRIPT_REPO_BRANCH="${SCRIPT_REPO_BRANCH:-${SCRIPT_REPO_BRANCH_VALUE}}"
@@ -161,12 +161,12 @@ init_var() {
     GZIP_IMGS="${GZIP_IMGS:-${GZIP_IMGS_VALUE}}"
     SAVE_OPENWRT_ROOTFS="${SAVE_OPENWRT_ROOTFS:-${SAVE_OPENWRT_ROOTFS_VALUE}}"
 
-    # Accept user-defined SoC and kernel parameters
+    # Load user-defined SoC and kernel parameters
     PACKAGE_SOC="${PACKAGE_SOC:-${PACKAGE_SOC_VALUE}}"
     KERNEL_REPO_URL="${KERNEL_REPO_URL:-${KERNEL_REPO_URL_VALUE}}"
     KERNEL_AUTO_LATEST="${KERNEL_AUTO_LATEST:-${KERNEL_AUTO_LATEST_VALUE}}"
 
-    # Accept user-defined packaging script parameters
+    # Load user-defined packaging script parameters
     SCRIPT_100ASKDSHANPIA1="${SCRIPT_100ASKDSHANPIA1:-${SCRIPT_100ASKDSHANPIA1_FILE}}"
     SCRIPT_BEIKEYUN="${SCRIPT_BEIKEYUN:-${SCRIPT_BEIKEYUN_FILE}}"
     SCRIPT_CM3="${SCRIPT_CM3:-${SCRIPT_CM3_FILE}}"
@@ -204,7 +204,7 @@ init_var() {
     SCRIPT_RS6PRO="${SCRIPT_RS6PRO:-${SCRIPT_RS6PRO_FILE}}"
     SCRIPT_ZCUBE1MAX="${SCRIPT_ZCUBE1MAX:-${SCRIPT_ZCUBE1MAX_FILE}}"
 
-    # Accept user-defined make.env parameters
+    # Load user-defined make.env parameters
     WHOAMI="${WHOAMI:-${WHOAMI_VALUE}}"
     OPENWRT_VER="${OPENWRT_VER:-${OPENWRT_VER_VALUE}}"
     SW_FLOWOFFLOAD="${SW_FLOWOFFLOAD:-${SW_FLOWOFFLOAD_VALUE}}"
@@ -217,7 +217,7 @@ init_var() {
     OPENWRT_IP="${OPENWRT_IP:-${OPENWRT_IP_DEFAULT_VALUE}}"
     [[ ! "${OPENWRT_IP}" =~ ${IP_REGEX} ]] && OPENWRT_IP="${OPENWRT_IP_DEFAULT_VALUE}"
 
-    # Confirm package object
+    # Resolve target devices from PACKAGE_SOC
     [[ "${PACKAGE_SOC}" != "all" ]] && {
         oldIFS="${IFS}"
         IFS="_"
@@ -225,7 +225,7 @@ init_var() {
         IFS="${oldIFS}"
     }
 
-    # Confirm customize rk3399 devices: ${CUSTOMIZE_RK3399}
+    # Parse custom rk3399 device configuration: ${CUSTOMIZE_RK3399}
     # Format:  [ board1:dtb1/board2:dtb2/board3:dtb3/... ]
     #          [ none ]
     # Example: [ tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb ]
@@ -233,10 +233,10 @@ init_var() {
     RK3399_BOARD_LIST=()
     RK3399_DTB_LIST=()
     [[ -n "${CUSTOMIZE_RK3399}" && "${CUSTOMIZE_RK3399,,}" != "none" ]] && {
-        # Add rk3399 to the package list
+        # Add rk3399 to the target device list
         PACKAGE_OPENWRT+=("rk3399")
 
-        # Split the string
+        # Parse board:dtb pairs
         oldIFS="${IFS}"
         IFS="/"
         for rk in ${CUSTOMIZE_RK3399}; do
@@ -248,15 +248,15 @@ init_var() {
         IFS="${oldIFS}"
     }
 
-    # Remove duplicate package drivers
+    # Deduplicate target device list
     PACKAGE_OPENWRT=($(echo "${PACKAGE_OPENWRT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-    # Convert kernel library address to api format
-    echo -e "${INFO} Kernel download repository: [ ${KERNEL_REPO_URL} ]"
+    # Convert kernel repository URL to API format
+    echo -e "${INFO} Kernel repository: [ ${KERNEL_REPO_URL} ]"
     [[ "${KERNEL_REPO_URL}" =~ ^https: ]] && KERNEL_REPO_URL="$(echo ${KERNEL_REPO_URL} | awk -F'/' '{print $4"/"$5}')"
     kernel_api="https://github.com/${KERNEL_REPO_URL}"
 
-    # Reset required kernel tags
+    # Determine required kernel tags based on target devices
     KERNEL_TAGS_TMP=()
     for kt in "${PACKAGE_OPENWRT[@]}"; do
         if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${kt} " ]]; then
@@ -264,7 +264,7 @@ init_var() {
         elif [[ " ${PACKAGE_OPENWRT_RK35XX[@]} " =~ " ${kt} " ]]; then
             KERNEL_TAGS_TMP+=("rk35xx")
         else
-            # The stable kernel is used by default, and the flippy kernel is used with the ophub repository.
+            # Use stable kernel by default; use flippy kernel when using the ophub repository
             if [[ "${KERNEL_REPO_URL}" == "ophub/kernel" ]]; then
                 KERNEL_TAGS_TMP+=("flippy")
             else
@@ -272,53 +272,53 @@ init_var() {
             fi
         fi
     done
-    # Remove duplicate kernel tags
+    # Deduplicate kernel tags
     KERNEL_TAGS=($(echo "${KERNEL_TAGS_TMP[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-    echo -e "${INFO} Package directory: [ /opt/${SELECT_PACKITPATH} ]"
-    echo -e "${INFO} Package SoC: [ $(echo ${PACKAGE_OPENWRT[@]} | xargs) ]"
+    echo -e "${INFO} Packaging directory: [ /opt/${SELECT_PACKITPATH} ]"
+    echo -e "${INFO} Target devices: [ $(echo ${PACKAGE_OPENWRT[@]} | xargs) ]"
     echo -e "${INFO} Kernel tags: [ $(echo ${KERNEL_TAGS[@]} | xargs) ]"
-    echo -e "${INFO} Kernel Query API: [ ${kernel_api} ]"
+    echo -e "${INFO} Kernel API endpoint: [ ${kernel_api} ]"
 
-    # Reset STABLE & FLIPPY kernel options
+    # Override STABLE & FLIPPY kernel versions if custom versions are specified
     [[ -n "${KERNEL_VERSION_NAME}" && " ${KERNEL_TAGS[@]} " =~ (stable|flippy) ]] && {
         oldIFS="${IFS}"
         IFS="_"
         STABLE_KERNEL=(${KERNEL_VERSION_NAME})
         FLIPPY_KERNEL=(${KERNEL_VERSION_NAME})
         IFS="${oldIFS}"
-        echo -e "${INFO} Use custom kernel: [ $(echo ${STABLE_KERNEL[@]} | xargs) ]"
+        echo -e "${INFO} Using custom kernel version(s): [ $(echo ${STABLE_KERNEL[@]} | xargs) ]"
     }
 }
 
 init_packit_repo() {
     cd /opt
 
-    # Clone the repository into the packaging directory. If it fails, wait 1 minute and try again, try 10 times.
+    # Clone the packaging repository (retry up to 10 times with 1-minute intervals)
     [[ -d "${SELECT_PACKITPATH}" ]] || {
-        echo -e "${STEPS} Start cloning repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into [ ${SELECT_PACKITPATH} ]"
+        echo -e "${STEPS} Cloning repository [ ${SCRIPT_REPO_URL} ], branch [ ${SCRIPT_REPO_BRANCH} ] into [ ${SELECT_PACKITPATH} ]"
         for i in {1..10}; do
             git clone -q --single-branch --depth=1 --branch=${SCRIPT_REPO_BRANCH} ${SCRIPT_REPO_URL} ${SELECT_PACKITPATH}
             [[ "${?}" -eq "0" ]] && break || sleep 60
         done
-        [[ -d "${SELECT_PACKITPATH}" ]] || error_msg "Failed to clone the repository."
+        [[ -d "${SELECT_PACKITPATH}" ]] || error_msg "Failed to clone the packaging repository after 10 attempts."
     }
 
-    # Check the *rootfs.tar.gz package
-    # If the original variable name [ OPENWRT_ARMVIRT ] is detected, it will be inherited and used.
+    # Validate the rootfs package path
+    # Inherit the legacy variable name [ OPENWRT_ARMVIRT ] if [ OPENWRT_ARMSR ] is not set
     [[ -n "${OPENWRT_ARMVIRT}" && -z "${OPENWRT_ARMSR}" ]] && OPENWRT_ARMSR="${OPENWRT_ARMVIRT}"
-    [[ -z "${OPENWRT_ARMSR}" ]] && error_msg "The [ OPENWRT_ARMSR ] variable must be specified."
+    [[ -z "${OPENWRT_ARMSR}" ]] && error_msg "The OPENWRT_ARMSR variable is required but not set."
 
-    # Load *-armsr-armv8-generic-rootfs.tar.gz
+    # Load the rootfs.tar.gz package
     if [[ ! -f "${SELECT_PACKITPATH}/${PACKAGE_FILE}" ]]; then
         if [[ "${OPENWRT_ARMSR,,}" =~ ^http ]]; then
-            echo -e "${STEPS} Download the [ ${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
+            echo -e "${STEPS} Downloading [ ${OPENWRT_ARMSR} ] to [ ${SELECT_PACKITPATH} ]"
 
-            # Download the *-armsr-armv8-generic-rootfs.tar.gz file. If the download fails, try again 10 times.
+            # Download the rootfs file (retry up to 10 times)
             download_retry "${OPENWRT_ARMSR}" "${SELECT_PACKITPATH}/${PACKAGE_FILE}"
-            [[ "${?}" -eq "0" ]] || error_msg "Openwrt rootfs file download failed."
+            [[ "${?}" -eq "0" ]] || error_msg "Failed to download the OpenWrt rootfs file."
         else
-            echo -e "${STEPS} copy [ ${OPENWRT_ARMSR} ] file into [ ${SELECT_PACKITPATH} ]"
+            echo -e "${STEPS} Copying [ ${OPENWRT_ARMSR} ] to [ ${SELECT_PACKITPATH} ]"
             if [[ "${OPENWRT_ARMSR}" =~ ^/ ]]; then
                 cp -vf ${OPENWRT_ARMSR} ${SELECT_PACKITPATH}/${PACKAGE_FILE} || true
             else
@@ -326,22 +326,22 @@ init_packit_repo() {
             fi
         fi
     else
-        echo -e "${INFO} [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] already exists, skipping."
+        echo -e "${INFO} [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] already exists, skipping download."
     fi
 
-    # Normal ${PACKAGE_FILE} file should not be less than 10MB
+    # Validate rootfs file size (minimum 10MB)
     openwrt_rootfs_size="$(du -b "${SELECT_PACKITPATH}/${PACKAGE_FILE}" 2>/dev/null | awk '{print $1}')"
     if [[ "${openwrt_rootfs_size}" -ge "10485760" ]]; then
         human_size="$(awk "BEGIN{printf \"%.2f MB\", ${openwrt_rootfs_size}/1048576}")"
         echo -e "${INFO} [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] loaded successfully."
         echo -e "${INFO} OpenWrt rootfs file size: [ ${human_size} ]"
     else
-        error_msg "The [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] failed to load."
+        error_msg "The [ ${SELECT_PACKITPATH}/${PACKAGE_FILE} ] failed to load (file is too small or corrupted)."
     fi
 
-    # Modify default IP address
+    # Modify default LAN IP address
     [[ "${OPENWRT_IP}" != "${OPENWRT_IP_DEFAULT_VALUE}" ]] && {
-        echo -e "${STEPS} Start modifying the OpenWrt default IP address to [ ${OPENWRT_IP} ]"
+        echo -e "${STEPS} Modifying default LAN IP address to [ ${OPENWRT_IP} ]"
         tmpdir="$(mktemp -d)"
         tar -xzpf "${SELECT_PACKITPATH}/${PACKAGE_FILE}" -C "${tmpdir}"
         sed -i "/lan) ipad=\${ipaddr:-/s/\${ipaddr:-\"[^\"]*\"}/\${ipaddr:-\"${OPENWRT_IP}\"}/" "${tmpdir}/bin/config_generate"
@@ -349,33 +349,33 @@ init_packit_repo() {
         rm -rf "${tmpdir}"
     }
 
-    # Add custom script
+    # Add custom packaging script
     [[ -n "${SCRIPT_DIY_PATH}" ]] && {
         rm -f ${SELECT_PACKITPATH}/${SCRIPT_DIY}
         if [[ "${SCRIPT_DIY_PATH,,}" =~ ^http ]]; then
-            echo -e "${INFO} Download the custom script file: [ ${SCRIPT_DIY_PATH} ]"
+            echo -e "${INFO} Downloading custom script: [ ${SCRIPT_DIY_PATH} ]"
 
-            # Download the custom script file. If the download fails, try again 10 times.
+            # Download the custom script file (retry up to 10 times)
             download_retry "${SCRIPT_DIY_PATH}" "${SELECT_PACKITPATH}/${SCRIPT_DIY}"
-            [[ "${?}" -eq "0" ]] || error_msg "Custom script file download failed."
+            [[ "${?}" -eq "0" ]] || error_msg "Failed to download the custom script file."
         else
-            echo -e "${INFO} Copy custom script file: [ ${SCRIPT_DIY_PATH} ]"
+            echo -e "${INFO} Copying custom script: [ ${SCRIPT_DIY_PATH} ]"
             cp -f ${GITHUB_WORKSPACE}/${SCRIPT_DIY_PATH} ${SELECT_PACKITPATH}/${SCRIPT_DIY}
-            [[ "${?}" -eq "0" ]] || error_msg "Custom script file copy failed."
+            [[ "${?}" -eq "0" ]] || error_msg "Failed to copy the custom script file."
         fi
         chmod +x ${SELECT_PACKITPATH}/${SCRIPT_DIY}
-        echo -e "List of [ ${SELECT_PACKITPATH} ] directory files:\n $(ls -lh ${SELECT_PACKITPATH})"
+        echo -e "Contents of [ ${SELECT_PACKITPATH} ] directory:\n $(ls -lh ${SELECT_PACKITPATH})"
     }
 }
 
 query_kernel() {
-    echo -e "${STEPS} Start querying the latest kernel..."
+    echo -e "${STEPS} Querying latest kernel versions..."
 
-    # Check the version on the kernel library
+    # Query kernel versions from the repository
     x="1"
     for vb in "${KERNEL_TAGS[@]}"; do
         {
-            # Select the corresponding kernel directory and list
+            # Select kernel list by tag
             if [[ "${vb,,}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
             elif [[ "${vb,,}" == "rk35xx" ]]; then
@@ -386,20 +386,20 @@ query_kernel() {
                 down_kernel_list=(${STABLE_KERNEL[@]})
             fi
 
-            # Query the name of the latest kernel version
+            # Resolve latest version for each kernel series
             TMP_ARR_KERNELS=()
             i=1
             for kernel_var in "${down_kernel_list[@]}"; do
-                echo -e "${INFO} (${i}) Auto query the latest kernel version of the same series for [ ${vb} - ${kernel_var} ]"
+                echo -e "${INFO} (${i}) Querying latest version for [ ${vb} - ${kernel_var} ]"
 
-                # Identify the kernel <VERSION> and <PATCHLEVEL>, such as [ 6.1 ]
+                # Extract kernel VERSION.PATCHLEVEL, e.g. [ 6.1 ]
                 kernel_verpatch="$(echo ${kernel_var} | awk -F '.' '{print $1"."$2}')"
 
-                # Query the latest kernel version
+                # Fetch latest kernel version from repository
                 latest_version="$(
                     curl -fsSL \
                         ${kernel_api}/releases/expanded_assets/kernel_${vb} |
-                        grep -oP "${kernel_verpatch}\.[0-9]+.*(?=\.tar\.gz)" |
+                        grep -oP "${kernel_verpatch}\.[0-9]+.*?(?=\.tar\.gz)" |
                         sort -urV | head -n 1
                 )"
 
@@ -409,24 +409,24 @@ query_kernel() {
                     TMP_ARR_KERNELS[${i}]="${kernel_var}"
                 fi
 
-                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is latest kernel."
+                echo -e "${INFO} (${i}) [ ${vb} - ${TMP_ARR_KERNELS[$i]} ] is the latest version."
 
                 ((i++))
             done
 
-            # Reset the kernel array to the latest kernel version
+            # Update kernel array with resolved latest versions
             if [[ "${vb,,}" == "rk3588" ]]; then
                 RK3588_KERNEL=(${TMP_ARR_KERNELS[@]})
-                echo -e "${INFO} The latest version of the rk3588 kernel: [ ${RK3588_KERNEL[@]} ]"
+                echo -e "${INFO} Latest rk3588 kernel version(s): [ ${RK3588_KERNEL[@]} ]"
             elif [[ "${vb,,}" == "rk35xx" ]]; then
                 RK35XX_KERNEL=(${TMP_ARR_KERNELS[@]})
-                echo -e "${INFO} The latest version of the rk35xx kernel: [ ${RK35XX_KERNEL[@]} ]"
+                echo -e "${INFO} Latest rk35xx kernel version(s): [ ${RK35XX_KERNEL[@]} ]"
             elif [[ "${vb,,}" == "flippy" ]]; then
                 FLIPPY_KERNEL=(${TMP_ARR_KERNELS[@]})
-                echo -e "${INFO} The latest version of the flippy kernel: [ ${FLIPPY_KERNEL[@]} ]"
+                echo -e "${INFO} Latest flippy kernel version(s): [ ${FLIPPY_KERNEL[@]} ]"
             else
                 STABLE_KERNEL=(${TMP_ARR_KERNELS[@]})
-                echo -e "${INFO} The latest version of the stable kernel: [ ${STABLE_KERNEL[@]} ]"
+                echo -e "${INFO} Latest stable kernel version(s): [ ${STABLE_KERNEL[@]} ]"
             fi
 
             ((x++))
@@ -435,32 +435,32 @@ query_kernel() {
 }
 
 check_kernel() {
-    [[ -n "${1}" ]] && check_path="${1}" || error_msg "Invalid kernel path to check."
+    [[ -n "${1}" ]] && check_path="${1}" || error_msg "No kernel path specified for integrity check."
     check_files=($(cat "${check_path}/sha256sums" | awk '{print $2}'))
     m="1"
     for cf in "${check_files[@]}"; do
         {
-            # Check if file exists
-            [[ -s "${check_path}/${cf}" ]] || error_msg "The [ ${cf} ] file is missing."
-            # Check if the file sha256sum is correct
+            # Verify file exists
+            [[ -s "${check_path}/${cf}" ]] || error_msg "Kernel file [ ${cf} ] is missing."
+            # Verify SHA256 checksum
             tmp_sha256sum="$(sha256sum "${check_path}/${cf}" | awk '{print $1}')"
             tmp_checkcode="$(cat ${check_path}/sha256sums | grep ${cf} | awk '{print $1}')"
-            [[ "${tmp_sha256sum,,}" == "${tmp_checkcode,,}" ]] || error_msg "[ ${cf} ]: sha256sum verification failed."
+            [[ "${tmp_sha256sum,,}" == "${tmp_checkcode,,}" ]] || error_msg "[ ${cf} ]: SHA256 checksum verification failed."
             ((m++))
         }
     done
-    echo -e "${INFO} All [ ${#check_files[@]} ] kernel files are sha256sum checked to be complete.\n"
+    echo -e "${INFO} All [ ${#check_files[@]} ] kernel files passed SHA256 integrity verification.\n"
 }
 
 download_kernel() {
-    echo -e "${STEPS} Start downloading the kernel..."
+    echo -e "${STEPS} Downloading kernel files..."
 
     cd /opt
 
     x="1"
     for vb in "${KERNEL_TAGS[@]}"; do
         {
-            # Set the kernel download list
+            # Select kernel download list by tag
             if [[ "${vb,,}" == "rk3588" ]]; then
                 down_kernel_list=(${RK3588_KERNEL[@]})
             elif [[ "${vb,,}" == "rk35xx" ]]; then
@@ -471,35 +471,35 @@ download_kernel() {
                 down_kernel_list=(${STABLE_KERNEL[@]})
             fi
 
-            # Kernel storage directory
+            # Ensure kernel storage directory exists
             kernel_path="kernel/${vb}"
             [[ -d "${kernel_path}" ]] || mkdir -p ${kernel_path}
 
-            # Download the kernel to the storage directory
+            # Download and extract kernel files
             i="1"
             for kernel_var in "${down_kernel_list[@]}"; do
                 if [[ ! -d "${kernel_path}/${kernel_var}" ]]; then
                     kernel_down_from="https://github.com/${KERNEL_REPO_URL}/releases/download/kernel_${vb}/${kernel_var}.tar.gz"
-                    echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel download from [ ${kernel_down_from} ]"
+                    echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Downloading kernel from [ ${kernel_down_from} ]"
 
-                    # Download the kernel file. If the download fails, try again 10 times.
+                    # Download the kernel archive (retry up to 10 times)
                     download_retry "${kernel_down_from}" "${kernel_path}/${kernel_var}.tar.gz"
-                    [[ "${?}" -eq "0" ]] || error_msg "Failed to download the kernel files from the server."
+                    [[ "${?}" -eq "0" ]] || error_msg "Failed to download the kernel file after 10 attempts."
 
-                    # Decompress the kernel file
+                    # Extract kernel archive
                     tar -mxf "${kernel_path}/${kernel_var}.tar.gz" -C "${kernel_path}"
-                    [[ "${?}" -eq "0" ]] || error_msg "[ ${kernel_var} ] kernel decompression failed."
+                    [[ "${?}" -eq "0" ]] || error_msg "[ ${kernel_var} ] kernel extraction failed."
                 else
-                    echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel is in the local directory."
+                    echo -e "${INFO} (${x}.${i}) [ ${vb} - ${kernel_var} ] Kernel already exists locally, skipping download."
                 fi
 
-                # If the kernel contains the sha256sums file, check the files integrity
+                # Verify file integrity if sha256sums is available
                 [[ -f "${kernel_path}/${kernel_var}/sha256sums" ]] && check_kernel "${kernel_path}/${kernel_var}"
 
                 ((i++))
             done
 
-            # Delete downloaded kernel temporary files
+            # Clean up temporary archive files
             rm -f ${kernel_path}/*.tar.gz
             sync
 
@@ -509,12 +509,12 @@ download_kernel() {
 }
 
 make_openwrt() {
-    echo -e "${STEPS} Start packaging OpenWrt..."
+    echo -e "${STEPS} Starting OpenWrt firmware packaging..."
 
     i="1"
     for PACKAGE_VAR in "${PACKAGE_OPENWRT[@]}"; do
         {
-            # Distinguish between different OpenWrt and use different kernel
+            # Select kernel based on device type
             if [[ " ${PACKAGE_OPENWRT_RK3588[@]} " =~ " ${PACKAGE_VAR} " ]]; then
                 build_kernel=(${RK3588_KERNEL[@]})
                 vb="rk3588"
@@ -534,23 +534,23 @@ make_openwrt() {
             k="1"
             for kernel_var in "${build_kernel[@]}"; do
                 {
-                    # Rockchip rk3568 series only support 6.x.y and above kernel
+                    # Rockchip rk3568 series requires kernel 6.x.y or above
                     [[ -n "$(echo "${PACKAGE_OPENWRT_6XY[@]}" | grep -w "${PACKAGE_VAR}")" && "${kernel_var:0:2}" != "6." ]] && {
-                        echo -e "${STEPS} (${i}.${k}) ${NOTE} Based on <PACKAGE_OPENWRT_6XY>, skip the [ ${PACKAGE_VAR} - ${vb}/${kernel_var} ] build."
+                        echo -e "${STEPS} (${i}.${k}) ${NOTE} Device requires kernel 6.x+, skipping [ ${PACKAGE_VAR} - ${vb}/${kernel_var} ] build."
                         ((k++))
                         continue
                     }
 
-                    # Check the available size of server space
+                    # Check available disk space
                     now_remaining_space="$(df -Tk /opt/${SELECT_PACKITPATH} | tail -n1 | awk '{print $5}' | echo $(($(xargs) / 1024 / 1024)))"
                     [[ "${now_remaining_space}" -le "3" ]] && {
-                        echo -e "${WARNING} If the remaining space is less than 3G, exit this packaging. \n"
+                        echo -e "${WARNING} Insufficient disk space (< 3GB remaining). Aborting packaging. \n"
                         break
                     }
 
                     cd /opt/kernel
 
-                    # Copy the kernel to the packaging directory
+                    # Copy kernel files to working directory
                     rm -f *.tar.gz
                     cp -f ${vb}/${kernel_var}/* .
                     #
@@ -559,11 +559,11 @@ make_openwrt() {
                     [[ "${vb,,}" == "rk3588" ]] && RK3588_KERNEL_VERSION="${KERNEL_VERSION}" || RK3588_KERNEL_VERSION=""
                     [[ "${vb,,}" == "rk35xx" ]] && RK35XX_KERNEL_VERSION="${KERNEL_VERSION}" || RK35XX_KERNEL_VERSION=""
                     echo -e "${STEPS} (${i}.${k}) Start packaging OpenWrt: [ ${PACKAGE_VAR} ], Kernel directory: [ ${vb} ], Kernel version: [ ${KERNEL_VERSION} ]"
-                    echo -e "${INFO} Remaining space is ${now_remaining_space}G. \n"
+                    echo -e "${INFO} Available disk space: ${now_remaining_space}GB \n"
 
                     cd /opt/${SELECT_PACKITPATH}
 
-                    # If flowoffload is turned on, then sfe is forced to be closed by default
+                    # When SW_FLOWOFFLOAD is enabled, force-disable SFE_FLOW
                     [[ "${SW_FLOWOFFLOAD}" -eq "1" ]] && SFE_FLOW="0"
 
                     if [[ -n "${OPENWRT_VER}" && "${OPENWRT_VER,,}" == "auto" ]]; then
@@ -571,7 +571,7 @@ make_openwrt() {
                         echo -e "${INFO} (${i}.${k}) OPENWRT_VER: [ ${OPENWRT_VER} ]"
                     fi
 
-                    # Generate a custom make.env file
+                    # Generate make.env configuration file
                     rm -f make.env 2>/dev/null
                     cat >make.env <<EOF
 WHOAMI="${WHOAMI}"
@@ -592,7 +592,7 @@ EOF
                     #echo -e "${INFO} make.env file info:"
                     #cat make.env
 
-                    # Select the corresponding packaging script
+                    # Execute device-specific packaging script
                     case "${PACKAGE_VAR}" in
                         100ask-dshanpi-a1)  [[ -f "${SCRIPT_100ASKDSHANPIA1}" ]] && sudo ./${SCRIPT_100ASKDSHANPIA1} ;;
                         ak88)               [[ -f "${SCRIPT_H88K}" ]]            && sudo ./${SCRIPT_H88K} ;;
@@ -636,13 +636,13 @@ EOF
                                                     sudo ./${SCRIPT_RK3399} ${RK3399_BOARD_LIST[rbl]} ${RK3399_DTB_LIST[rbl]}
                                                 done
                                             } ;;
-                        *)                  echo -e "${WARNING} Have no this SoC. Skipped." && continue ;;
+                        *)                  echo -e "${WARNING} Unsupported SoC [ ${PACKAGE_VAR} ], skipping." && continue ;;
                     esac
 
-                    # Generate compressed file
+                    # Compress output images
                     img_num="$(ls /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}/*.img 2>/dev/null | wc -l)"
                     [[ "${img_num}" -ne "0" ]] && {
-                        echo -e "${STEPS} (${i}.${k}) Start making compressed files in the [ ${SELECT_OUTPUTPATH} ] directory."
+                        echo -e "${STEPS} (${i}.${k}) Compressing firmware images in [ ${SELECT_OUTPUTPATH} ]"
                         cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
                         case "${GZIP_IMGS}" in
                             7z | .7z)      ls *.img | head -n 1 | xargs -I % sh -c 'sudo 7z a -t7z -r %.7z %; rm -f %' ;;
@@ -653,7 +653,7 @@ EOF
                         esac
                     }
 
-                    echo -e "${SUCCESS} (${i}.${k}) OpenWrt packaging succeeded: [ ${PACKAGE_VAR} - ${vb} - ${kernel_var} ] \n"
+                    echo -e "${SUCCESS} (${i}.${k}) OpenWrt packaged successfully: [ ${PACKAGE_VAR} - ${vb} - ${kernel_var} ] \n"
                     sync
 
                     ((k++))
@@ -664,21 +664,21 @@ EOF
         }
     done
 
-    echo -e "${SUCCESS} All packaged completed. \n"
+    echo -e "${SUCCESS} All devices packaged successfully. \n"
 }
 
 out_github_env() {
-    echo -e "${STEPS} Output github.com environment variables..."
+    echo -e "${STEPS} Exporting GitHub Actions environment variables..."
     if [[ -d "/opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}" ]]; then
 
         cd /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH}
 
         if [[ "${SAVE_OPENWRT_ROOTFS,,}" =~ ^(true|yes)$ ]]; then
-            echo -e "${INFO} copy [ ${PACKAGE_FILE} ] into [ ${SELECT_OUTPUTPATH} ]"
+            echo -e "${INFO} Copying [ ${PACKAGE_FILE} ] to [ ${SELECT_OUTPUTPATH} ]"
             sudo cp -f ../${PACKAGE_FILE} . || true
         fi
 
-        # Generate a sha256sum verification file for each OpenWrt file
+        # Generate SHA256 checksum files for each OpenWrt image
         #for file in *; do [[ -f "${file}" ]] && sudo sha256sum "${file}" | sudo tee "${file}.sha" >/dev/null; done
         #sudo rm -f *.sha.sha 2>/dev/null
 
@@ -688,30 +688,30 @@ out_github_env() {
         echo -e "PACKAGED_OUTPUTPATH: ${PWD}"
         echo -e "PACKAGED_OUTPUTDATE: $(date +"%m.%d.%H%M")"
         echo -e "PACKAGED_STATUS: success"
-        echo -e "${INFO} PACKAGED_OUTPUTPATH files list:"
+        echo -e "${INFO} Output directory contents:"
         echo -e "$(ls -lh /opt/${SELECT_PACKITPATH}/${SELECT_OUTPUTPATH} 2>/dev/null) \n"
     else
-        echo -e "${ERROR} Packaging failed. \n"
+        echo -e "${ERROR} Packaging failed: output directory not found. \n"
         echo "PACKAGED_STATUS=failure" >>${GITHUB_ENV}
     fi
 }
 # Show welcome message
-echo -e "${STEPS} Welcome to use the OpenWrt packaging tool! \n"
-echo -e "${INFO} Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
+echo -e "${STEPS} Welcome to the OpenWrt Packaging Tool! \n"
+echo -e "${INFO} Server CPU information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
 
-# Start initializing variables
+# Initialize variables and repository
 init_var
 init_packit_repo
 
-# Show server start information
-echo -e "${INFO} Server space usage before starting to compile:\n$(df -hT /opt/${SELECT_PACKITPATH}) \n"
+# Display pre-build disk usage
+echo -e "${INFO} Disk usage before packaging:\n$(df -hT /opt/${SELECT_PACKITPATH}) \n"
 
-# Packit OpenWrt
+# Package OpenWrt firmware
 [[ "${KERNEL_AUTO_LATEST,,}" =~ ^(true|yes)$ ]] && query_kernel
 download_kernel
 make_openwrt
 out_github_env
 
-# Show server end information
-echo -e "${INFO} Server space usage after compilation:\n$(df -hT /opt/${SELECT_PACKITPATH}) \n"
-echo -e "${SUCCESS} The packaging process has been completed. \n"
+# Display post-build disk usage
+echo -e "${INFO} Disk usage after packaging:\n$(df -hT /opt/${SELECT_PACKITPATH}) \n"
+echo -e "${SUCCESS} OpenWrt packaging process completed successfully. \n"
