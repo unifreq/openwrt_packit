@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       openwrt_soc:
-        description: "Select the target device board for packaging."
+        description: "Select the target device board."
         required: false
         default: "all"
         type: choice
@@ -58,7 +58,7 @@ on:
           - zcube1-max
           - diy
       customize_rk3399:
-        description: "Set custom RK3399 device list (board:dtb format)."
+        description: "Set custom RK3399 device list."
         required: false
         default: "tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb"
         type: choice
@@ -66,7 +66,7 @@ on:
           - tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb
           - none
       openwrt_ip:
-        description: "Set the default IP address for OpenWrt."
+        description: "Set the default IP address."
         required: false
         default: "192.168.1.1"
       kernel_repo:
@@ -95,20 +95,20 @@ on:
           - 6.1.y_6.12.y
           - 6.1.y_6.18.y
       auto_kernel:
-        description: "Automatically use the latest kernel in the same series."
+        description: "Auto use the latest kernel."
         required: false
         default: true
         type: boolean
       openwrt_rootfs:
-        description: "Set the tag keyword for finding OpenWrt rootfs release."
+        description: "Set the tag keyword for OpenWrt."
         required: false
         default: "OpenWrt_armv8_rootfs"
       script_diy_path:
-        description: "Set the path for loading custom DIY scripts."
+        description: "Set the path for custom DIY scripts."
         required: false
         default: ""
       openwrt_storage:
-        description: "Select release storage type (save: permanent / temp: temporary)."
+        description: "Select release storage type."
         required: false
         default: "save"
         type: choice
@@ -116,7 +116,7 @@ on:
           - save
           - temp
       builder_name:
-        description: "Set the builder signature for OpenWrt firmware."
+        description: "Set the builder signature."
         required: false
         default: "ophub"
         type: choice
