@@ -1,9 +1,9 @@
-name: 'Use flippy script to package Armvirt as OpenWrt'
+name: 'Package OpenWrt firmware for Armvirt targets'
 author: 'ophub'
-description: 'Package Armvirt as OpenWrt. Support Amlogic S9xxx STB, vplus, beikeyun and l1pro, etc.'
+description: 'Package Armvirt rootfs into OpenWrt firmware images. Supports Allwinner, Rockchip, and Amlogic S9xxx series devices.'
 inputs:
   mode:
-    description: 'Choose script.'
+    description: 'Select the packaging script to use.'
     required: false
     default: 'flippy'
 

@@ -1,17 +1,17 @@
 #==========================================================================
-# Description: Package OpenWrt image
+# Description: Package OpenWrt firmware image
 # Copyright (C) 2021 https://github.com/unifreq/openwrt_packit
 # Copyright (C) 2021 https://github.com/ophub/flippy-openwrt-actions
 #==========================================================================
 
-name: Package OpenWrt image
+name: Package OpenWrt firmware image
 
 on:
   repository_dispatch:
   workflow_dispatch:
     inputs:
       openwrt_soc:
-        description: "Select device board."
+        description: "Select the target device board for packaging."
         required: false
         default: "all"
         type: choice
@@ -58,7 +58,7 @@ on:
           - zcube1-max
           - diy
       customize_rk3399:
-        description: "Set customize rk3399 devices"
+        description: "Set custom RK3399 device list (board:dtb format)."
         required: false
         default: "tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb"
         type: choice
@@ -66,11 +66,11 @@ on:
           - tvi3315a:rk3399-tvi3315a.dtb/sw799:rk3399-bozz-sw799.dtb
           - none
       openwrt_ip:
-        description: "Set OpenWrt default IP address"
+        description: "Set the default IP address for OpenWrt."
         required: false
         default: "192.168.1.1"
       kernel_repo:
-        description: "Set the kernel repository"
+        description: "Set the kernel download repository."
         required: false
         default: "ophub/kernel"
         type: choice
@@ -78,7 +78,7 @@ on:
           - breakingbadboy/OpenWrt
           - ophub/kernel
       openwrt_kernel:
-        description: "Select kernel version"
+        description: "Select the kernel version to use."
         required: false
         default: "6.1.y_6.12.y"
         type: choice
@@ -95,20 +95,20 @@ on:
           - 6.1.y_6.12.y
           - 6.1.y_6.18.y
       auto_kernel:
-        description: "Auto use the latest kernel"
+        description: "Automatically use the latest kernel in the same series."
         required: false
         default: true
         type: boolean
       openwrt_rootfs:
-        description: "Set OpenWrt rootfs tags keywords"
+        description: "Set the tag keyword for finding OpenWrt rootfs release."
         required: false
         default: "OpenWrt_armv8_rootfs"
       script_diy_path:
-        description: "Set custom script loading path"
+        description: "Set the path for loading custom DIY scripts."
         required: false
         default: ""
       openwrt_storage:
-        description: "Select image storage type."
+        description: "Select release storage type (save: permanent / temp: temporary)."
         required: false
         default: "save"
         type: choice
@@ -116,7 +116,7 @@ on:
           - save
           - temp
       builder_name:
-        description: "Set OpenWrt builder signature."
+        description: "Set the builder signature for OpenWrt firmware."
         required: false
         default: "ophub"
         type: choice
@@ -137,7 +137,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Initialization environment
+      - name: Initialize build environment
         id: init
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -163,7 +163,7 @@ jobs:
           timedatectl status || true
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Create simulated physical disk
+      - name: Create LVM virtual disk
         run: |
           mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
           root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
@@ -182,15 +182,15 @@ jobs:
           df -Th
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Download OpenWrt rootfs file
+      - name: Download OpenWrt rootfs
         id: download
         working-directory: /builder
         if: ${{ steps.init.outputs.status == 'success' && !cancelled() }}
         run: |
-          # Set OpenWrt rootfs repository(Change it to your own repository)
+          # Set the OpenWrt rootfs download repository (change to your own if needed)
           down_rootfs_repo="ophub/flippy-openwrt-actions"
 
-          # Get the latest OpenWrt rootfs download URL
+          # Fetch the latest rootfs download URL from the release API
           latest_version=$(curl -s \
                 -H "Accept: application/vnd.github+json" \
                 -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
@@ -204,18 +204,18 @@ jobs:
                 .[0] |
                 {data: .updated_at, url: .browser_download_url}')
 
-          [[ -z "${latest_version}" || "${latest_version}" == "null" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
+          [[ -z "${latest_version}" || "${latest_version}" == "null" ]] && echo "Failed to retrieve OpenWrt rootfs download URL." && exit 1
           latest_url="$(echo ${latest_version} | jq -r '.url')"
           rootfsfile_name="${latest_url##*/}"
-          echo "Latest OpenWrt rootfs file: ${rootfsfile_name}"
+          echo "Latest rootfs file found: ${rootfsfile_name}"
 
-          # Download OpenWrt rootfs file
+          # Download the rootfs file
           download_path="download"
           [[ -d "${download_path}" ]] || mkdir -p ${download_path}
           curl -fsSL "${latest_url}" -o "${download_path}/${rootfsfile_name}"
-          [[ "${?}" -ne "0" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
+          [[ "${?}" -ne "0" ]] && echo "Failed to download OpenWrt rootfs file." && exit 1
 
-          # Mount builder directory
+          # Set up builder directory and symlinks
           mkdir -p opt
           sudo rm -rf /opt && sudo ln -sf /builder/opt /opt
           ln -sf /builder/${download_path} ${{ github.workspace }}/${download_path}
