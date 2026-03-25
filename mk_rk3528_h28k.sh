@@ -17,16 +17,16 @@ SOC=rk3528
 BOARD=h28k
 SUBVER=$1
 
-if [ -n "$RK35XX_KERNEL_VERSION" ];then
-    # lock the kernel version
-    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
-    LOCK_KERNEL=${KERNEL_VERSION}
-fi
+#if [ -n "$RK35XX_KERNEL_VERSION" ];then
+#    # lock the kernel version
+#    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
+#    LOCK_KERNEL=${KERNEL_VERSION}
+#fi
 
 # Kernel image sources
 ###################################################################
 KERNEL_TAGS="rk35xx"
-KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.1"
+KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.12"
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
 check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
@@ -125,8 +125,8 @@ WIRELESS_CONFIG="${PWD}/files/rk3528/h28k/wireless"
 check_depends
 
 SKIP_MB=16
-BOOT_MB=512
-ROOTFS_MB=2048
+BOOT_MB=384
+ROOTFS_MB=1280
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "gpt" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"

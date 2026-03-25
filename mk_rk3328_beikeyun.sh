@@ -109,8 +109,8 @@ MODULES_HOME="${PWD}/files/rk3328/modules.d"
 check_depends
 
 SKIP_MB=16
-BOOT_MB=512
-ROOTFS_MB=2048
+BOOT_MB=384
+ROOTFS_MB=1280
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"

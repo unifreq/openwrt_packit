@@ -17,16 +17,16 @@ SOC=rk3528
 BOARD=e20c
 SUBVER=$1
 
-if [ -n "$RK35XX_KERNEL_VERSION" ];then
-    # lock the kernel version
-    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
-    LOCK_KERNEL=${KERNEL_VERSION}
-fi
+#if [ -n "$RK35XX_KERNEL_VERSION" ];then
+#    # lock the kernel version
+#    KERNEL_VERSION=$RK35XX_KERNEL_VERSION
+#    LOCK_KERNEL=${KERNEL_VERSION}
+#fi
 
 # Kernel image sources
 ###################################################################
 KERNEL_TAGS="rk35xx"
-KERNEL_BRANCHES="bsp:rk35xx:>=:5.10"
+KERNEL_BRANCHES="bsp:rk35xx:>=:5.10 mainline:all:>=:6.12"
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
 check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
