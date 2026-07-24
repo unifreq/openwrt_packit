@@ -1936,7 +1936,12 @@ function write_uboot_to_disk() {
         if [ "$PLATFORM" == "rockchip" ] && [ -n "$BOOTLOADER_IMG" ];then
             echo "写入 bootloader ..."
             local btld_home=${BOOTLOADER_IMG%/*}
-	    if [ -f "${btld_home}/idbloader.img" ] && [ -f "${btld_home}/u-boot.itb" ];then
+	    if [ -f "${btld_home}/idblock.img" ] && [ -f "${btld_home}/uboot.img" ];then
+                echo "dd if=${btld_home}/idblock.img of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=64"
+                dd if=${btld_home}/idblock.img of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=64
+                echo "dd if=${btld_home}/uboot.img of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=16384"
+                dd if=${btld_home}/uboot.img of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=16384
+	    elif [ -f "${btld_home}/idbloader.img" ] && [ -f "${btld_home}/u-boot.itb" ];then
                 echo "dd if=${btld_home}/idbloader.img of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=64"
                 dd if=${btld_home}/idbloader.img of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=64
                 echo "dd if=${btld_home}/u-boot.itb of=${TGT_DEV} conv=fsync,notrunc bs=512 seek=16384"
