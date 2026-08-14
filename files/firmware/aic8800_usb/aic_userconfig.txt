@@ -1,0 +1,1 @@
+../aic8800_fw/USB/aic8800/aic_userconfig.txt

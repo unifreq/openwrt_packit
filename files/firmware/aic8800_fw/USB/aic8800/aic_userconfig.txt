@@ -1,0 +1,30 @@
+# AIC USERCONFIG 2021/0911/2127
+
+# txpwr_idx
+enable=1
+dsss=9
+ofdmlowrate_2g4=10
+ofdm64qam_2g4=10
+ofdm256qam_2g4=9
+ofdm1024qam_2g4=8
+ofdmlowrate_5g=10
+ofdm64qam_5g=9
+ofdm256qam_5g=9
+ofdm1024qam_5g=8
+
+# txpwr_ofst
+ofst_enable=0
+ofst_chan_1_4=0
+ofst_chan_5_9=0
+ofst_chan_10_13=0
+ofst_chan_36_64=0
+ofst_chan_100_120=0
+ofst_chan_122_140=0
+ofst_chan_142_165=0
+
+# xtal cap
+xtal_enable=0
+xtal_cap=24
+xtal_cap_fine=31
+
+# END

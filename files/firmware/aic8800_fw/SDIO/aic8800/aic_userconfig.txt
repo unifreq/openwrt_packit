@@ -1,0 +1,58 @@
+# AIC USERCONFIG 2021/0801/2230(CDTech)
+
+# module0_txpwr_idx
+module0_enable=1
+module0_dsss=9
+module0_ofdmlowrate_2g4=10
+module0_ofdm64qam_2g4=10
+module0_ofdm256qam_2g4=10
+module0_ofdm1024qam_2g4=8
+module0_ofdmlowrate_5g=11
+module0_ofdm64qam_5g=10
+module0_ofdm256qam_5g=10
+module0_ofdm1024qam_5g=9
+
+# module0_txpwr_ofst
+module0_ofst_enable=0
+module0_ofst_chan_1_4=0
+module0_ofst_chan_5_9=0
+module0_ofst_chan_10_13=0
+module0_ofst_chan_36_64=0
+module0_ofst_chan_100_120=0
+module0_ofst_chan_122_140=0
+module0_ofst_chan_142_165=0
+
+# module0_xtal cap
+module0_xtal_enable=0
+module0_xtal_cap=24
+module0_xtal_cap_fine=31
+
+# module1_txpwr_idx
+module1_enable=1
+module1_dsss=10
+module1_ofdmlowrate_2g4=11
+module1_ofdm64qam_2g4=10
+module1_ofdm256qam_2g4=10
+module1_ofdm1024qam_2g4=9
+module1_ofdmlowrate_5g=11
+module1_ofdm64qam_5g=10
+module1_ofdm256qam_5g=10
+module1_ofdm1024qam_5g=9
+
+# module1_txpwr_ofst
+module1_ofst_enable=0
+module1_ofst_chan_1_4=0
+module1_ofst_chan_5_9=0
+module1_ofst_chan_10_13=0
+module1_ofst_chan_36_64=0
+module1_ofst_chan_100_120=0
+module1_ofst_chan_122_140=0
+module1_ofst_chan_142_165=0
+
+# module1_xtal cap
+module1_xtal_enable=0
+module1_xtal_cap=24
+module1_xtal_cap_fine=31
+
+# END
+

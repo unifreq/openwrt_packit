@@ -1,0 +1,68 @@
+# AIC USERCONFIG 2025/1016/1157
+
+# txpwr_lvl
+enable=1
+lvl_11b_11ag_1m_2g4=18
+lvl_11b_11ag_2m_2g4=18
+lvl_11b_11ag_5m5_2g4=18
+lvl_11b_11ag_11m_2g4=18
+lvl_11b_11ag_6m_2g4=18
+lvl_11b_11ag_9m_2g4=18
+lvl_11b_11ag_12m_2g4=18
+lvl_11b_11ag_18m_2g4=18
+lvl_11b_11ag_24m_2g4=16
+lvl_11b_11ag_36m_2g4=16
+lvl_11b_11ag_48m_2g4=15
+lvl_11b_11ag_54m_2g4=15
+lvl_11n_11ac_mcs0_2g4=18
+lvl_11n_11ac_mcs1_2g4=18
+lvl_11n_11ac_mcs2_2g4=18
+lvl_11n_11ac_mcs3_2g4=18
+lvl_11n_11ac_mcs4_2g4=16
+lvl_11n_11ac_mcs5_2g4=16
+lvl_11n_11ac_mcs6_2g4=15
+lvl_11n_11ac_mcs7_2g4=15
+lvl_11n_11ac_mcs8_2g4=14
+lvl_11n_11ac_mcs9_2g4=14
+lvl_11ax_mcs0_2g4=18
+lvl_11ax_mcs1_2g4=18
+lvl_11ax_mcs2_2g4=18
+lvl_11ax_mcs3_2g4=18
+lvl_11ax_mcs4_2g4=16
+lvl_11ax_mcs5_2g4=16
+lvl_11ax_mcs6_2g4=15
+lvl_11ax_mcs7_2g4=15
+lvl_11ax_mcs8_2g4=14
+lvl_11ax_mcs9_2g4=14
+lvl_11ax_mcs10_2g4=13
+lvl_11ax_mcs11_2g4=13
+
+# txpwr_lvl_adj
+lvl_adj_enable=0
+lvl_adj_2g4_chan_1_4=0
+lvl_adj_2g4_chan_5_9=0
+lvl_adj_2g4_chan_10_13=0
+
+# txpwr_loss
+loss_enable_2g4=0
+loss_value_2g4=2
+
+# txpwr_ofst
+ofst_enable=0
+ofst_2g4_11b_chan_1_4=0
+ofst_2g4_11b_chan_5_9=0
+ofst_2g4_11b_chan_10_13=0
+ofst_2g4_ofdm_highrate_chan_1_4=0
+ofst_2g4_ofdm_highrate_chan_5_9=0
+ofst_2g4_ofdm_highrate_chan_10_13=0
+ofst_2g4_ofdm_lowrate_chan_1_4=0
+ofst_2g4_ofdm_lowrate_chan_5_9=0
+ofst_2g4_ofdm_lowrate_chan_10_13=0
+
+# xtal cap
+xtal_enable=0
+xtal_cap=24
+xtal_cap_fine=31
+
+
+

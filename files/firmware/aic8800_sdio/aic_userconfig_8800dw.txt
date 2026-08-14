@@ -1,0 +1,1 @@
+../aic8800_fw/SDIO/aic8800DC/aic_userconfig_8800dw.txt

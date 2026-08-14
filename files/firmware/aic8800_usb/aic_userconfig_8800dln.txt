@@ -1,0 +1,1 @@
+../aic8800_fw/USB/aic8800DLN/aic_userconfig_8800dln.txt

@@ -1,0 +1,1 @@
+../aic8800_fw/USB/aic8800DC/aic_powerlimit_8800dw.txt
