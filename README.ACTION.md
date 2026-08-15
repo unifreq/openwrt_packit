@@ -22,12 +22,15 @@
 
 ```yaml
 - name: Upload OpenWrt Firmware to Release
-  uses: ncipollo/release-action@main
+  uses: ophub/upload-to-releases@main
   with:
     tag: openwrt_armsr-armv8_${{ env.PACKAGED_OUTPUTDATE }}
     artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
-    allowUpdates: true
-    token: ${{ secrets.GH_TOKEN }}
+    allow_updates: true
+    remove_artifacts: false
+    replaces_artifacts: true
+    make_latest: true
+    gh_token: ${{ secrets.GITHUB_TOKEN }}
     body: |
       This is OpenWrt firmware for Armv8
       * Firmware information
@@ -46,7 +49,7 @@
 | KERNEL_REPO_URL        | breakings/OpenWrt     | 设置内核下载仓库，格式为 `<owner>/<repo>`。默认从 breakings 维护的[内核 Releases](https://github.com/breakings/OpenWrt/releases/tag/kernel_stable)下载。 |
 | KERNEL_VERSION_NAME    | 6.1.y_6.12.y           | 设置[内核版本](https://github.com/breakings/OpenWrt/releases/tag/kernel_stable)，可查看并选择指定版本。可指定单个内核如 `6.1.y`，也可选择多个内核用 `_` 连接如 `6.1.y_6.12.y` |
 | KERNEL_AUTO_LATEST     | true                   | 设置是否自动采用同系列最新版本内核。当为 `true` 时，将自动在内核库中查找 `KERNEL_VERSION_NAME` 指定的内核（如 6.1.y）同系列是否有更新版本，如有则自动更换为最新版。设置为 `false` 时将使用指定版本内核。 |
-| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包目标设备的 `SOC`，默认 `all` 打包全部设备，可指定单个设备如 `s905x3`，可选择多个设备用 `_` 连接如 `s905x3_s905d`。各设备的 SoC 代码为：`100ask-dshanpi-a1`, `vplus`, `cm3`, `jp-tvbox`, `beikeyun`, `l1pro`, `rock5b`, `rock5c`, `e52c`, `e54c`, `r66s`, `r68s`, `h88k`, `h88k-v3`, `ak88`, `ht2`, `e20c`, `e24c`, `h28k`, `h66k`, `h68k`, `h69k`, `h69k-max`, `e25`, `photonicat`, `watermelon-pi`, `yixun-rs6pro`, `zcube1-max`, `rk3399`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`，`diy` 是自定义设备。 |
+| PACKAGE_SOC            | s905d_s905x3_beikeyun  | 设置打包目标设备的 `SOC`，默认 `all` 打包全部设备，可指定单个设备如 `s905x3`，可选择多个设备用 `_` 连接如 `s905x3_s905d`。各设备的 SoC 代码为：`100ask-dshanpi-a1`, `vplus`, `cm3`, `jp-tvbox`, `beikeyun`, `l1pro`, `rock5b`, `rock5c`, `e52c`, `e54c`, `r66s`, `r68s`, `h88k`, `h88k-v3`, `ak88`, `ht2`, `e20c`, `e24c`, `h28k`, `h66k`, `h68k`, `h69k`, `h69k-max`, `e25`, `photonicat`, `watermelon-pi`, `xylink-xr3528`, `yixun-rs6pro`, `zcube1-max`, `rk3399`, `s905`, `s905d`, `s905x2`, `s905x3`, `s912`, `s922x`, `s922x-n2`, `qemu`, `diy`。说明：`s922x-n2` 是 `s922x-odroid-n2`，`diy` 是自定义设备。 |
 | GZIP_IMGS              | auto                   | 设置打包完成后的文件压缩格式，可选值 `.gz`（默认） / `.xz` / `.zip` / `.zst` / `.7z` |
 | OPENWRT_IP             | 192.168.1.1            | 设置 OpenWrt 的默认 IP 地址                      |
 | SELECT_PACKITPATH      | openwrt_packit         | 设置 `/opt` 下的打包目录名称                     |
@@ -85,6 +88,7 @@
 | SCRIPT_S912            | mk_s912_zyxq.sh        | 设置打包 `s912 zyxq` 的脚本文件名                |
 | SCRIPT_S922X           | mk_s922x_gtking.sh     | 设置打包 `s922x gtking` 的脚本文件名             |
 | SCRIPT_S922X_N2        | mk_s922x_odroid-n2.sh  | 设置打包 `s922x odroid-n2` 的脚本文件名          |
+| SCRIPT_XYLINK_XR3528   | mk_rk3528_xylink-xr3528.sh | 设置打包 `xylink xr3528` 的脚本文件名            |
 | SCRIPT_QEMU            | mk_qemu-aarch64_img.sh | 设置打包 `qemu` 的脚本文件名                     |
 | SCRIPT_DIY             | mk_diy.sh              | 设置打包 `diy` 自定义脚本文件名                  |
 | SCRIPT_DIY_PATH        | 无                     | 设置 `SCRIPT_DIY` 文件的来源路径。可使用网络地址如 `https://weburl/mydiyfile` 或仓库中的相对路径如 `script/mk_s905w_tx3.sh` |
