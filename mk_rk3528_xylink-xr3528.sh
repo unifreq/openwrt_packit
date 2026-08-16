@@ -17,6 +17,15 @@ SOC=rk3528
 BOARD=xylink-xr3528
 SUBVER=$1
 
+# suppert mainline kernel >= 6.18.44-flippy-95+ & bsp kernel >= 6.1.141-rk35xx-flippy-2608a
+if [ "$SUBVER" == "bsp" ];then
+  if [ -n "$RK35XX_KERNEL_VERSION" ];then
+      # lock the kernel version
+      KERNEL_VERSION=$RK35XX_KERNEL_VERSION
+      LOCK_KERNEL=${KERNEL_VERSION}
+  fi
+fi
+
 # Kernel image sources
 ###################################################################
 KERNEL_TAGS="rk35xx"
