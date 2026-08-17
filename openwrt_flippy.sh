@@ -36,7 +36,7 @@ PACKAGE_OPENWRT=(
     "ak88" "e52c" "e54c" "h88k" "h88k-v3" "rock5b" "rock5c"
     "100ask-dshanpi-a1" "e20c" "e24c" "h28k" "h66k" "h68k" "h69k" "h69k-max" "ht2"
     "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max"
-    "cm3" "e25" "photonicat" "r66s" "r68s" "rk3399"
+    "cm3" "e25" "photonicat" "r66s" "r68s" "rk3399" "xylink-xr3528"
     "s922x" "s922x-n2" "s905x3" "s905x2" "s912" "s905d" "s905"
     "beikeyun" "l1pro"
     "vplus"
@@ -51,7 +51,7 @@ PACKAGE_OPENWRT_RK35XX=(
     "jp-tvbox" "watermelon-pi" "yixun-rs6pro" "zcube1-max"
 )
 # Devices using the [ 6.x.y ] kernel
-PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399")
+PACKAGE_OPENWRT_6XY=("cm3" "e25" "photonicat" "r66s" "r68s" "rk3399" "xylink-xr3528")
 # Package all devices by default; specify individual devices like: [ s905x3_s905d_rock5b ]
 PACKAGE_SOC_VALUE="all"
 
@@ -108,6 +108,7 @@ SCRIPT_VPLUS_FILE="mk_h6_vplus.sh"
 SCRIPT_WATERMELONPI_FILE="mk_rk3568_watermelon-pi.sh"
 SCRIPT_RS6PRO_FILE="mk_rk3528_rs6pro.sh"
 SCRIPT_ZCUBE1MAX_FILE="mk_rk3399_zcube1-max.sh"
+SCRIPT_XYLINK_XR3528_FILE="mk_rk3528_xylink-xr3528.sh"
 
 # Default make.env parameters
 WHOAMI_VALUE="flippy"
@@ -203,6 +204,7 @@ init_var() {
     SCRIPT_WATERMELONPI="${SCRIPT_WATERMELONPI:-${SCRIPT_WATERMELONPI_FILE}}"
     SCRIPT_RS6PRO="${SCRIPT_RS6PRO:-${SCRIPT_RS6PRO_FILE}}"
     SCRIPT_ZCUBE1MAX="${SCRIPT_ZCUBE1MAX:-${SCRIPT_ZCUBE1MAX_FILE}}"
+    SCRIPT_XYLINK_XR3528="${SCRIPT_XYLINK_XR3528:-${SCRIPT_XYLINK_XR3528_FILE}}"
 
     # Load user-defined make.env parameters
     WHOAMI="${WHOAMI:-${WHOAMI_VALUE}}"
@@ -629,6 +631,7 @@ EOF
                         s922x-n2)           [[ -f "${SCRIPT_S922X_N2}" ]]        && sudo ./${SCRIPT_S922X_N2} ;;
                         vplus)              [[ -f "${SCRIPT_VPLUS}" ]]           && sudo ./${SCRIPT_VPLUS} ;;
                         watermelon-pi)      [[ -f "${SCRIPT_WATERMELONPI}" ]]    && sudo ./${SCRIPT_WATERMELONPI} ;;
+                        xylink-xr3528)      [[ -f "${SCRIPT_XYLINK_XR3528}" ]]   && sudo ./${SCRIPT_XYLINK_XR3528} ;;
                         yixun-rs6pro)       [[ -f "${SCRIPT_RS6PRO}" ]]          && sudo ./${SCRIPT_RS6PRO} ;;
                         zcube1-max)         [[ -f "${SCRIPT_ZCUBE1MAX}" ]]       && sudo ./${SCRIPT_ZCUBE1MAX} ;;
                         rk3399)             [[ -f "${SCRIPT_RK3399}" && ${#RK3399_BOARD_LIST[@]} -gt 0 ]] && {
