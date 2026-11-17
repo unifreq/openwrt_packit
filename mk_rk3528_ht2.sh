@@ -128,7 +128,7 @@ check_depends
 
 SKIP_MB=16
 BOOT_MB=384
-ROOTFS_MB=1280
+ROOTFS_MB=1536
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB + 1))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "gpt" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
