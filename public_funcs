@@ -1200,7 +1200,7 @@ function write_banner() {
         cd $TGT_ROOT
         if [ -f $BANNER ];then
             cp -f $BANNER ./etc/banner
-            echo " Base on OpenWrt ${OPENWRT_VER} by lean & lienol" >> etc/banner
+            echo " Base on OpenWrt/LEDE ${OPENWRT_VER}" >> etc/banner
             echo " Kernel ${KERNEL_VERSION}" >> etc/banner
             TODAY=$(date +%Y-%m-%d)
             echo " Packaged by ${WHOAMI} on ${TODAY}" >> etc/banner
